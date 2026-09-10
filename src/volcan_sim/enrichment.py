@@ -30,9 +30,21 @@ class VolcanSemanticEnricher:
         self.random_seed = random_seed
         np.random.seed(random_seed)
 
-        self.notas_altas: List[str] = templates.get("notas_catacion_altas", [])
-        self.notas_medias: List[str] = templates.get("notas_catacion_medias", [])
-        self.defectos: List[str] = templates.get("defectos_proceso", [])
+        self.notas_altas: List[str] = (
+            templates.get("notas_catacion_altas")
+            or templates.get("notas_altas")
+            or ["Jazmín, flor de café, bergamota, acidez cítrica brillante"]
+        )
+        self.notas_medias: List[str] = (
+            templates.get("notas_catacion_medias")
+            or templates.get("notas_medias")
+            or ["Chocolate amargo, panela, caramelo tostado, ciruela pasa"]
+        )
+        self.defectos: List[str] = (
+            templates.get("defectos_proceso")
+            or templates.get("observaciones_proceso")
+            or ["Sobrefermentación en pila", "Secado desparejo por lluvias imprevistas"]
+        )
 
     def enrich_lots_and_processes(
         self,

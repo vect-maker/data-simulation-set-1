@@ -22,7 +22,11 @@ class MoviGoSemanticEnricher:
         self.use_llm = use_llm
         self.random_seed = random_seed
         np.random.seed(random_seed)
-        self.motivos_cancel = templates.get("motivos_cancelacion", [])
+        self.motivos_cancel = (
+            templates.get("motivos_cancelacion")
+            or (templates.get("motivos_cancelacion_conductor", []) + templates.get("motivos_cancelacion_usuario", []))
+            or ["Tranque en rotonda Centroamérica", "Lluvia torrencial inundó la vía", "Pasajero no apareció"]
+        )
 
     def enrich_trips(self, viajes: List[Viaje]) -> List[Viaje]:
         """Ensure all canceled trips have descriptive Managua cancellation notes."""

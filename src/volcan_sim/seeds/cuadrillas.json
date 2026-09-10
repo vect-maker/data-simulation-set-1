@@ -1,122 +1,98 @@
 [
   {
     "id_cuadrilla": "CUA-001",
-    "nombre_cuadrilla": "Cuadrilla Los Datanlí (Capataz: Chepe Rivas)",
+    "nombre_cuadrilla": "Cuadrilla Los Pinares",
     "capacidad_recolectores": 25,
-    "rendimiento_latas_dia": 185.00,
-    "costo_jornal_dia": 240.00,
+    "rendimiento_latas_dia": 180.5,
+    "costo_jornal_dia": 220.0,
     "estado": "activa"
   },
   {
     "id_cuadrilla": "CUA-002",
-    "nombre_cuadrilla": "Cuadrilla Selva Brava (Capataz: Toño Morales)",
+    "nombre_cuadrilla": "Cuadrilla El Esfuerzo",
     "capacidad_recolectores": 30,
-    "rendimiento_latas_dia": 225.00,
-    "costo_jornal_dia": 250.00,
+    "rendimiento_latas_dia": 210.0,
+    "costo_jornal_dia": 230.0,
     "estado": "activa"
   },
   {
     "id_cuadrilla": "CUA-003",
-    "nombre_cuadrilla": "Cuadrilla Flor de Pino Dipilto (Capataz: Marvin Ortez)",
+    "nombre_cuadrilla": "Cuadrilla Las Segovias",
     "capacidad_recolectores": 20,
-    "rendimiento_latas_dia": 150.00,
-    "costo_jornal_dia": 270.00,
-    "estado": "activa"
+    "rendimiento_latas_dia": 150.0,
+    "costo_jornal_dia": 240.0,
+    "estado": "asignada"
   },
   {
     "id_cuadrilla": "CUA-004",
-    "nombre_cuadrilla": "Cuadrilla Río Coco Norte (Capataz: Denis Tercero)",
-    "capacidad_recolectores": 22,
-    "rendimiento_latas_dia": 165.00,
-    "costo_jornal_dia": 230.00,
+    "nombre_cuadrilla": "Cuadrilla Volcánica",
+    "capacidad_recolectores": 35,
+    "rendimiento_latas_dia": 260.0,
+    "costo_jornal_dia": 250.0,
     "estado": "activa"
   },
   {
     "id_cuadrilla": "CUA-005",
-    "nombre_cuadrilla": "Cuadrilla El Cuá Escondido (Capataz: Santos Rugama)",
-    "capacidad_recolectores": 28,
-    "rendimiento_latas_dia": 210.00,
-    "costo_jornal_dia": 240.00,
-    "estado": "activa"
+    "nombre_cuadrilla": "Cuadrilla Datanlí",
+    "capacidad_recolectores": 15,
+    "rendimiento_latas_dia": 110.0,
+    "costo_jornal_dia": 210.0,
+    "estado": "descanso"
   },
   {
     "id_cuadrilla": "CUA-006",
-    "nombre_cuadrilla": "Cuadrilla San Ramón Matagalpa (Capataz: Bayardo Talavera)",
-    "capacidad_recolectores": 24,
-    "rendimiento_latas_dia": 180.00,
-    "costo_jornal_dia": 235.00,
+    "nombre_cuadrilla": "Cuadrilla Dipilto Gold",
+    "capacidad_recolectores": 28,
+    "rendimiento_latas_dia": 195.0,
+    "costo_jornal_dia": 245.0,
     "estado": "activa"
   },
   {
     "id_cuadrilla": "CUA-007",
-    "nombre_cuadrilla": "Cuadrilla Las Segovias (Capataz: Wilmer Paguaga)",
-    "capacidad_recolectores": 18,
-    "rendimiento_latas_dia": 140.00,
-    "costo_jornal_dia": 260.00,
-    "estado": "activa"
+    "nombre_cuadrilla": "Cuadrilla Aurora",
+    "capacidad_recolectores": 22,
+    "rendimiento_latas_dia": 160.0,
+    "costo_jornal_dia": 225.0,
+    "estado": "asignada"
   },
   {
     "id_cuadrilla": "CUA-008",
-    "nombre_cuadrilla": "Cuadrilla Cerro Grande (Capataz: Noel Rostrán)",
-    "capacidad_recolectores": 26,
-    "rendimiento_latas_dia": 195.00,
-    "costo_jornal_dia": 245.00,
+    "nombre_cuadrilla": "Cuadrilla Matagalpa Norte",
+    "capacidad_recolectores": 32,
+    "rendimiento_latas_dia": 240.0,
+    "costo_jornal_dia": 235.0,
     "estado": "activa"
   },
   {
     "id_cuadrilla": "CUA-009",
-    "nombre_cuadrilla": "Cuadrilla Yasica Sur (Capataz: Francisco Borge)",
-    "capacidad_recolectores": 32,
-    "rendimiento_latas_dia": 240.00,
-    "costo_jornal_dia": 240.00,
-    "estado": "activa"
+    "nombre_cuadrilla": "Cuadrilla San Juan",
+    "capacidad_recolectores": 18,
+    "rendimiento_latas_dia": 130.0,
+    "costo_jornal_dia": 215.0,
+    "estado": "descanso"
   },
   {
     "id_cuadrilla": "CUA-010",
-    "nombre_cuadrilla": "Cuadrilla Pantasma Fiel (Capataz: Erick Altamirano)",
-    "capacidad_recolectores": 20,
-    "rendimiento_latas_dia": 155.00,
-    "costo_jornal_dia": 230.00,
+    "nombre_cuadrilla": "Cuadrilla Pantasma Libre",
+    "capacidad_recolectores": 26,
+    "rendimiento_latas_dia": 185.0,
+    "costo_jornal_dia": 220.0,
     "estado": "activa"
   },
   {
     "id_cuadrilla": "CUA-011",
-    "nombre_cuadrilla": "Cuadrilla Mozonte Alto (Capataz: Carlos Castillo)",
-    "capacidad_recolectores": 16,
-    "rendimiento_latas_dia": 125.00,
-    "costo_jornal_dia": 275.00,
-    "estado": "activa"
+    "nombre_cuadrilla": "Cuadrilla Jalapa Select",
+    "capacidad_recolectores": 24,
+    "rendimiento_latas_dia": 175.0,
+    "costo_jornal_dia": 230.0,
+    "estado": "asignada"
   },
   {
     "id_cuadrilla": "CUA-012",
-    "nombre_cuadrilla": "Cuadrilla Somoto Real (Capataz: Nelson Padilla)",
-    "capacidad_recolectores": 15,
-    "rendimiento_latas_dia": 115.00,
-    "costo_jornal_dia": 220.00,
-    "estado": "activa"
-  },
-  {
-    "id_cuadrilla": "CUA-013",
-    "nombre_cuadrilla": "Cuadrilla Arenal Verde (Capataz: Danilo Treminio)",
-    "capacidad_recolectores": 22,
-    "rendimiento_latas_dia": 170.00,
-    "costo_jornal_dia": 245.00,
-    "estado": "descanso"
-  },
-  {
-    "id_cuadrilla": "CUA-014",
-    "nombre_cuadrilla": "Cuadrilla Jalapa Frontera (Capataz: Henry Vilchez)",
-    "capacidad_recolectores": 19,
-    "rendimiento_latas_dia": 145.00,
-    "costo_jornal_dia": 255.00,
-    "estado": "activa"
-  },
-  {
-    "id_cuadrilla": "CUA-015",
-    "nombre_cuadrilla": "Cuadrilla Telpaneca Criolla (Capataz: Julio Carrasco)",
-    "capacidad_recolectores": 20,
-    "rendimiento_latas_dia": 150.00,
-    "costo_jornal_dia": 225.00,
+    "nombre_cuadrilla": "Cuadrilla Central",
+    "capacidad_recolectores": 30,
+    "rendimiento_latas_dia": 220.0,
+    "costo_jornal_dia": 240.0,
     "estado": "activa"
   }
 ]

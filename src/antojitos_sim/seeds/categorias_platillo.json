@@ -1,27 +1,27 @@
 [
   {
     "id_categoria": "CAT-FRT",
-    "nombre_categoria": "Fritanga y Asados Tradicionales",
-    "margen_contribucion_pct": 0.55
+    "nombre_categoria": "Fritanga",
+    "margen_contribucion_pct": 0.65
   },
   {
     "id_categoria": "CAT-QSL",
-    "nombre_categoria": "Quesillos y Antojos Típicos",
-    "margen_contribucion_pct": 0.60
+    "nombre_categoria": "Quesillos",
+    "margen_contribucion_pct": 0.7
   },
   {
     "id_categoria": "CAT-HAM",
-    "nombre_categoria": "Hamburguesas y Snacks Urbanos",
-    "margen_contribucion_pct": 0.50
+    "nombre_categoria": "Hamburguesas",
+    "margen_contribucion_pct": 0.55
   },
   {
     "id_categoria": "CAT-BEB",
-    "nombre_categoria": "Bebidas Típicas y Cervezas",
-    "margen_contribucion_pct": 0.70
+    "nombre_categoria": "Bebidas",
+    "margen_contribucion_pct": 0.8
   },
   {
     "id_categoria": "CAT-POS",
-    "nombre_categoria": "Postres y Dulces Tradicionales",
-    "margen_contribucion_pct": 0.65
+    "nombre_categoria": "Postres",
+    "margen_contribucion_pct": 0.6
   }
 ]

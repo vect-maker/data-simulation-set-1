@@ -1,202 +1,202 @@
 [
   {
     "id_repartidor": "REP-001",
-    "nombre": "José Daniel Blandón",
+    "nombre": "Carlos Alberto Martínez",
     "tipo_vehiculo": "moto",
-    "calificacion_promedio": 4.88,
-    "capacidad_maxima_ordenes": 4,
+    "calificacion_promedio": 4.85,
+    "capacidad_maxima_ordenes": 5,
     "estado": "activo"
   },
   {
     "id_repartidor": "REP-002",
-    "nombre": "Kevin Alexander Torrez",
-    "tipo_vehiculo": "moto",
-    "calificacion_promedio": 4.92,
-    "capacidad_maxima_ordenes": 5,
-    "estado": "activo"
-  },
-  {
-    "id_repartidor": "REP-003",
-    "nombre": "Marcos Aurelio Mendoza",
-    "tipo_vehiculo": "moto",
-    "calificacion_promedio": 4.75,
-    "capacidad_maxima_ordenes": 4,
-    "estado": "activo"
-  },
-  {
-    "id_repartidor": "REP-004",
-    "nombre": "Carlos Alberto Solórzano",
-    "tipo_vehiculo": "moto",
-    "calificacion_promedio": 4.81,
-    "capacidad_maxima_ordenes": 4,
-    "estado": "activo"
-  },
-  {
-    "id_repartidor": "REP-005",
-    "nombre": "Luis Fernando Mairena",
-    "tipo_vehiculo": "bicicleta",
-    "calificacion_promedio": 4.65,
-    "capacidad_maxima_ordenes": 2,
-    "estado": "activo"
-  },
-  {
-    "id_repartidor": "REP-006",
-    "nombre": "Darwin Antonio Centeno",
-    "tipo_vehiculo": "bicicleta",
-    "calificacion_promedio": 4.58,
-    "capacidad_maxima_ordenes": 2,
-    "estado": "activo"
-  },
-  {
-    "id_repartidor": "REP-007",
-    "nombre": "Wilmer Enrique Gutiérrez",
-    "tipo_vehiculo": "moto",
-    "calificacion_promedio": 4.95,
-    "capacidad_maxima_ordenes": 5,
-    "estado": "activo"
-  },
-  {
-    "id_repartidor": "REP-008",
-    "nombre": "Francisco Javier Urbina",
-    "tipo_vehiculo": "moto",
-    "calificacion_promedio": 4.70,
-    "capacidad_maxima_ordenes": 4,
-    "estado": "activo"
-  },
-  {
-    "id_repartidor": "REP-009",
-    "nombre": "Bayardo Ramón Sequeira",
-    "tipo_vehiculo": "auto",
-    "calificacion_promedio": 4.85,
-    "capacidad_maxima_ordenes": 6,
-    "estado": "activo"
-  },
-  {
-    "id_repartidor": "REP-010",
-    "nombre": "Erick Josué Calero",
-    "tipo_vehiculo": "moto",
-    "calificacion_promedio": 4.78,
-    "capacidad_maxima_ordenes": 4,
-    "estado": "activo"
-  },
-  {
-    "id_repartidor": "REP-011",
-    "nombre": "Noel de Jesús Rostrán",
-    "tipo_vehiculo": "moto",
-    "calificacion_promedio": 4.68,
-    "capacidad_maxima_ordenes": 3,
-    "estado": "activo"
-  },
-  {
-    "id_repartidor": "REP-012",
-    "nombre": "Jader Francisco Loáisiga",
-    "tipo_vehiculo": "moto",
-    "calificacion_promedio": 4.89,
-    "capacidad_maxima_ordenes": 5,
-    "estado": "activo"
-  },
-  {
-    "id_repartidor": "REP-013",
-    "nombre": "Gerald Steven Jarquín",
-    "tipo_vehiculo": "bicicleta",
-    "calificacion_promedio": 4.60,
-    "capacidad_maxima_ordenes": 2,
-    "estado": "activo"
-  },
-  {
-    "id_repartidor": "REP-014",
-    "nombre": "Oscar Danilo Zeledón",
-    "tipo_vehiculo": "moto",
-    "calificacion_promedio": 4.83,
-    "capacidad_maxima_ordenes": 4,
-    "estado": "activo"
-  },
-  {
-    "id_repartidor": "REP-015",
-    "nombre": "Yasser Antonio Borge",
+    "nombre": "José Luis Gutiérrez",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.72,
     "capacidad_maxima_ordenes": 4,
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-016",
-    "nombre": "Mauricio José Palacios",
-    "tipo_vehiculo": "auto",
-    "calificacion_promedio": 4.91,
-    "capacidad_maxima_ordenes": 6,
+    "id_repartidor": "REP-003",
+    "nombre": "María Auxiliadora Rivas",
+    "tipo_vehiculo": "moto",
+    "calificacion_promedio": 4.9,
+    "capacidad_maxima_ordenes": 5,
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-017",
-    "nombre": "Henry Salvador Espinoza",
+    "id_repartidor": "REP-004",
+    "nombre": "Francisco Javier López",
     "tipo_vehiculo": "moto",
-    "calificacion_promedio": 4.86,
+    "calificacion_promedio": 4.65,
     "capacidad_maxima_ordenes": 4,
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-018",
-    "nombre": "Silvio Andrés Rugama",
+    "id_repartidor": "REP-005",
+    "nombre": "Alejandro José Duarte",
     "tipo_vehiculo": "moto",
-    "calificacion_promedio": 4.79,
+    "calificacion_promedio": 4.8,
+    "capacidad_maxima_ordenes": 6,
+    "estado": "activo"
+  },
+  {
+    "id_repartidor": "REP-006",
+    "nombre": "Juan Carlos Pérez",
+    "tipo_vehiculo": "moto",
+    "calificacion_promedio": 4.55,
+    "capacidad_maxima_ordenes": 4,
+    "estado": "descanso"
+  },
+  {
+    "id_repartidor": "REP-007",
+    "nombre": "Erick Antonio Fonseca",
+    "tipo_vehiculo": "moto",
+    "calificacion_promedio": 4.88,
+    "capacidad_maxima_ordenes": 5,
+    "estado": "activo"
+  },
+  {
+    "id_repartidor": "REP-008",
+    "nombre": "Bryan Stiven Morales",
+    "tipo_vehiculo": "moto",
+    "calificacion_promedio": 4.45,
+    "capacidad_maxima_ordenes": 3,
+    "estado": "activo"
+  },
+  {
+    "id_repartidor": "REP-009",
+    "nombre": "Denis Orlando Castro",
+    "tipo_vehiculo": "moto",
+    "calificacion_promedio": 4.75,
+    "capacidad_maxima_ordenes": 5,
+    "estado": "activo"
+  },
+  {
+    "id_repartidor": "REP-010",
+    "nombre": "Kevin Josué Espinoza",
+    "tipo_vehiculo": "moto",
+    "calificacion_promedio": 4.6,
+    "capacidad_maxima_ordenes": 4,
+    "estado": "activo"
+  },
+  {
+    "id_repartidor": "REP-011",
+    "nombre": "Mauricio Javier Alemán",
+    "tipo_vehiculo": "moto",
+    "calificacion_promedio": 4.82,
+    "capacidad_maxima_ordenes": 5,
+    "estado": "activo"
+  },
+  {
+    "id_repartidor": "REP-012",
+    "nombre": "Oscar Danilo Flores",
+    "tipo_vehiculo": "moto",
+    "calificacion_promedio": 4.5,
+    "capacidad_maxima_ordenes": 4,
+    "estado": "inactivo"
+  },
+  {
+    "id_repartidor": "REP-013",
+    "nombre": "Roberto Carlos Suazo",
+    "tipo_vehiculo": "moto",
+    "calificacion_promedio": 4.92,
+    "capacidad_maxima_ordenes": 6,
+    "estado": "activo"
+  },
+  {
+    "id_repartidor": "REP-014",
+    "nombre": "William Antonio Silva",
+    "tipo_vehiculo": "moto",
+    "calificacion_promedio": 4.7,
+    "capacidad_maxima_ordenes": 4,
+    "estado": "activo"
+  },
+  {
+    "id_repartidor": "REP-015",
+    "nombre": "Ronald José Gómez",
+    "tipo_vehiculo": "moto",
+    "calificacion_promedio": 4.68,
+    "capacidad_maxima_ordenes": 4,
+    "estado": "activo"
+  },
+  {
+    "id_repartidor": "REP-016",
+    "nombre": "Douglas Alexander Mena",
+    "tipo_vehiculo": "moto",
+    "calificacion_promedio": 4.78,
+    "capacidad_maxima_ordenes": 5,
+    "estado": "activo"
+  },
+  {
+    "id_repartidor": "REP-017",
+    "nombre": "Norman Jassir Ruiz",
+    "tipo_vehiculo": "moto",
+    "calificacion_promedio": 4.83,
+    "capacidad_maxima_ordenes": 5,
+    "estado": "activo"
+  },
+  {
+    "id_repartidor": "REP-018",
+    "nombre": "Jairo Antonio Orozco",
+    "tipo_vehiculo": "moto",
+    "calificacion_promedio": 4.58,
     "capacidad_maxima_ordenes": 4,
     "estado": "activo"
   },
   {
     "id_repartidor": "REP-019",
-    "nombre": "Ángel Gabriel Montiel",
+    "nombre": "Daniela Sofía Moncada",
     "tipo_vehiculo": "bicicleta",
-    "calificacion_promedio": 4.50,
+    "calificacion_promedio": 4.95,
     "capacidad_maxima_ordenes": 2,
-    "estado": "descanso"
+    "estado": "activo"
   },
   {
     "id_repartidor": "REP-020",
-    "nombre": "Denis Orlando Mayorga",
-    "tipo_vehiculo": "moto",
-    "calificacion_promedio": 4.64,
-    "capacidad_maxima_ordenes": 3,
+    "nombre": "Gabriel Enrique Vargas",
+    "tipo_vehiculo": "bicicleta",
+    "calificacion_promedio": 4.62,
+    "capacidad_maxima_ordenes": 2,
     "estado": "activo"
   },
   {
     "id_repartidor": "REP-021",
-    "nombre": "Iván René Vallecillo",
-    "tipo_vehiculo": "moto",
-    "calificacion_promedio": 4.80,
-    "capacidad_maxima_ordenes": 4,
+    "nombre": "Ana Gabriela Centeno",
+    "tipo_vehiculo": "bicicleta",
+    "calificacion_promedio": 4.89,
+    "capacidad_maxima_ordenes": 2,
     "estado": "activo"
   },
   {
     "id_repartidor": "REP-022",
-    "nombre": "Bryan Josué Chamorro",
-    "tipo_vehiculo": "moto",
-    "calificacion_promedio": 4.93,
-    "capacidad_maxima_ordenes": 5,
+    "nombre": "Luis Fernando Chavarría",
+    "tipo_vehiculo": "bicicleta",
+    "calificacion_promedio": 4.71,
+    "capacidad_maxima_ordenes": 2,
     "estado": "activo"
   },
   {
     "id_repartidor": "REP-023",
-    "nombre": "Héctor Alfonso Guido",
+    "nombre": "Marvin Antonio Palacios",
     "tipo_vehiculo": "auto",
-    "calificacion_promedio": 4.88,
-    "capacidad_maxima_ordenes": 6,
+    "calificacion_promedio": 4.77,
+    "capacidad_maxima_ordenes": 8,
     "estado": "activo"
   },
   {
     "id_repartidor": "REP-024",
-    "nombre": "Lester David Salgado",
-    "tipo_vehiculo": "moto",
-    "calificacion_promedio": 4.55,
-    "capacidad_maxima_ordenes": 3,
-    "estado": "inactivo"
+    "nombre": "Claudia Patricia Urbina",
+    "tipo_vehiculo": "auto",
+    "calificacion_promedio": 4.86,
+    "capacidad_maxima_ordenes": 8,
+    "estado": "activo"
   },
   {
     "id_repartidor": "REP-025",
-    "nombre": "Nelson Emilio Obando",
-    "tipo_vehiculo": "moto",
-    "calificacion_promedio": 4.77,
-    "capacidad_maxima_ordenes": 4,
+    "nombre": "Gerardo Rafael Solís",
+    "tipo_vehiculo": "auto",
+    "calificacion_promedio": 4.64,
+    "capacidad_maxima_ordenes": 7,
     "estado": "activo"
   }
 ]

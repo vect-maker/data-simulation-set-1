@@ -125,6 +125,10 @@ El repositorio incluye un [`justfile`](file:///var/home/ocelot/Repositories/data
 | :--- | :--- |
 | `just` | Lista todos los comandos disponibles con su descripción |
 | `just install` | Instala dependencias y los tres paquetes en modo editable (`pip install -e .`) |
+| `just seed-all` / `just seed` | Genera y regenera catálogos y semillas sintéticas con Google Gemini API para los 3 casos |
+| `just seed-antojitos` | Genera catálogos y plantillas semánticas con Gemini API para Antojitos Express |
+| `just seed-volcan` | Genera fincas, variedades, beneficios y notas SCAA con Gemini API para Cooperativa El Volcán |
+| `just seed-movigo` | Genera cuadrantes, conductores, usuarios y plantillas con Gemini API para MoviGo |
 | `just fetch-weather` / `just weather` | Descarga y actualiza desde la API Open-Meteo los datos climáticos para los 3 casos (reemplaza raw data) |
 | `just fetch-weather-antojitos` | Descarga datos meteorológicos de Managua para Antojitos Express |
 | `just fetch-weather-volcan` | Descarga datos agroclimáticos de Jinotega para Cooperativa El Volcán |
@@ -163,8 +167,14 @@ El repositorio incluye un [`justfile`](file:///var/home/ocelot/Repositories/data
 ├── pyproject.toml                   # Configuración de paquete Python data-simulation
 ├── requirements.txt                 # Dependencias Python
 ├── compose.yml                      # PostgreSQL 18 Alpine local
-├── .env.example                     # Variables de entorno
+├── .env.example                     # Variables de entorno (GEMINI_API_KEY, PG, etc.)
 ├── info.md                          # Definición del proyecto integrador
+├── scripts/                         # Generadores de semillas con Google Gemini API
+│   ├── common.py                    # Utilidades de cliente Gemini, reintentos y fallback
+│   ├── generate_antojitos_seeds.py  # Generador de catálogos Caso 1 (Antojitos)
+│   ├── generate_volcan_seeds.py     # Generador de catálogos Caso 2 (El Volcán)
+│   ├── generate_movigo_seeds.py     # Generador de catálogos Caso 3 (MoviGo)
+│   └── generate_all_seeds.py        # Runner maestro de semillas
 ├── src/
 │   ├── antojitos_sim/               # Motor Caso 1 (Antojitos Express)
 │   │   ├── config.py, models.py, seeds/, weather.py

@@ -55,6 +55,25 @@ fetch-weather:
 # Alias for fetch-weather
 weather: fetch-weather
 
+# Generate dimensional catalog seeds with Gemini API for Antojitos Express
+seed-antojitos:
+    {{ PYTHON }} scripts/generate_antojitos_seeds.py
+
+# Generate dimensional catalog seeds with Gemini API for Cooperativa El Volcán
+seed-volcan:
+    {{ PYTHON }} scripts/generate_volcan_seeds.py
+
+# Generate dimensional catalog seeds with Gemini API for MoviGo
+seed-movigo:
+    {{ PYTHON }} scripts/generate_movigo_seeds.py
+
+# Generate dimensional catalog seeds with Gemini API for all 3 cases
+seed-all:
+    {{ PYTHON }} scripts/generate_all_seeds.py
+
+# Alias for seed-all
+seed: seed-all
+
 # Generate synthetic dataset for Antojitos Express (Caso 1)
 generate-antojitos days="":
     @if [ -n "{{ days }}" ]; then \

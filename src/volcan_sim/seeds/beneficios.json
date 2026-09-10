@@ -1,52 +1,42 @@
 [
   {
     "id_beneficio": "BNF-001",
-    "nombre_beneficio": "Beneficio Húmedo Cooperativa Datanlí",
+    "nombre_beneficio": "Húmedo El Volcán Pantasma",
     "tipo_beneficio": "humedo",
-    "municipio": "Jinotega",
-    "latitud": 13.098000,
-    "longitud": -86.008000,
-    "capacidad_quintales_dia": 1200.00,
-    "costo_procesamiento_qq": 42.00
+    "municipio": "Pantasma",
+    "latitud": 13.33,
+    "longitud": -85.87,
+    "capacidad_quintales_dia": 1200.0,
+    "costo_procesamiento_qq": 28.5
   },
   {
     "id_beneficio": "BNF-002",
-    "nombre_beneficio": "Beneficio Húmedo El Volcán Selva Negra",
+    "nombre_beneficio": "Húmedo Cordillera de Dipilto",
     "tipo_beneficio": "humedo",
-    "municipio": "Matagalpa",
-    "latitud": 12.985000,
-    "longitud": -85.915000,
-    "capacidad_quintales_dia": 1500.00,
-    "costo_procesamiento_qq": 45.00
+    "municipio": "Dipilto",
+    "latitud": 13.79,
+    "longitud": -86.5,
+    "capacidad_quintales_dia": 950.0,
+    "costo_procesamiento_qq": 32.0
   },
   {
     "id_beneficio": "BNF-003",
-    "nombre_beneficio": "Beneficio Húmedo Ecológico Dipilto",
+    "nombre_beneficio": "Húmedo Selva Negra",
     "tipo_beneficio": "humedo",
-    "municipio": "Dipilto",
-    "latitud": 13.715000,
-    "longitud": -86.508000,
-    "capacidad_quintales_dia": 800.00,
-    "costo_procesamiento_qq": 55.00
+    "municipio": "Selva Negra",
+    "latitud": 13.0,
+    "longitud": -85.91,
+    "capacidad_quintales_dia": 1500.0,
+    "costo_procesamiento_qq": 26.0
   },
   {
     "id_beneficio": "BNF-004",
-    "nombre_beneficio": "Beneficio Húmedo San Juan de Río Coco",
-    "tipo_beneficio": "humedo",
-    "municipio": "San Juan del Río Coco",
-    "latitud": 13.542000,
-    "longitud": -86.168000,
-    "capacidad_quintales_dia": 950.00,
-    "costo_procesamiento_qq": 40.00
-  },
-  {
-    "id_beneficio": "BNF-005",
-    "nombre_beneficio": "Beneficio Seco Central Sébaco (Exportación)",
+    "nombre_beneficio": "Beneficio Seco Central Sébaco",
     "tipo_beneficio": "seco",
     "municipio": "Sébaco",
-    "latitud": 12.853000,
-    "longitud": -86.096000,
-    "capacidad_quintales_dia": 2800.00,
-    "costo_procesamiento_qq": 78.00
+    "latitud": 12.85,
+    "longitud": -85.91,
+    "capacidad_quintales_dia": 2800.0,
+    "costo_procesamiento_qq": 18.5
   }
 ]

@@ -1,35 +1,42 @@
 {
-  "certificaciones": [
-    "Fairtrade",
-    "Orgánico",
-    "Rainforest Alliance",
-    "SHG",
-    "Convencional"
-  ],
   "notas_catacion_altas": [
-    "Fragancia floral intensa a jazmín y flor de café. En taza destacan notas a bergamota, té negro y miel virgen con acidez cítrica brillante y cuerpo sedoso.",
-    "Aroma afrutado muy complejo con notas de durazno maduro, papaya y caña dulce. Acidez málica refinada y posgusto dulce y prolongado.",
-    "Taza limpia y elegante con notas a chocolate amargo, frutos rojos y flor de naranja. Acidez balanceada tipo manzana verde y cuerpo cremoso.",
-    "Dulce y jugoso, con notas a caramelo de mantequilla, ciruela pasa y avellana tostada. Textura aterciopelada y final redondo."
+    "Jazmín",
+    "Bergamota",
+    "Melocotón",
+    "Frutas tropicales",
+    "Miel de abeja",
+    "Chocolate blanco",
+    "Papaya"
   ],
   "notas_catacion_medias": [
-    "Taza balanceada con buena acidez cítrica, notas a cacao, panela y almendra dulce. Final agradable y limpio.",
-    "Notas achocolatadas con acidez media, cuerpo consistente y notas terrosas suaves propias de la variedad.",
-    "Fragancia a frutos secos y azúcar morena. En boca es suave, acidez suave y cuerpo medio con notas a naranja dulce.",
-    "Aroma limpio a malta y miel de caña. Acidez baja a media con balance redondo para café de origen estricta altura."
+    "Caramelo",
+    "Manzana roja",
+    "Cítricos",
+    "Frutos rojos",
+    "Panela",
+    "Almendras tostadas",
+    "Vainilla"
+  ],
+  "notas_estandar": [
+    "Chocolate con leche",
+    "Frutos secos",
+    "Cacao",
+    "Mandarina",
+    "Azúcar morena",
+    "Herbal suave"
   ],
   "defectos_proceso": [
-    "Sobrefermentación ligera por exceso de horas en pila húmeda debido a bajas temperaturas nocturnas.",
-    "Secado lento en patio por humedad ambiental persistente en época de norte.",
-    "Presencia de granos picados por broca en rango menor al 1.5% tolerado.",
-    "Lote procesado en tiempo óptimo con curva de secado uniforme a 11.4% de humedad."
+    "Sobrefermentación",
+    "Astringencia",
+    "Sabor fenolado",
+    "Moho incipiente",
+    "Secado desuniforme"
   ],
-  "clientes_compradores": [
-    {"cliente": "Hanseatic Coffee Roasters GmbH", "pais": "Alemania"},
-    {"cliente": "Blue Bottle Coffee Imports LLC", "pais": "Estados Unidos"},
-    {"cliente": "Marubeni Specialty Coffee Division", "pais": "Japón"},
-    {"cliente": "Antwerp Coffee Terminal NV", "pais": "Bélgica"},
-    {"cliente": "Taipei Artisan Coffee Importers Ltd", "pais": "Taiwán"},
-    {"cliente": "Lavazza Specialty Origin Procurement", "pais": "Italia"}
+  "observaciones_proceso": [
+    "Fermentación anaeróbica controlada a 18°C por 72 horas",
+    "Lavado con agua de manantial de alta montaña",
+    "Secado en camas africanas bajo sombra parcial",
+    "Despulpado sin mucílago mecánico excesivo",
+    "Reposo en pergamino por 30 días antes de trilla"
   ]
 }

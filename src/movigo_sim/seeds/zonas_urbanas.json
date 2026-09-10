@@ -3,108 +3,108 @@
     "id_zona": "ZON-01",
     "nombre_zona": "Villa Fontana",
     "estrato_socioeconomico": "alto",
-    "latitud": 12.115000,
-    "longitud": -86.265000,
-    "radio_cobertura_km": 2.50,
-    "tarifa_base_bajada_bandera": 60.00
+    "latitud": 12.115,
+    "longitud": -86.255,
+    "radio_cobertura_km": 2.5,
+    "tarifa_base_bajada_bandera": 70.0
   },
   {
     "id_zona": "ZON-02",
     "nombre_zona": "Las Colinas",
     "estrato_socioeconomico": "alto",
-    "latitud": 12.095000,
-    "longitud": -86.242000,
-    "radio_cobertura_km": 3.00,
-    "tarifa_base_bajada_bandera": 65.00
+    "latitud": 12.105,
+    "longitud": -86.242,
+    "radio_cobertura_km": 3.0,
+    "tarifa_base_bajada_bandera": 75.0
   },
   {
     "id_zona": "ZON-03",
     "nombre_zona": "Santo Domingo",
     "estrato_socioeconomico": "alto",
-    "latitud": 12.082000,
-    "longitud": -86.258000,
-    "radio_cobertura_km": 3.20,
-    "tarifa_base_bajada_bandera": 70.00
+    "latitud": 12.1,
+    "longitud": -86.23,
+    "radio_cobertura_km": 2.8,
+    "tarifa_base_bajada_bandera": 80.0
   },
   {
     "id_zona": "ZON-04",
     "nombre_zona": "Los Robles",
     "estrato_socioeconomico": "medio",
-    "latitud": 12.128500,
-    "longitud": -86.255000,
-    "radio_cobertura_km": 2.00,
-    "tarifa_base_bajada_bandera": 50.00
+    "latitud": 12.128,
+    "longitud": -86.265,
+    "radio_cobertura_km": 2.0,
+    "tarifa_base_bajada_bandera": 55.0
   },
   {
     "id_zona": "ZON-05",
     "nombre_zona": "Altamira",
     "estrato_socioeconomico": "medio",
-    "latitud": 12.122000,
-    "longitud": -86.251000,
-    "radio_cobertura_km": 2.00,
-    "tarifa_base_bajada_bandera": 48.00
+    "latitud": 12.133,
+    "longitud": -86.25,
+    "radio_cobertura_km": 2.0,
+    "tarifa_base_bajada_bandera": 50.0
   },
   {
     "id_zona": "ZON-06",
     "nombre_zona": "Bolonia",
     "estrato_socioeconomico": "medio",
-    "latitud": 12.138000,
-    "longitud": -86.275000,
-    "radio_cobertura_km": 2.20,
-    "tarifa_base_bajada_bandera": 45.00
+    "latitud": 12.145,
+    "longitud": -86.28,
+    "radio_cobertura_km": 2.2,
+    "tarifa_base_bajada_bandera": 55.0
   },
   {
     "id_zona": "ZON-07",
     "nombre_zona": "Bello Horizonte",
     "estrato_socioeconomico": "medio",
-    "latitud": 12.148000,
-    "longitud": -86.228000,
-    "radio_cobertura_km": 2.80,
-    "tarifa_base_bajada_bandera": 45.00
+    "latitud": 12.138,
+    "longitud": -86.22,
+    "radio_cobertura_km": 3.5,
+    "tarifa_base_bajada_bandera": 48.0
   },
   {
     "id_zona": "ZON-08",
     "nombre_zona": "Linda Vista",
     "estrato_socioeconomico": "medio",
-    "latitud": 12.152000,
-    "longitud": -86.301000,
-    "radio_cobertura_km": 2.50,
-    "tarifa_base_bajada_bandera": 45.00
+    "latitud": 12.155,
+    "longitud": -86.3,
+    "radio_cobertura_km": 3.0,
+    "tarifa_base_bajada_bandera": 50.0
   },
   {
     "id_zona": "ZON-09",
-    "nombre_zona": "Ciudad Jardín",
-    "estrato_socioeconomico": "popular",
-    "latitud": 12.142000,
-    "longitud": -86.248000,
-    "radio_cobertura_km": 2.00,
-    "tarifa_base_bajada_bandera": 40.00
+    "nombre_zona": "Metrocentro / Eje Corporativo UCA",
+    "estrato_socioeconomico": "comercial",
+    "latitud": 12.12,
+    "longitud": -86.27,
+    "radio_cobertura_km": 1.5,
+    "tarifa_base_bajada_bandera": 60.0
   },
   {
     "id_zona": "ZON-10",
-    "nombre_zona": "Mercado Oriental",
+    "nombre_zona": "Ciudad Jardín",
     "estrato_socioeconomico": "popular",
-    "latitud": 12.145000,
-    "longitud": -86.261000,
-    "radio_cobertura_km": 2.20,
-    "tarifa_base_bajada_bandera": 38.00
+    "latitud": 12.14,
+    "longitud": -86.258,
+    "radio_cobertura_km": 2.0,
+    "tarifa_base_bajada_bandera": 40.0
   },
   {
     "id_zona": "ZON-11",
-    "nombre_zona": "Mercado Roberto Huembes",
+    "nombre_zona": "Mercado Oriental",
     "estrato_socioeconomico": "popular",
-    "latitud": 12.118000,
-    "longitud": -86.235000,
-    "radio_cobertura_km": 2.40,
-    "tarifa_base_bajada_bandera": 40.00
+    "latitud": 12.135,
+    "longitud": -86.245,
+    "radio_cobertura_km": 2.5,
+    "tarifa_base_bajada_bandera": 35.0
   },
   {
     "id_zona": "ZON-12",
-    "nombre_zona": "Metrocentro / Eje Corporativo UCA",
-    "estrato_socioeconomico": "comercial",
-    "latitud": 12.132000,
-    "longitud": -86.268000,
-    "radio_cobertura_km": 2.00,
-    "tarifa_base_bajada_bandera": 55.00
+    "nombre_zona": "Mercado Roberto Huembes",
+    "estrato_socioeconomico": "popular",
+    "latitud": 12.125,
+    "longitud": -86.238,
+    "radio_cobertura_km": 2.5,
+    "tarifa_base_bajada_bandera": 38.0
   }
 ]

@@ -1,44 +1,46 @@
 {
   "notas_entrega": [
-    "De donde fue el cine 2 cuadras al lago, casa esquinera con portón negro.",
-    "Frente al parque comunal, portón blanco, tocar fuerte el portón porque no hay timbre.",
-    "Del semáforo principal 1 cuadra arriba, 25 varas al sur, muro perimetral gris.",
-    "De la rotonda 1 cuadra abajo, casa con árbol de mango frondoso en la acera.",
-    "Edificio corporativo, dejar en recepción a nombre del destinatario.",
-    "Condominio residencial, el repartidor puede ingresar anunciándose en la aguja de seguridad.",
-    "De la farmacia 1/2 cuadra al norte, casa de dos plantas color celeste con verjas negras.",
-    "Portón café de madera, por favor no tocar bocina para no alterar a los perros.",
-    "Frente a la pulpería La Bendición, preguntar en la ventana del porche.",
-    "Calle principal de la zona, portón corredizo gris con timbre eléctrico a la derecha.",
-    "De la gasolinera 2 cuadras al este, portón verde con rótulo de cuidado con el perro.",
-    "Subiendo la colina, segunda casa a mano izquierda, muro de piedra cantera."
+    "De donde fue el cine Cabrera dos cuadras al lago y media abajo",
+    "Del portón principal de la UCA media cuadra hacia arriba",
+    "Frente al monumento a Sandino en la pista de la resistencia",
+    "De la rotonda El Güegüense una cuadra al sur y dos abajo",
+    "De la estatua de Montoya dos cuadras al lago, casa color verde",
+    "Del paso a desnivel de Tiscapa tres cuadras hacia el este",
+    "De donde fue el arbolito dos cuadras al norte, mano derecha",
+    "Del semáforo del hospitalike una cuadra al sur y media arriba",
+    "De la rotonda Jean Paul Genie dos cuadras al lago, condominio 4",
+    "Del mercado Israel Lewites tres cuadras al lago y una abajo",
+    "De la iglesia del Carmen una cuadra al sur, casa de dos plantas",
+    "Del edificio de Tigo en Altamira dos cuadras al sur"
   ],
   "motivos_cancelacion": [
-    "Cauce desbordado en la zona impidió el paso del repartidor.",
-    "Moto del repartidor averiada por entrada de agua al motor durante fuerte aguacero.",
-    "Cliente canceló por demora excesiva en la entrega debido al temporal.",
-    "Dirección inaccesible temporalmente por anegación de la vía principal.",
-    "Repartidor sufrió pinchazo de neumático en trayecto hacia el destino.",
-    "Cliente solicitó cancelación al superar los 70 minutos de espera estimada.",
-    "Cocina saturada y desabastecimiento temporal de insumos por fuerte tormenta.",
-    "Cliente no atendió llamadas del repartidor ni acudió al portón tras espera prolongada."
+    "El cliente cambió de opinión por demora excesiva en la cocina",
+    "Dirección incorrecta y el cliente no contesta las llamadas",
+    "Falta de ingredientes frescos para preparar la carne asada",
+    "Problemas mecánicos graves en la moto del repartidor asignado",
+    "Fuertes lluvias e inundaciones repentinas en la zona de entrega",
+    "El cliente canceló porque el repartidor se demoró demasiado",
+    "Problema con el procesamiento del pago en línea del pedido",
+    "El repartidor sufrió un accidente leve en la pista principal"
   ],
   "comentarios_retraso": [
-    "La comida llegó fría debido a que tardó más de una hora por el fuerte aguacero.",
-    "La carne asada estaba con buen sabor pero las tajadas se suavizaron por el retraso del clima.",
-    "El repartidor muy atento y educado a pesar del diluvio en la pista.",
-    "Demasiado tiempo de espera en fin de semana lluvioso, deberían reforzar la flota de motos.",
-    "El pedido se demoró bastante, aunque entendemos que Managua colapsa con la lluvia.",
-    "El empaque del vigorón aguantó bien, pero la demora fue excesiva."
+    "El pedido llegó tibio y el repartidor se perdió varias veces",
+    "Se tardaron más de una hora en traer la carne asada",
+    "El fresco de cacao se derrumbo y llegó todo derramado",
+    "El repartidor no encontraba la dirección de referencia dada",
+    "La yuca frita estaba dura y fría por el tiempo de viaje",
+    "El tiempo de entrega superó por mucho lo prometido en la app",
+    "El repartidor llegó de mal humor y con la orden incompleta",
+    "Tuve que calentar la comida en el microondas porque tardó"
   ],
   "comentarios_exitosos": [
-    "Excelente servicio, la carne asada llegó humeante y el cacao bien helado.",
-    "El quesillo venía perfecto en su hoja de chaguite con abundante crema fresca.",
-    "Rápida entrega a pesar del tráfico de la tarde en la zona central.",
-    "El mejor chancho con yuca de Managua, porciones generosas y buen toque de chile.",
-    "Todo en orden, el repartidor llegó directo a la casa siguiendo bien la dirección.",
-    "Muy satisfecho con la presentación de la comida y la amabilidad del repartidor.",
-    "Nacatamal delicioso con buen trozo de tocino y masa suave.",
-    "Empaque impecable y comida caliente, recomendado al 100%."
+    "¡Qué barbaridad de carne asada! El punto exacto y calentita",
+    "El queso de los quesillos estaba fresquísimo y delicioso",
+    "La Toña bien helada y el vigorón con un sabor increíble",
+    "Excelente servicio, llegó super rápido y el repartidor muy amable",
+    "El nacatamal parecía hecho por abuela nicaragüense, un 10 de 10",
+    "El cacao es exactamente como el de los sabados en Masaya",
+    "Todo super caliente y con su respectivo chile congo extra",
+    "La mejor fritanga a domicilio en todo Managua, sin duda repetiré"
   ]
 }

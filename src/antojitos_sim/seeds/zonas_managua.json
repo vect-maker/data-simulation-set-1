@@ -2,109 +2,109 @@
   {
     "id_zona": "ZON-01",
     "nombre_zona": "Los Robles",
-    "latitud": 12.128500,
-    "longitud": -86.255000,
-    "distancia_km": 1.20,
-    "tiempo_base_minutos": 12,
-    "tarifa_envio_base": 35.00
+    "latitud": 12.122,
+    "longitud": -86.271,
+    "distancia_km": 2.5,
+    "tiempo_base_minutos": 15,
+    "tarifa_envio_base": 50.0
   },
   {
     "id_zona": "ZON-02",
     "nombre_zona": "Altamira",
-    "latitud": 12.122000,
-    "longitud": -86.251000,
-    "distancia_km": 1.80,
-    "tiempo_base_minutos": 15,
-    "tarifa_envio_base": 38.00
+    "latitud": 12.131,
+    "longitud": -86.262,
+    "distancia_km": 3.0,
+    "tiempo_base_minutos": 18,
+    "tarifa_envio_base": 60.0
   },
   {
     "id_zona": "ZON-03",
     "nombre_zona": "Villa Fontana",
-    "latitud": 12.115000,
-    "longitud": -86.265000,
-    "distancia_km": 3.20,
-    "tiempo_base_minutos": 20,
-    "tarifa_envio_base": 45.00
+    "latitud": 12.105,
+    "longitud": -86.275,
+    "distancia_km": 5.5,
+    "tiempo_base_minutos": 25,
+    "tarifa_envio_base": 80.0
   },
   {
     "id_zona": "ZON-04",
     "nombre_zona": "Las Colinas",
-    "latitud": 12.095000,
-    "longitud": -86.242000,
-    "distancia_km": 5.50,
-    "tiempo_base_minutos": 28,
-    "tarifa_envio_base": 60.00
+    "latitud": 12.101,
+    "longitud": -86.255,
+    "distancia_km": 7.0,
+    "tiempo_base_minutos": 30,
+    "tarifa_envio_base": 100.0
   },
   {
     "id_zona": "ZON-05",
     "nombre_zona": "Bello Horizonte",
-    "latitud": 12.148000,
-    "longitud": -86.228000,
-    "distancia_km": 6.20,
-    "tiempo_base_minutos": 32,
-    "tarifa_envio_base": 65.00
+    "latitud": 12.145,
+    "longitud": -86.23,
+    "distancia_km": 6.5,
+    "tiempo_base_minutos": 28,
+    "tarifa_envio_base": 90.0
   },
   {
     "id_zona": "ZON-06",
     "nombre_zona": "Bolonia",
-    "latitud": 12.138000,
-    "longitud": -86.275000,
-    "distancia_km": 3.50,
-    "tiempo_base_minutos": 22,
-    "tarifa_envio_base": 50.00
+    "latitud": 12.138,
+    "longitud": -86.285,
+    "distancia_km": 4.0,
+    "tiempo_base_minutos": 20,
+    "tarifa_envio_base": 70.0
   },
   {
     "id_zona": "ZON-07",
     "nombre_zona": "Linda Vista",
-    "latitud": 12.152000,
-    "longitud": -86.301000,
-    "distancia_km": 7.80,
-    "tiempo_base_minutos": 38,
-    "tarifa_envio_base": 75.00
+    "latitud": 12.155,
+    "longitud": -86.305,
+    "distancia_km": 8.5,
+    "tiempo_base_minutos": 35,
+    "tarifa_envio_base": 120.0
   },
   {
     "id_zona": "ZON-08",
     "nombre_zona": "Santo Domingo",
-    "latitud": 12.082000,
-    "longitud": -86.258000,
-    "distancia_km": 6.80,
-    "tiempo_base_minutos": 35,
-    "tarifa_envio_base": 70.00
+    "latitud": 12.11,
+    "longitud": -86.24,
+    "distancia_km": 9.0,
+    "tiempo_base_minutos": 38,
+    "tarifa_envio_base": 130.0
   },
   {
     "id_zona": "ZON-09",
-    "nombre_zona": "Carretera Sur (Km 8-10)",
-    "latitud": 12.091000,
-    "longitud": -86.315000,
-    "distancia_km": 9.50,
-    "tiempo_base_minutos": 42,
-    "tarifa_envio_base": 90.00
+    "nombre_zona": "Carretera Sur",
+    "latitud": 12.115,
+    "longitud": -86.315,
+    "distancia_km": 11.0,
+    "tiempo_base_minutos": 45,
+    "tarifa_envio_base": 150.0
   },
   {
     "id_zona": "ZON-10",
     "nombre_zona": "Ciudad Jardín",
-    "latitud": 12.142000,
-    "longitud": -86.248000,
-    "distancia_km": 4.10,
-    "tiempo_base_minutos": 24,
-    "tarifa_envio_base": 55.00
+    "latitud": 12.148,
+    "longitud": -86.25,
+    "distancia_km": 5.0,
+    "tiempo_base_minutos": 22,
+    "tarifa_envio_base": 75.0
   },
   {
     "id_zona": "ZON-11",
-    "nombre_zona": "Colonia Centroamérica",
-    "latitud": 12.110000,
-    "longitud": -86.248000,
-    "distancia_km": 3.80,
-    "tiempo_base_minutos": 22,
-    "tarifa_envio_base": 50.00
+    "nombre_zona": "Centroamérica",
+    "latitud": 12.128,
+    "longitud": -86.25,
+    "distancia_km": 4.5,
+    "tiempo_base_minutos": 20,
+    "tarifa_envio_base": 70.0
   },
   {
     "id_zona": "ZON-12",
     "nombre_zona": "Rubenia",
-    "latitud": 12.131000,
-    "longitud": -86.230000,
-    "distancia_km": 4.90,
+    "latitud": 12.138,
+    "longitud": -86.242,
+    "distancia_km": 5.8,
     "tiempo_base_minutos": 26,
-    "tarifa_envio_base": 58.00
+    "tarifa_envio_base": 85.0
   }
 ]

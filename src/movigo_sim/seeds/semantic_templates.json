@@ -1,12 +1,30 @@
 {
   "motivos_cancelacion": [
-    "Usuario canceló: tiempo de espera estimado superó los 15 minutos.",
-    "Usuario canceló: multiplicador dinámico excesivo por aguacero.",
-    "Conductor canceló: paso anegado por corriente de agua en calle secundaria.",
-    "Conductor canceló: pasajero no salió al portón tras llamada y espera reglamentaria.",
-    "Conductor canceló: congestionamiento severo en la rotonda impidió acceso.",
-    "Usuario canceló: solicitó vehículo por equivocación en la dirección.",
-    "Conductor canceló: pinchazo de neumático en trayecto hacia el punto de recogida.",
-    "Usuario canceló: encontró taxi alternativo de inmediato."
+    "El pasajero demoró demasiado en salir.",
+    "Traficazo tremendo en la pista Juan Pablo II.",
+    "El conductor canceló por pinchazo de llanta.",
+    "Calle inundada cerca del cauce.",
+    "El pasajero tomó caponera por apuro."
+  ],
+  "motivos_cancelacion_conductor": [
+    "Se armó un tapón tremendo en la Pista El Mayoreo y no pude avanzar.",
+    "Cayunazo de agua fuerte y el cauce se desbordó por la zona.",
+    "Pinché llanta pasando por el adoquinado feo de Linda Vista.",
+    "El pasajero me mandó una ubicación errónea y no lo hallo.",
+    "Me dio viaje largo hacia Tipitapa y ya me iba a retirar."
+  ],
+  "motivos_cancelacion_usuario": [
+    "El brother se demoró una eternidad en llegar al punto.",
+    "Mejor me fui en caponera porque el tráfico estaba impossible.",
+    "El carro se veía muy chavalo y me dio desconfianza.",
+    "Me equivoqué de punto de partida, iba para otro lado.",
+    "El conductor me llamó pidiendo que cancelara el viaje."
+  ],
+  "comentarios_viaje": [
+    "Excelente servicio, el conductor muy amable y puso buena música de los Chavalos del K-B.",
+    "El carro olía a nuevo y tenía aire acondicionado a todo dar, nítido.",
+    "Manejaba un poco arrebatado por la Pista Suburbana, pero llegamos a tiempo.",
+    "Todo bien, el pago con billetera digital pasó de viaje sin enredos.",
+    "El carro estaba un poco polvoso por la obra de la pista, pero bien el trato."
   ]
 }
