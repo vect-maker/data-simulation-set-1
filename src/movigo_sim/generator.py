@@ -22,6 +22,9 @@ from movigo_sim.config import (
     BASE_PER_MINUTE_NIO,
     SURGE_RAIN_FACTOR,
     SURGE_MAX,
+    OUTLIER_MOBILITY_SHOCK_PROB,
+    OUTLIER_AIRPORT_TRIP_PROB,
+    OUTLIER_GRIDLOCK_DELAY_PROB,
 )
 from movigo_sim.models import (
     ZonaUrbana,
@@ -107,14 +110,26 @@ class MoviGoSimulationEngine:
         return self.templates
 
     def calculate_daily_demand(self, precip_mm: float, dow: int) -> int:
-        """Daily ride requests driven by rain and day-of-week in Managua."""
+        """Daily ride requests driven by rain and day-of-week in Managua with realistic noise and mobility shocks."""
         # Baseline ~180 rides on dry weekdays, +25 Friday/Sat, +4.5 rides per mm of rain
         dow_adj = 30.0 if dow in [4, 5] else (0.0 if dow in [0, 1, 2, 3] else -15.0)
         rain_adj = 5.2 * precip_mm
-        noise = np.random.normal(0, 10.0)
+        # Heteroscedastic noise (higher variance on rainy storm days)
+        noise_std = 12.0 + (0.65 * precip_mm)
+        noise = np.random.normal(0, noise_std)
 
         total_rides = 175.0 + rain_adj + dow_adj + noise
-        return max(75, int(round(total_rides)))
+
+        # Macro mobility shocks (~3% of days):
+        # - Major stadium match / national celebration / unforecasted deluge surge (+35% to +65%)
+        # - Holiday morning slowdown / early curfew (-35% to -50%)
+        shock_roll = np.random.rand()
+        if shock_roll < (OUTLIER_MOBILITY_SHOCK_PROB * 0.60):
+            total_rides *= float(np.random.uniform(1.35, 1.65))
+        elif shock_roll < OUTLIER_MOBILITY_SHOCK_PROB:
+            total_rides *= float(np.random.uniform(0.50, 0.68))
+
+        return max(60, int(round(total_rides)))
 
     def sample_trip_time(self, curr_date: date) -> datetime:
         """Sample request timestamp via NHPP."""
@@ -124,7 +139,7 @@ class MoviGoSimulationEngine:
         return datetime.combine(curr_date, time(hour, minute, second))
 
     def calculate_surge_multiplier(self, precip_mm: float, hour: int) -> float:
-        """Calculate dynamic surge multiplier based on rain and rush hours."""
+        """Calculate dynamic surge multiplier based on rain and rush hours with realistic noise and extreme storm spikes."""
         base_surge = 1.00
 
         # Rush hour boost
@@ -135,10 +150,15 @@ class MoviGoSimulationEngine:
 
         # Rain friction surge (Managua downpours skyrocket ride demand)
         rain_surge = SURGE_RAIN_FACTOR * precip_mm
-        noise = np.random.normal(0, 0.05)
+        noise = np.random.normal(0, 0.08)
 
-        multiplier = round(float(np.clip(base_surge + rain_surge + noise, 1.00, SURGE_MAX)), 2)
-        return multiplier
+        # Extreme surge outlier event: intense storm combined with rush hour bottleneck
+        if precip_mm > 18.0 and hour in [7, 8, 17, 18] and np.random.rand() < 0.15:
+            multiplier = float(np.random.uniform(2.80, 3.20))
+        else:
+            multiplier = float(np.clip(base_surge + rain_surge + noise, 1.00, SURGE_MAX))
+
+        return round(multiplier, 2)
 
     def sample_payment_method_for_stratum(self, stratum: str) -> str:
         """Sample payment method conditioned on origin zone stratum (Chi-Square guarantee)."""
@@ -151,7 +171,7 @@ class MoviGoSimulationEngine:
         zona_d: ZonaUrbana,
         congestion_idx: float,
     ) -> Tuple[float, float]:
-        """Estimate driving distance and duration over Managua road grid."""
+        """Estimate driving distance and duration over Managua road grid with realistic traffic noise and outliers."""
         # Euclidean / Manhattan distance approximation for Managua
         d_lat = abs(zona_o.latitud - zona_d.latitud) * 111.0 # 1 deg lat ~ 111 km
         d_lon = abs(zona_o.longitud - zona_d.longitud) * 108.5 # 1 deg lon at 12 deg ~ 108.5 km
@@ -161,6 +181,24 @@ class MoviGoSimulationEngine:
         # Average speed: 28 km/h on clear roads, drops to 12-16 km/h during heavy congestion
         avg_speed = max(11.0, 32.0 / congestion_idx)
         duration_min = round(float((dist_km / avg_speed) * 60.0 + np.random.uniform(1.5, 4.0)), 2)
+
+        # Urban mobility outliers (~3.0% of trips):
+        # 1. Airport / intercity suburban trips (25-42 km, 45-80 min) (~1.8%)
+        # 2. Severe traffic bottleneck / flooded cauce roadblock (+35 to +65 min delay) (~1.5%)
+        # 3. Micro jump / campus transfer (~0.8%)
+        roll = np.random.rand()
+        if roll < OUTLIER_AIRPORT_TRIP_PROB:
+            # Long distance trip to Airport / Tipitapa / Ticuantepe
+            dist_km = round(float(np.random.uniform(25.0, 42.0)), 2)
+            duration_min = round(float(dist_km * np.random.uniform(1.6, 2.3) + np.random.uniform(12.0, 25.0)), 2)
+        elif roll < (OUTLIER_AIRPORT_TRIP_PROB + OUTLIER_GRIDLOCK_DELAY_PROB):
+            # Gridlock / flooded roundabout delay
+            duration_min = round(float(duration_min + np.random.uniform(35.0, 65.0)), 2)
+        elif roll < (OUTLIER_AIRPORT_TRIP_PROB + OUTLIER_GRIDLOCK_DELAY_PROB + 0.008):
+            # Quick micro trip
+            dist_km = round(float(np.random.uniform(0.9, 1.4)), 2)
+            duration_min = round(float(np.random.uniform(3.5, 6.0)), 2)
+
         return dist_km, duration_min
 
     def run_simulation(
@@ -239,9 +277,19 @@ class MoviGoSimulationEngine:
                     pickup_wait_min = float(np.random.uniform(3.0, 9.0))
                     start_time = req_time + timedelta(minutes=pickup_wait_min)
                     end_time = start_time + timedelta(minutes=dur_min)
-                    rating_usr = float(np.random.choice([5.0, 4.0, 3.0, 5.0, 5.0], p=[0.70, 0.18, 0.04, 0.05, 0.03]))
-                    rating_cnd = float(np.random.choice([5.0, 4.0, 5.0, 5.0], p=[0.78, 0.12, 0.05, 0.05]))
-                    propina = float(np.random.choice([0.0, 20.0, 30.0, 50.0], p=[0.75, 0.15, 0.07, 0.03]))
+                    # Realistic user rating with occasional negative service reviews (traffic delays/air conditioning)
+                    rating_usr = float(np.random.choice([5.0, 4.0, 3.0, 2.0, 1.0], p=[0.67, 0.20, 0.06, 0.04, 0.03]))
+                    rating_cnd = float(np.random.choice([5.0, 4.0, 3.0, 2.0, 1.0], p=[0.75, 0.14, 0.05, 0.03, 0.03]))
+
+                    # Tip distribution with generous customer outliers
+                    tip_roll = np.random.rand()
+                    if tip_roll < 0.015:
+                        # Generous tip outlier
+                        propina = float(np.random.choice([80.0, 100.0, 150.0]))
+                    elif tip_roll < 0.28:
+                        propina = float(np.random.choice([20.0, 30.0, 50.0], p=[0.60, 0.30, 0.10]))
+                    else:
+                        propina = 0.0
                     motivo = None
 
                 viajes.append(
@@ -268,8 +316,19 @@ class MoviGoSimulationEngine:
                     )
                 )
 
-                # Generate occasional telemetry ping during peak hours
+                # Generate occasional telemetry ping during peak hours with realistic speed variance
                 if np.random.rand() < 0.25:
+                    speed_roll = np.random.rand()
+                    if speed_roll < 0.08:
+                        # Heavy traffic congestion / standstill at roundabout (0 to 5 km/h)
+                        speed_val = float(np.random.uniform(0.0, 5.0))
+                    elif speed_roll < 0.15:
+                        # Highway cruising speed on Pista Suburbana / Carretera a Masaya (65 to 80 km/h)
+                        speed_val = float(np.random.uniform(62.0, 78.0))
+                    else:
+                        # Normal urban street speed (15 to 45 km/h)
+                        speed_val = float(np.random.uniform(15.0, 45.0))
+
                     telemetria.append(
                         TelemetriaConductor(
                             id_telemetria=telemetry_counter,
@@ -278,7 +337,7 @@ class MoviGoSimulationEngine:
                             fecha_hora=req_time + timedelta(minutes=2),
                             latitud=zona_origen.latitud + float(np.random.normal(0, 0.004)),
                             longitud=zona_origen.longitud + float(np.random.normal(0, 0.004)),
-                            velocidad_kmh=round(float(np.random.uniform(15.0, 48.0)), 2),
+                            velocidad_kmh=round(speed_val, 2),
                             estado_disponibilidad="ocupado" if not is_canceled else "disponible",
                         )
                     )

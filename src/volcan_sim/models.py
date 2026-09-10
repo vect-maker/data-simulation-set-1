@@ -70,7 +70,7 @@ class LoteAcopio(BaseModel):
     fecha_corte: date
     peso_cereza_kg: float = Field(ge=50.0)
     humedad_porcentaje: float = Field(ge=40.0, le=68.0)
-    puntaje_catacion_scaa: float = Field(ge=78.0, le=94.0)
+    puntaje_catacion_scaa: float = Field(ge=72.0, le=96.5)
     certificacion: str = Field(pattern=r"^(Convencional|Fairtrade|Orgánico|Rainforest Alliance|SHG)$")
     notas_catacion: Optional[str] = None
     costo_recoleccion_nio: float = Field(ge=0.0)
@@ -103,7 +103,7 @@ class SubastaEspecial(BaseModel):
     peso_quintales: float = Field(ge=5.0, le=50.0)
     costo_certificacion_usd: float = Field(ge=500.0, le=5000.0)
     retorno_esperado_usd: float = Field(ge=1500.0, le=25000.0)
-    puntaje_taza: float = Field(ge=86.0, le=94.0)
+    puntaje_taza: float = Field(ge=85.0, le=96.5)
     fecha_subasta: date
     estado_subasta: str = Field(pattern=r"^(programada|adjudicada|desierta)$")
 
@@ -120,7 +120,7 @@ class EmbarqueExportacion(BaseModel):
     cliente_comprador: str
     fecha_embarque: date
     peso_oro_quintales: float = Field(ge=1.0)
-    precio_quintal_usd: float = Field(ge=150.0, le=1200.0)
+    precio_quintal_usd: float = Field(ge=150.0, le=1500.0)
     flete_transporte_usd: float = Field(ge=10.0)
     total_usd: float = Field(ge=0.0)
 

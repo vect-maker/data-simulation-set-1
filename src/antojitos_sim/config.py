@@ -38,7 +38,7 @@ OPEN_METEO_LONGITUDE = -86.2514
 DEMAND_BETA_0 = 110.0
 DEMAND_BETA_1 = 7.8
 DEMAND_BETA_2 = -0.08
-DEMAND_NOISE_STD = 8.0
+DEMAND_NOISE_STD = 12.0
 
 # Day of week adjustments (0=Monday, ..., 6=Sunday)
 DAY_OF_WEEK_BOOST = {
@@ -54,11 +54,16 @@ DAY_OF_WEEK_BOOST = {
 # Delivery Transit Time Formula parameters:
 # T_entrega = T_prep + T_base_zona + RAIN_DELAY_FACTOR * P_t + lognormal(0, LOGNORMAL_SIGMA)
 RAIN_DELAY_FACTOR = 0.65
-LOGNORMAL_SIGMA = 0.20
+LOGNORMAL_SIGMA = 0.25
 
 # Basket size geometric distribution: K ~ Geometric(p=0.45)
 BASKET_SIZE_P = 0.45
 MAX_BASKET_SIZE = 6
+
+# Outlier probabilities for realistic operations
+OUTLIER_DEMAND_SHOCK_PROB = 0.030  # 3% of days have anomalous demand (holiday spike or storm drop)
+OUTLIER_DELAY_PROB = 0.025         # 2.5% of deliveries encounter major traffic / mechanical delays
+OUTLIER_CATERING_ORDER_PROB = 0.018 # 1.8% of orders are corporate / catering feasts
 
 # Payment methods distribution
 PAYMENT_METHOD_WEIGHTS = {

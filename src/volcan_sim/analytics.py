@@ -100,9 +100,9 @@ def compute_volcan_estadistica_ii(
 
 def compute_volcan_metodos_numericos(df_lotes: pd.DataFrame) -> Dict[str, Any]:
     """Perform numerical methods battery: drying kinetics, root finding, integration."""
-    # 1. Moisture loss kinetics: M(t) = M0 * exp(-k * t)
+    # 1. Moisture loss kinetics: M(t) = M0 * exp(-k * t) with experimental measurement noise
     t_samples = np.array([0.0, 24.0, 48.0, 72.0, 96.0, 120.0])
-    m_samples = np.array([52.0, 38.4, 28.5, 21.0, 15.6, 11.5])
+    m_samples = np.array([52.8, 37.1, 29.5, 19.8, 16.4, 11.2])
     decay_fit = fit_exponential_decay(t_samples, m_samples)
     m0 = decay_fit["m0"]
     k = decay_fit["k"]

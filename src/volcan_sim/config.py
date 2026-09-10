@@ -42,7 +42,13 @@ OPEN_METEO_LONGITUDE = -86.0021
 # SCAA Cupping formula: score = 76.2 + 0.0088 * Altitude + Variety_Bonus + eps
 SCAA_BASE = 76.2
 SCAA_ALTITUDE_COEFF = 0.0088
-SCAA_NOISE_STD = 1.05
+SCAA_NOISE_STD = 1.45
+
+# Outlier probabilities for agricultural and cup reality
+OUTLIER_COE_WINNER_PROB = 0.015  # 1.5% Cup of Excellence presidential micro-lots (93.0 - 95.8)
+OUTLIER_DEFECT_LOT_PROB = 0.020  # 2.0% Fermentation/broca defect lots (73.0 - 78.5)
+OUTLIER_MEGA_LOT_PROB = 0.018    # 1.8% Peak multi-truck deliveries (3,800 - 5,400 kg)
+OUTLIER_REPELA_LOT_PROB = 0.012  # 1.2% End-of-season smallholder repela lots (90 - 220 kg)
 
 # Variety bonus points on cup quality
 VARIETY_CUP_BONUS = {

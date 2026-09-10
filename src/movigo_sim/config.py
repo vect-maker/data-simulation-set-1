@@ -40,7 +40,12 @@ BASE_PER_MINUTE_NIO = 3.50
 # Surge pricing sensitivity to rain and peak traffic:
 # Multiplier = 1.0 + 0.032 * Pt + Rush_Hour_Boost + eps
 SURGE_RAIN_FACTOR = 0.032
-SURGE_MAX = 2.80
+SURGE_MAX = 3.20
+
+# Outlier probabilities for urban mobility operations
+OUTLIER_MOBILITY_SHOCK_PROB = 0.030  # 3% anomalous mobility days (stadium/concert surge or holiday drop)
+OUTLIER_AIRPORT_TRIP_PROB = 0.018    # 1.8% long-distance airport / intercity suburban trips (25-45 km)
+OUTLIER_GRIDLOCK_DELAY_PROB = 0.015  # 1.5% severe traffic gridlock / street flooding roadblocks (+35 to +65 min)
 
 # PostgreSQL Database Configuration
 POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")

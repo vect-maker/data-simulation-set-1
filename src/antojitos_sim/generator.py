@@ -26,6 +26,9 @@ from antojitos_sim.config import (
     LOGNORMAL_SIGMA,
     BASKET_SIZE_P,
     MAX_BASKET_SIZE,
+    OUTLIER_DEMAND_SHOCK_PROB,
+    OUTLIER_DELAY_PROB,
+    OUTLIER_CATERING_ORDER_PROB,
     PAYMENT_METHOD_WEIGHTS,
 )
 from antojitos_sim.models import (
@@ -134,10 +137,11 @@ class AntojitosSimulationEngine:
         self.category_ids = [c.id_categoria for c in self.categorias]
 
     def simulate_daily_demand(self, precip_mm: float, day_of_week: int) -> int:
-        """Calculate total orders for a day based on continuous rain driver and day of week."""
-        # lambda_t = 110 + 7.8 * P_t - 0.08 * P_t^2 + weekend_boost + eps
+        """Calculate total orders for a day based on continuous rain driver and day of week with realistic noise and outliers."""
         dow_boost = DAY_OF_WEEK_BOOST.get(day_of_week, 0.0)
-        noise = np.random.normal(0, DEMAND_NOISE_STD)
+        # Heteroscedastic noise: higher variability during stormy days
+        noise_std = DEMAND_NOISE_STD + (0.40 * precip_mm)
+        noise = np.random.normal(0, noise_std)
 
         lambda_t = (
             DEMAND_BETA_0
@@ -146,7 +150,17 @@ class AntojitosSimulationEngine:
             + dow_boost
             + noise
         )
-        return max(40, int(round(lambda_t)))
+
+        # Macro demand shock outliers (~3% of days):
+        # - Viral social promo / pay-day holiday feast spike (+40% to +65%)
+        # - Localized blackout / fiber cut / severe road flooding dip (-40% to -60%)
+        shock_roll = np.random.rand()
+        if shock_roll < (OUTLIER_DEMAND_SHOCK_PROB * 0.60):
+            lambda_t *= float(np.random.uniform(1.40, 1.65))
+        elif shock_roll < OUTLIER_DEMAND_SHOCK_PROB:
+            lambda_t *= float(np.random.uniform(0.40, 0.60))
+
+        return max(35, int(round(lambda_t)))
 
     def sample_order_time(self, order_date: date) -> datetime:
         """Sample intraday timestamp according to Non-Homogeneous Poisson Process."""
@@ -197,7 +211,7 @@ class AntojitosSimulationEngine:
         precip_mm: float,
         prep_time_minutes: float,
     ) -> float:
-        """Calculate total delivery duration in minutes using transit formula."""
+        """Calculate total delivery duration in minutes using transit formula with operational noise and incident outliers."""
         # Vehicle transit multiplier
         vehicle_factor = {
             "moto": 1.0,
@@ -215,6 +229,17 @@ class AntojitosSimulationEngine:
 
         base_travel = zona.tiempo_base_minutos * vehicle_factor
         t_entrega = prep_time_minutes + base_travel + rain_friction + eta
+
+        # Operational transit outliers (~2.5%):
+        # 1. Punctured tire / police checkpoint / flooded cauce / address confusion (+35 to +75 min delay)
+        # 2. Immediate express delivery next door (-40% time)
+        incident_roll = np.random.rand()
+        if incident_roll < (OUTLIER_DELAY_PROB * 0.75):
+            incident_delay = float(np.random.uniform(35.0, 75.0))
+            t_entrega += incident_delay
+        elif incident_roll < OUTLIER_DELAY_PROB:
+            t_entrega = max(10.0, t_entrega * float(np.random.uniform(0.45, 0.65)))
+
         return round(float(t_entrega), 2)
 
     def run_simulation(
@@ -246,9 +271,16 @@ class AntojitosSimulationEngine:
                 zona = self.sample_zone()
                 primary_cat = self.sample_category_for_zone(zona.id_zona)
 
-                # Basket size: K ~ Geometric(p=0.45)
-                basket_size = int(np.random.geometric(p=BASKET_SIZE_P))
-                basket_size = min(max(basket_size, 1), MAX_BASKET_SIZE)
+                # Check for bulk/catering feast order outlier (~1.8% of orders)
+                is_bulk_catering = np.random.rand() < OUTLIER_CATERING_ORDER_PROB
+
+                if is_bulk_catering:
+                    # Large corporate / family celebration feast
+                    basket_size = int(np.random.randint(7, 13))
+                else:
+                    # Standard Basket size: K ~ Geometric(p=0.45)
+                    basket_size = int(np.random.geometric(p=BASKET_SIZE_P))
+                    basket_size = min(max(basket_size, 1), MAX_BASKET_SIZE)
 
                 # Select dishes
                 primary_dishes = self.platillos_by_cat[primary_cat]
@@ -272,8 +304,12 @@ class AntojitosSimulationEngine:
                 max_dish_prep_time = 0.0
 
                 for dish in selected_dishes:
-                    # Quantity: 1 (80%), 2 (15%), 3 (5%)
-                    qty = int(np.random.choice([1, 2, 3], p=[0.80, 0.15, 0.05]))
+                    if is_bulk_catering:
+                        # Catering volume per dish: 3 to 6 portions
+                        qty = int(np.random.choice([3, 4, 5, 6]))
+                    else:
+                        # Quantity: 1 (80%), 2 (15%), 3 (5%)
+                        qty = int(np.random.choice([1, 2, 3], p=[0.80, 0.15, 0.05]))
                     subtotal = round(qty * dish.precio_unitario, 2)
                     order_items_total += subtotal
 
@@ -302,12 +338,16 @@ class AntojitosSimulationEngine:
                 shipping_fee = zona.tarifa_envio_base
                 if precip_mm > 15.0:
                     shipping_fee += 15.0 # Tarifa dinámica por lluvia
+                if is_bulk_catering:
+                    shipping_fee += 25.0 # Recargo por volumen/peso
 
                 # Assign courier
                 repartidor = np.random.choice(self.active_repartidores)
 
                 # Delivery duration calculation
                 kitchen_buffer = float(np.random.normal(3.0, 1.0))
+                if is_bulk_catering:
+                    kitchen_buffer += float(np.random.uniform(15.0, 30.0))
                 prep_total = max(5.0, max_dish_prep_time + kitchen_buffer)
                 duration_minutes = self.calculate_delivery_duration(
                     zona, repartidor, precip_mm, prep_total
@@ -347,8 +387,12 @@ class AntojitosSimulationEngine:
                 else:
                     estado_orden = "entregada"
                     delivered_at = created_at + timedelta(minutes=duration_minutes)
-                    # Tip: 32% probability
-                    if np.random.rand() < 0.32:
+                    # Tip distribution with generous outliers
+                    tip_roll = np.random.rand()
+                    if tip_roll < 0.015:
+                        # Generous customer outlier
+                        propina = float(np.random.choice([80.0, 100.0, 150.0]))
+                    elif tip_roll < 0.32:
                         propina = float(np.random.choice([10.0, 15.0, 20.0, 30.0, 50.0]))
                     else:
                         propina = 0.0
