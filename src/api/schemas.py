@@ -1,4 +1,8 @@
-"""Pydantic schemas and response models for all cases."""
+"""Pydantic schemas and response models for all cases.
+
+Todos los esquemas están documentados en español y contextualizados para las asignaturas
+del Proyecto Integrador (Bases de Datos Analíticas, Estadística II, Métodos Numéricos y Optimización).
+"""
 
 from datetime import date, datetime
 from typing import Generic, TypeVar
@@ -8,318 +12,1210 @@ T = TypeVar("T")
 
 
 class PaginatedResponse(BaseModel, Generic[T]):
-    """Standard REST pagination envelope."""
-    items: list[T] = Field(..., description="List of items for the current page")
-    count: int = Field(..., description="Number of items in the current page")
-    total: int = Field(..., description="Total number of items matching filters")
-    offset: int = Field(..., description="Current pagination offset")
-    limit: int = Field(..., description="Current pagination limit")
+    """Sobre uniforme de paginación REST para colecciones de datos.
+
+    Proporciona metadatos estándar que permiten a los estudiantes iterar
+    fácilmente a través de grandes volúmenes de datos usando parámetros offset y limit.
+    """
+
+    items: list[T] = Field(
+        ...,
+        description="Lista de registros recuperados para la página actual.",
+    )
+    count: int = Field(
+        ...,
+        description="Número de elementos contenidos en la página actual (len(items)).",
+        examples=[50],
+    )
+    total: int = Field(
+        ...,
+        description="Cantidad total de registros en la base de datos que cumplen con los filtros aplicados.",
+        examples=[1250],
+    )
+    offset: int = Field(
+        ...,
+        description="Desplazamiento o índice inicial aplicado en la consulta.",
+        examples=[0],
+    )
+    limit: int = Field(
+        ...,
+        description="Límite máximo de registros solicitados por página (máximo 200).",
+        examples=[50],
+    )
 
 
 # =========================================================
 # Caso 1: Antojitos Express
 # =========================================================
 
+
 class ZonaOut(BaseModel):
+    """Zona de cobertura urbana en Managua para entregas a domicilio."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_zona: int
-    nombre_zona: str
-    latitud: float
-    longitud: float
-    distancia_km: float
-    tiempo_base_minutos: int
-    tarifa_envio_base: float
+
+    id_zona: int = Field(
+        ...,
+        description="Identificador único numérico de la zona urbana de Managua.",
+        examples=[1],
+    )
+    nombre_zona: str = Field(
+        ...,
+        description="Nombre comercial o barrio de Managua (ej. Altamira, Bolonia, Los Robles, Bello Horizonte).",
+        examples=["Altamira"],
+    )
+    latitud: float = Field(
+        ...,
+        description="Coordenada geográfica de latitud en grados decimales WGS84.",
+        examples=[12.1245],
+    )
+    longitud: float = Field(
+        ...,
+        description="Coordenada geográfica de longitud en grados decimales WGS84.",
+        examples=[-86.2654],
+    )
+    distancia_km: float = Field(
+        ...,
+        description="Distancia lineal o radial en kilómetros (km) desde la cocina central hasta la zona.",
+        examples=[4.25],
+    )
+    tiempo_base_minutos: int = Field(
+        ...,
+        description="Tiempo estimado base de traslado en motocicleta en condiciones normales de tráfico (minutos).",
+        examples=[18],
+    )
+    tarifa_envio_base: float = Field(
+        ...,
+        description="Costo base de envío cobrado a esta zona en Córdobas nicaragüenses (NIO).",
+        examples=[45.0],
+    )
 
 
 class RepartidorOut(BaseModel):
+    """Colaborador de la flota de reparto y logística de última milla."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_repartidor: int
-    nombre: str
-    tipo_vehiculo: str
-    calificacion_promedio: float
-    capacidad_maxima_ordenes: int
-    estado: str
+
+    id_repartidor: int = Field(
+        ...,
+        description="Identificador único del repartidor en la flota.",
+        examples=[10],
+    )
+    nombre: str = Field(
+        ...,
+        description="Nombre y apellido del repartidor.",
+        examples=["Carlos Mendoza"],
+    )
+    tipo_vehiculo: str = Field(
+        ...,
+        description="Tipo de medio de transporte ('moto', 'bicicleta', 'auto'). Factor para ANOVA de tiempos.",
+        examples=["moto"],
+    )
+    calificacion_promedio: float = Field(
+        ...,
+        description="Calificación promedio histórica otorgada por los clientes (escala 1.0 a 5.0).",
+        examples=[4.85],
+    )
+    capacidad_maxima_ordenes: int = Field(
+        ...,
+        description="Número máximo de pedidos que puede transportar simultáneamente en su mochila térmica.",
+        examples=[3],
+    )
+    estado: str = Field(
+        ...,
+        description="Estado operativo actual del repartidor ('activo', 'inactivo', 'descanso').",
+        examples=["activo"],
+    )
 
 
 class CategoriaPlatilloOut(BaseModel):
+    """Categoría del menú gastronómico y margen de contribución."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_categoria: int
-    nombre_categoria: str
-    margen_contribucion_pct: float
+
+    id_categoria: int = Field(
+        ...,
+        description="Identificador único numérico de la categoría de comida.",
+        examples=[1],
+    )
+    nombre_categoria: str = Field(
+        ...,
+        description="Nombre descriptivo de la categoría (ej. Tacos, Hamburguesas, Bebidas, Postres).",
+        examples=["Tacos y Antojitos"],
+    )
+    margen_contribucion_pct: float = Field(
+        ...,
+        description="Margen de contribución bruto porcentual esperado de la categoría (0.00 a 1.00).",
+        examples=[0.45],
+    )
 
 
 class PlatilloOut(BaseModel):
+    """Platillo del catálogo digital, costos de elaboración y precios."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_platillo: int
-    id_categoria: int
-    nombre_platillo: str
-    precio_unitario: float
-    costo_ingredientes: float
-    tiempo_preparacion_minutos: float
-    requiere_horno: bool
-    activo: bool
+
+    id_platillo: int = Field(
+        ...,
+        description="Identificador único del platillo en el menú.",
+        examples=[101],
+    )
+    id_categoria: int = Field(
+        ...,
+        description="Clave foránea que referencia a la categoría en categorias_platillo.",
+        examples=[1],
+    )
+    nombre_platillo: str = Field(
+        ...,
+        description="Nombre comercial del platillo en la carta.",
+        examples=["Quesadilla Suprema Mixta"],
+    )
+    precio_unitario: float = Field(
+        ...,
+        description="Precio de venta al público en Córdobas (NIO). Variable clave para análisis de elasticidad.",
+        examples=[180.0],
+    )
+    costo_ingredientes: float = Field(
+        ...,
+        description="Costo directo de insumos e ingredientes por porción en Córdobas (NIO).",
+        examples=[75.5],
+    )
+    tiempo_preparacion_minutos: float = Field(
+        ...,
+        description="Tiempo estándar de preparación en cocina (minutos).",
+        examples=[12.5],
+    )
+    requiere_horno: bool = Field(
+        ...,
+        description="Indica si la preparación ocupa el horno industrial (cuello de botella operativo).",
+        examples=[False],
+    )
+    activo: bool = Field(
+        ...,
+        description="Disponibilidad actual del platillo en el menú (True = disponible).",
+        examples=[True],
+    )
 
 
 class PromocionOut(BaseModel):
+    """Campaña de marketing, presupuesto y descuentos aplicados."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_promocion: int
-    nombre_campana: str
-    costo_campana: float
-    retorno_esperado: float
-    descuento_pct: float
-    fecha_inicio: date
-    fecha_fin: date
+
+    id_promocion: int = Field(
+        ...,
+        description="Identificador único de la campaña promocional.",
+        examples=[5],
+    )
+    nombre_campana: str = Field(
+        ...,
+        description="Nombre de la campaña publicitaria (ej. 'Martes de Tacos 2x1', 'Super Combo Fin de Semana').",
+        examples=["Martes de Tacos 2x1"],
+    )
+    costo_campana: float = Field(
+        ...,
+        description="Presupuesto o costo de marketing asignado en Córdobas (NIO). Peso en el problema de la Mochila.",
+        examples=[2500.0],
+    )
+    retorno_esperado: float = Field(
+        ...,
+        description="Ingreso incremental proyectado en Córdobas (NIO). Valor a maximizar en Optimización.",
+        examples=[8200.0],
+    )
+    descuento_pct: float = Field(
+        ...,
+        description="Porcentaje de descuento aplicado sobre el precio del menú (0.00 a 1.00).",
+        examples=[0.20],
+    )
+    fecha_inicio: date = Field(
+        ...,
+        description="Fecha de inicio de vigencia de la promoción (YYYY-MM-DD).",
+        examples=["2024-03-01"],
+    )
+    fecha_fin: date = Field(
+        ...,
+        description="Fecha de culminación de la promoción (YYYY-MM-DD).",
+        examples=["2024-03-31"],
+    )
 
 
 class ClimaDiarioOut(BaseModel):
+    """Registro meteorológico diario en Managua (variable exógena de demanda)."""
+
     model_config = ConfigDict(from_attributes=True)
-    fecha: date
-    precipitacion_mm: float
-    temperatura_c: float
-    condicion_cielo: str
+
+    fecha: date = Field(
+        ...,
+        description="Fecha del registro meteorológico en Managua (YYYY-MM-DD). Enlace temporal con órdenes.",
+        examples=["2024-06-15"],
+    )
+    precipitacion_mm: float = Field(
+        ...,
+        description="Milímetros de lluvia acumulada en el día (mm). Variable predictora clave de demanda de delivery.",
+        examples=[18.4],
+    )
+    temperatura_c: float = Field(
+        ...,
+        description="Temperatura ambiente media diaria en grados Celsius (°C).",
+        examples=[29.8],
+    )
+    condicion_cielo: str = Field(
+        ...,
+        description="Condición atmosférica general ('despejado', 'lluvia_ligera', 'tormenta', 'nublado').",
+        examples=["tormenta"],
+    )
 
 
 class DetalleOrdenOut(BaseModel):
+    """Línea de detalle individual de platillo en una orden de compra."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_detalle: int
-    id_orden: int
-    id_platillo: int
-    cantidad: int
-    precio_unitario: float
-    subtotal: float
+
+    id_detalle: int = Field(
+        ...,
+        description="Identificador único numérico de la línea de detalle.",
+        examples=[5001],
+    )
+    id_orden: int = Field(
+        ...,
+        description="Clave foránea que referencia a la orden principal en ordenes.",
+        examples=[1250],
+    )
+    id_platillo: int = Field(
+        ...,
+        description="Clave foránea que referencia al platillo en platillos.",
+        examples=[101],
+    )
+    cantidad: int = Field(
+        ...,
+        description="Cantidad de porciones o unidades solicitadas del platillo.",
+        examples=[2],
+    )
+    precio_unitario: float = Field(
+        ...,
+        description="Precio unitario cobrado en Córdobas (NIO) al momento del pedido.",
+        examples=[180.0],
+    )
+    subtotal: float = Field(
+        ...,
+        description="Importe subtotal calculado (cantidad * precio_unitario) en Córdobas (NIO).",
+        examples=[360.0],
+    )
 
 
 class OrdenOut(BaseModel):
+    """Histórico transaccional de pedidos y entregas a domicilio."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_orden: int
-    id_zona: int
-    id_repartidor: int | None = None
-    id_promocion: int | None = None
-    fecha_hora_creacion: datetime
-    fecha_hora_entrega: datetime | None = None
-    metodo_pago: str
-    estado_orden: str
-    total_orden: float
-    costo_envio: float
-    propina: float
-    notas_entrega: str | None = None
-    comentario_cliente: str | None = None
-    motivo_cancelacion: str | None = None
+
+    id_orden: int = Field(
+        ...,
+        description="Identificador único transaccional de la orden de compra.",
+        examples=[1250],
+    )
+    id_zona: int = Field(
+        ...,
+        description="Clave foránea de la zona urbana de Managua donde se realiza la entrega.",
+        examples=[3],
+    )
+    id_repartidor: int | None = Field(
+        default=None,
+        description="Clave foránea del repartidor asignado (None si aún no ha sido despachada).",
+        examples=[10],
+    )
+    id_promocion: int | None = Field(
+        default=None,
+        description="Clave foránea de la promoción aplicada a la orden (None si no aplicó campaña).",
+        examples=[5],
+    )
+    fecha_hora_creacion: datetime = Field(
+        ...,
+        description="Marca de tiempo en que el cliente realizó el pedido (ISO 8601).",
+        examples=["2024-06-15T19:30:00"],
+    )
+    fecha_hora_entrega: datetime | None = Field(
+        default=None,
+        description="Marca de tiempo en que el repartidor entregó el pedido al cliente.",
+        examples=["2024-06-15T20:12:00"],
+    )
+    metodo_pago: str = Field(
+        ...,
+        description="Modalidad de pago empleada ('efectivo', 'tarjeta', 'billetera_digital').",
+        examples=["billetera_digital"],
+    )
+    estado_orden: str = Field(
+        ...,
+        description="Estado del ciclo de vida de la orden ('entregada', 'cancelada', 'en_camino', 'preparando').",
+        examples=["entregada"],
+    )
+    total_orden: float = Field(
+        ...,
+        description="Monto total cobrado por los alimentos en Córdobas nicaragüenses (NIO).",
+        examples=[420.0],
+    )
+    costo_envio: float = Field(
+        ...,
+        description="Tarifa cobrada por el servicio de entrega a domicilio en Córdobas (NIO).",
+        examples=[50.0],
+    )
+    propina: float = Field(
+        default=0.0,
+        description="Monto voluntario de propina dejado por el cliente al repartidor en Córdobas (NIO).",
+        examples=[30.0],
+    )
+    notas_entrega: str | None = Field(
+        default=None,
+        description="Instrucciones especiales de entrega proporcionadas por el cliente.",
+        examples=["Tocar el timbre de la casa verde"],
+    )
+    comentario_cliente: str | None = Field(
+        default=None,
+        description="Opinión o retroalimentación del comensal sobre el servicio.",
+        examples=["Comida caliente y entrega rápida"],
+    )
+    motivo_cancelacion: str | None = Field(
+        default=None,
+        description="Motivo registrado en caso de cancelación del pedido.",
+        examples=[None],
+    )
 
 
 class OrdenDetailOut(OrdenOut):
-    items: list[DetalleOrdenOut] = Field(default_factory=list, description="Associated order items")
+    """Orden de compra completa con la lista anidada de platillos e ítems solicitados."""
+
+    items: list[DetalleOrdenOut] = Field(
+        default_factory=list,
+        description="Lista anidada con las líneas de detalle de platillos asociados a esta orden.",
+    )
 
 
 # =========================================================
 # Caso 2: Cooperativa El Volcán
 # =========================================================
 
+
 class FincaOut(BaseModel):
+    """Finca cafetalera asociada a la cooperativa en el norte de Nicaragua."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_finca: int
-    nombre_finca: str
-    id_productor: int
-    nombre_productor: str
-    region: str
-    municipio: str
-    latitud: float
-    longitud: float
-    altitud_msnm: int
-    area_manzanas: float
+
+    id_finca: int = Field(
+        ...,
+        description="Identificador único numérico de la finca cafetalera.",
+        examples=[1],
+    )
+    nombre_finca: str = Field(
+        ...,
+        description="Nombre comercial de la propiedad agrícola.",
+        examples=["Finca La Cumbre"],
+    )
+    id_productor: int = Field(
+        ...,
+        description="Identificador del productor miembro asociado a la cooperativa.",
+        examples=[101],
+    )
+    nombre_productor: str = Field(
+        ...,
+        description="Nombre completo del caficultor propietario.",
+        examples=["Mateo Gutiérrez"],
+    )
+    region: str = Field(
+        ...,
+        description="Región cafetalera ('Jinotega', 'Matagalpa', 'Nueva Segovia - Dipilto', 'Madriz').",
+        examples=["Jinotega"],
+    )
+    municipio: str = Field(
+        ...,
+        description="Municipio específico de localización de la finca.",
+        examples=["San Rafael del Norte"],
+    )
+    latitud: float = Field(
+        ...,
+        description="Coordenada geográfica de latitud en grados decimales WGS84.",
+        examples=[13.2124],
+    )
+    longitud: float = Field(
+        ...,
+        description="Coordenada geográfica de longitud en grados decimales WGS84.",
+        examples=[-86.1105],
+    )
+    altitud_msnm: int = Field(
+        ...,
+        description="Altitud media sobre el nivel del mar (1000 a 1650 msnm). Factor determinante en la calidad del grano.",
+        examples=[1350],
+    )
+    area_manzanas: float = Field(
+        ...,
+        description="Área cultivada en manzanas nicaragüenses (1 mz ≈ 0.704 hectáreas).",
+        examples=[25.5],
+    )
 
 
 class VariedadCafeOut(BaseModel):
+    """Variedad botánica de café arábica cultivada en las parcelas."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_variedad: int
-    nombre_variedad: str
-    especie: str
-    perfil_sensorial_base: str
-    resistencia_roya: str
-    rendimiento_promedio_qq_mz: float
+
+    id_variedad: int = Field(
+        ...,
+        description="Identificador único de la variedad botánica.",
+        examples=[1],
+    )
+    nombre_variedad: str = Field(
+        ...,
+        description="Nombre botánico comercial ('Geisha', 'Pacamara', 'Bourbon', 'Caturra', 'Maragogipe', 'Catuaí').",
+        examples=["Geisha"],
+    )
+    especie: str = Field(
+        default="Coffea Arabica",
+        description="Especie biológica del cultivo (predominantemente 'Coffea Arabica').",
+        examples=["Coffea Arabica"],
+    )
+    perfil_sensorial_base: str = Field(
+        ...,
+        description="Notas organolépticas base y perfil de cata característico.",
+        examples=["Jazmín, bergamota, acidez brillante y notas a durazno"],
+    )
+    resistencia_roya: str = Field(
+        ...,
+        description="Nivel de susceptibilidad al hongo de la roya Hemileia vastatrix ('alta', 'media', 'susceptible').",
+        examples=["susceptible"],
+    )
+    rendimiento_promedio_qq_mz: float = Field(
+        ...,
+        description="Rendimiento agronómico promedio en quintales oro por manzana (qq/mz).",
+        examples=[22.5],
+    )
 
 
 class BeneficioOut(BaseModel):
+    """Planta agroindustrial de beneficio húmedo o seco para café."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_beneficio: int
-    nombre_beneficio: str
-    tipo_beneficio: str
-    municipio: str
-    latitud: float
-    longitud: float
-    capacidad_quintales_dia: float
-    costo_procesamiento_qq: float
+
+    id_beneficio: int = Field(
+        ...,
+        description="Identificador único del beneficio agroindustrial.",
+        examples=[1],
+    )
+    nombre_beneficio: str = Field(
+        ...,
+        description="Nombre o razón social de la planta de procesamiento.",
+        examples=["Beneficio Central El Molino"],
+    )
+    tipo_beneficio: str = Field(
+        ...,
+        description="Tipo de procesamiento ('humedo' para despulpado/lavado, 'seco' para trillado/clasificación).",
+        examples=["humedo"],
+    )
+    municipio: str = Field(
+        ...,
+        description="Municipio donde opera la instalación agroindustrial.",
+        examples=["Jinotega"],
+    )
+    latitud: float = Field(
+        ...,
+        description="Coordenada geográfica de latitud de la planta.",
+        examples=[13.0889],
+    )
+    longitud: float = Field(
+        ...,
+        description="Coordenada geográfica de longitud de la planta.",
+        examples=[-85.9981],
+    )
+    capacidad_quintales_dia: float = Field(
+        ...,
+        description="Capacidad operativa máxima de recepción y proceso en quintales por día (qq/día).",
+        examples=[500.0],
+    )
+    costo_procesamiento_qq: float = Field(
+        ...,
+        description="Costo unitario de beneficio por quintal procesado en Córdobas (NIO/qq).",
+        examples=[120.0],
+    )
 
 
 class CuadrillaCorteOut(BaseModel):
+    """Cuadrilla de recolectores para la cosecha manual de café cereza."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_cuadrilla: int
-    nombre_cuadrilla: str
-    capacidad_recolectores: int
-    rendimiento_latas_dia: float
-    costo_jornal_dia: float
-    estado: str
+
+    id_cuadrilla: int = Field(
+        ...,
+        description="Identificador único numérico de la cuadrilla de recolectores.",
+        examples=[4],
+    )
+    nombre_cuadrilla: str = Field(
+        ...,
+        description="Nombre o distintivo de la cuadrilla.",
+        examples=["Cuadrilla Los Pinos"],
+    )
+    capacidad_recolectores: int = Field(
+        ...,
+        description="Cantidad total de cortadores que integran la cuadrilla.",
+        examples=[18],
+    )
+    rendimiento_latas_dia: float = Field(
+        ...,
+        description="Rendimiento promedio diario de recolección en latas de café cereza.",
+        examples=[145.0],
+    )
+    costo_jornal_dia: float = Field(
+        ...,
+        description="Costo de compensación diario por cortador en Córdobas (NIO/día).",
+        examples=[220.0],
+    )
+    estado: str = Field(
+        ...,
+        description="Disponibilidad operativa de la cuadrilla ('activa', 'descanso', 'asignada').",
+        examples=["activa"],
+    )
 
 
 class ClimaCafetaleroOut(BaseModel):
+    """Variables agroclimáticas de montaña en regiones cafetaleras de Jinotega."""
+
     model_config = ConfigDict(from_attributes=True)
-    fecha: date
-    region: str
-    precipitacion_mm: float
-    temperatura_media_c: float
-    temperatura_min_c: float
-    temperatura_max_c: float
-    humedad_relativa_pct: float
-    condicion_clima: str
+
+    fecha: date = Field(
+        ...,
+        description="Fecha de la observación meteorológica (YYYY-MM-DD).",
+        examples=["2024-11-10"],
+    )
+    region: str = Field(
+        ...,
+        description="Zona montañosa monitoreada ('Jinotega', 'Matagalpa', etc.).",
+        examples=["Jinotega"],
+    )
+    precipitacion_mm: float = Field(
+        ...,
+        description="Precipitación acumulada diaria en milímetros (mm).",
+        examples=[12.5],
+    )
+    temperatura_media_c: float = Field(
+        ...,
+        description="Temperatura ambiente promedio diaria en grados Celsius (°C).",
+        examples=[19.2],
+    )
+    temperatura_min_c: float = Field(
+        ...,
+        description="Temperatura mínima en horas nocturnas o madrugada (°C).",
+        examples=[14.8],
+    )
+    temperatura_max_c: float = Field(
+        ...,
+        description="Temperatura máxima en horas del mediodía (°C).",
+        examples=[24.5],
+    )
+    humedad_relativa_pct: float = Field(
+        ...,
+        description="Humedad relativa promedio del aire expresada en porcentaje (%).",
+        examples=[84.5],
+    )
+    condicion_clima: str = Field(
+        ...,
+        description="Estado del tiempo predominante ('soleado', 'nublado', 'llovizna', 'temporal').",
+        examples=["llovizna"],
+    )
 
 
 class LoteAcopioOut(BaseModel):
+    """Lote de café cereza cosechado, recepcionado y evaluado sensorialmente."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_lote: int
-    id_finca: int
-    id_variedad: int
-    id_cuadrilla: int | None = None
-    fecha_corte: date
-    peso_cereza_kg: float
-    humedad_porcentaje: float
-    puntaje_catacion_scaa: float
-    certificacion: str
-    notas_catacion: str | None = None
-    costo_recoleccion_nio: float
-    estado_lote: str
+
+    id_lote: int = Field(
+        ...,
+        description="Identificador único del lote de café recibido en acopio.",
+        examples=[1001],
+    )
+    id_finca: int = Field(
+        ...,
+        description="Clave foránea de la finca productora donde se realizó el corte.",
+        examples=[1],
+    )
+    id_variedad: int = Field(
+        ...,
+        description="Clave foránea de la variedad botánica cultivada.",
+        examples=[1],
+    )
+    id_cuadrilla: int | None = Field(
+        default=None,
+        description="Clave foránea de la cuadrilla de recolección asignada.",
+        examples=[4],
+    )
+    fecha_corte: date = Field(
+        ...,
+        description="Fecha en que se cosechó el café en la finca (YYYY-MM-DD).",
+        examples=["2024-11-15"],
+    )
+    peso_cereza_kg: float = Field(
+        ...,
+        description="Peso bruto de café cereza fresca recibido en kilogramos (kg).",
+        examples=[1850.0],
+    )
+    humedad_porcentaje: float = Field(
+        ...,
+        description="Porcentaje de humedad del grano medido al momento de recepción (%).",
+        examples=[58.5],
+    )
+    puntaje_catacion_scaa: float = Field(
+        ...,
+        description="Calificación sensorial en protocolo SCAA (Specialty Coffee Association, escala 80.0 a 100.0).",
+        examples=[87.5],
+    )
+    certificacion: str = Field(
+        ...,
+        description="Sello socioambiental o de calidad ('Convencional', 'Fairtrade', 'Orgánico', 'Rainforest Alliance', 'SHG').",
+        examples=["Fairtrade"],
+    )
+    notas_catacion: str | None = Field(
+        default=None,
+        description="Descripción de descriptores sensoriales (aroma, acidez, cuerpo, dulzor).",
+        examples=["Fragancia floral con notas de miel y jazmín"],
+    )
+    costo_recoleccion_nio: float = Field(
+        ...,
+        description="Costo total de corte y transporte al punto de acopio en Córdobas (NIO).",
+        examples=[4200.0],
+    )
+    estado_lote: str = Field(
+        ...,
+        description="Fase operativa del lote ('recolectado', 'en_beneficio_humedo', 'en_secado', 'listo_exportacion', 'descartado').",
+        examples=["en_beneficio_humedo"],
+    )
 
 
 class ProcesamientoBeneficioOut(BaseModel):
+    """Etapa de transformación industrial en beneficio y control de mermas."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_proceso: int
-    id_lote: int
-    id_beneficio: int
-    etapa: str
-    fecha_inicio: datetime
-    fecha_fin: datetime | None = None
-    temperatura_fermentacion_c: float | None = None
-    merma_porcentaje: float
-    peso_salida_kg: float
-    observaciones_proceso: str | None = None
+
+    id_proceso: int = Field(
+        ...,
+        description="Identificador único del registro de procesamiento.",
+        examples=[201],
+    )
+    id_lote: int = Field(
+        ...,
+        description="Clave foránea del lote de café intervenido.",
+        examples=[1001],
+    )
+    id_beneficio: int = Field(
+        ...,
+        description="Clave foránea del beneficio donde se realiza la transformación.",
+        examples=[1],
+    )
+    etapa: str = Field(
+        ...,
+        description="Fase técnica del proceso ('despulpado', 'fermentacion', 'secado_patio', 'trillado', 'clasificacion').",
+        examples=["fermentacion"],
+    )
+    fecha_inicio: datetime = Field(
+        ...,
+        description="Fecha y hora de inicio de la etapa (ISO 8601).",
+        examples=["2024-11-16T08:00:00"],
+    )
+    fecha_fin: datetime | None = Field(
+        default=None,
+        description="Fecha y hora de finalización de la etapa.",
+        examples=["2024-11-17T14:30:00"],
+    )
+    temperatura_fermentacion_c: float | None = Field(
+        default=None,
+        description="Temperatura controlada en tanques de fermentación (°C).",
+        examples=[21.5],
+    )
+    merma_porcentaje: float = Field(
+        ...,
+        description="Pérdida porcentual de peso por deshidratación o cascabillo (0.00 a 1.00).",
+        examples=[0.18],
+    )
+    peso_salida_kg: float = Field(
+        ...,
+        description="Peso neto resultante de la etapa en kilogramos (kg).",
+        examples=[1517.0],
+    )
+    observaciones_proceso: str | None = Field(
+        default=None,
+        description="Anotaciones técnicas del maestro beneficiador.",
+        examples=["Fermentación aeróbica de 30 horas con lavado limpio"],
+    )
 
 
 class SubastaEspecialOut(BaseModel):
+    """Microlote de café de especialidad ofertado en subastas internacionales."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_subasta: int
-    id_lote: int | None = None
-    nombre_lote_especial: str
-    peso_quintales: float
-    costo_certificacion_usd: float
-    retorno_esperado_usd: float
-    puntaje_taza: float
-    fecha_subasta: date
-    estado_subasta: str
+
+    id_subasta: int = Field(
+        ...,
+        description="Identificador único del microlote en subasta.",
+        examples=[12],
+    )
+    id_lote: int | None = Field(
+        default=None,
+        description="Clave foránea del lote de café seleccionado.",
+        examples=[1001],
+    )
+    nombre_lote_especial: str = Field(
+        ...,
+        description="Nombre comercial de fantasía para la subasta (ej. 'Geisha Diamante').",
+        examples=["Geisha Diamante - Taza de la Excelencia"],
+    )
+    peso_quintales: float = Field(
+        ...,
+        description="Peso disponible del microlote en quintales oro (qq). Peso en el problema de la Mochila.",
+        examples=[15.0],
+    )
+    costo_certificacion_usd: float = Field(
+        ...,
+        description="Costo de inscripción, auditoría y catación en Dólares (USD).",
+        examples=[850.0],
+    )
+    retorno_esperado_usd: float = Field(
+        ...,
+        description="Ingreso esperado por venta en subasta en Dólares (USD). Valor a maximizar en Optimización.",
+        examples=[6800.0],
+    )
+    puntaje_taza: float = Field(
+        ...,
+        description="Puntaje de catación final otorgado por el panel internacional.",
+        examples=[90.5],
+    )
+    fecha_subasta: date = Field(
+        ...,
+        description="Fecha programada o celebrada de la subasta (YYYY-MM-DD).",
+        examples=["2024-12-05"],
+    )
+    estado_subasta: str = Field(
+        ...,
+        description="Resultado de la puja ('programada', 'adjudicada', 'desierta').",
+        examples=["adjudicada"],
+    )
 
 
 class EmbarqueExportacionOut(BaseModel):
+    """Despacho marítimo de café oro con destino a mercados internacionales."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_embarque: int
-    id_lote: int
-    numero_contenedor: str
-    puerto_salida: str
-    pais_destino: str
-    cliente_comprador: str
-    fecha_embarque: date
-    peso_oro_quintales: float
-    precio_quintal_usd: float
-    flete_transporte_usd: float
-    total_usd: float
+
+    id_embarque: int = Field(
+        ...,
+        description="Identificador único numérico del embarque de exportación.",
+        examples=[88],
+    )
+    id_lote: int = Field(
+        ...,
+        description="Clave foránea del lote de café exportado.",
+        examples=[1001],
+    )
+    numero_contenedor: str = Field(
+        ...,
+        description="Código alfanumérico internacional del contenedor marítimo.",
+        examples=["MSKU9082341"],
+    )
+    puerto_salida: str = Field(
+        default="Puerto Corinto, Nicaragua",
+        description="Puerto marítimo de zarpe (ej. 'Puerto Corinto, Nicaragua').",
+        examples=["Puerto Corinto, Nicaragua"],
+    )
+    pais_destino: str = Field(
+        ...,
+        description="País comprador ('Alemania', 'Estados Unidos', 'Japón', 'Bélgica', 'Taiwán', 'Italia').",
+        examples=["Alemania"],
+    )
+    cliente_comprador: str = Field(
+        ...,
+        description="Nombre de la empresa tostadora o importadora extranjera.",
+        examples=["Hamburg Specialty Roasters GmbH"],
+    )
+    fecha_embarque: date = Field(
+        ...,
+        description="Fecha de despacho o zarpe aduanero (YYYY-MM-DD).",
+        examples=["2024-12-20"],
+    )
+    peso_oro_quintales: float = Field(
+        ...,
+        description="Volumen exportado en quintales de café oro (qq).",
+        examples=[275.0],
+    )
+    precio_quintal_usd: float = Field(
+        ...,
+        description="Precio acordado por quintal según contrato en Dólares (USD/qq).",
+        examples=[245.0],
+    )
+    flete_transporte_usd: float = Field(
+        ...,
+        description="Costo de transporte terrestre y flete marítimo en Dólares (USD).",
+        examples=[1800.0],
+    )
+    total_usd: float = Field(
+        ...,
+        description="Facturación total bruta de la exportación en Dólares (USD).",
+        examples=[67375.0],
+    )
 
 
 # =========================================================
 # Caso 3: MoviGo
 # =========================================================
 
+
 class ZonaUrbanaOut(BaseModel):
+    """Cuadrante o sector urbano de Managua para movilidad y transporte."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_zona: int
-    nombre_zona: str
-    estrato_socioeconomico: str
-    latitud: float
-    longitud: float
-    radio_cobertura_km: float
-    tarifa_base_bajada_bandera: float
+
+    id_zona: int = Field(
+        ...,
+        description="Identificador único numérico del cuadrante urbano de Managua.",
+        examples=[1],
+    )
+    nombre_zona: str = Field(
+        ...,
+        description="Nombre comercial o referencia urbana (ej. Metrocentro, Plaza España, Villa Fontana).",
+        examples=["Metrocentro"],
+    )
+    estrato_socioeconomico: str = Field(
+        ...,
+        description="Estrato económico del cuadrante ('alto', 'medio', 'popular', 'comercial').",
+        examples=["comercial"],
+    )
+    latitud: float = Field(
+        ...,
+        description="Latitud geográfica del centroide de la zona en grados decimales WGS84.",
+        examples=[12.1275],
+    )
+    longitud: float = Field(
+        ...,
+        description="Longitud geográfica del centroide de la zona en grados decimales WGS84.",
+        examples=[-86.2658],
+    )
+    radio_cobertura_km: float = Field(
+        ...,
+        description="Radio operativo de cobertura en kilómetros (km).",
+        examples=[2.5],
+    )
+    tarifa_base_bajada_bandera: float = Field(
+        ...,
+        description="Tarifa base fija de bajada de bandera al iniciar el viaje en Córdobas (NIO).",
+        examples=[35.0],
+    )
 
 
 class UsuarioOut(BaseModel):
+    """Pasajero registrado en la aplicación de transporte."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_usuario: int
-    nombre: str
-    telefono: str
-    metodo_pago_preferido: str
-    calificacion_promedio: float
-    fecha_registro: date
+
+    id_usuario: int = Field(
+        ...,
+        description="Identificador único numérico del pasajero en la plataforma.",
+        examples=[501],
+    )
+    nombre: str = Field(
+        ...,
+        description="Nombre completo del usuario pasajero.",
+        examples=["Sofía Morales"],
+    )
+    telefono: str = Field(
+        ...,
+        description="Número de teléfono móvil de contacto (+505).",
+        examples=["+505 8899-1122"],
+    )
+    metodo_pago_preferido: str = Field(
+        ...,
+        description="Modalidad de pago configurada ('efectivo', 'tarjeta', 'billetera_digital').",
+        examples=["tarjeta"],
+    )
+    calificacion_promedio: float = Field(
+        ...,
+        description="Calificación promedio histórica como pasajero (escala 1.0 a 5.0).",
+        examples=[4.92],
+    )
+    fecha_registro: date = Field(
+        ...,
+        description="Fecha de creación de la cuenta en la plataforma (YYYY-MM-DD).",
+        examples=["2023-08-14"],
+    )
 
 
 class ConductorOut(BaseModel):
+    """Socio conductor y unidad vehicular registrada en la flota."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_conductor: int
-    nombre: str
-    tipo_servicio: str
-    modelo_vehiculo: str
-    anio_vehiculo: int
-    placa: str
-    calificacion_promedio: float
-    tasa_aceptacion_pct: float
-    estado: str
+
+    id_conductor: int = Field(
+        ...,
+        description="Identificador único del socio conductor en la flota.",
+        examples=[205],
+    )
+    nombre: str = Field(
+        ...,
+        description="Nombre y apellido del conductor.",
+        examples=["Ernesto Chamorro"],
+    )
+    tipo_servicio: str = Field(
+        ...,
+        description="Categoría del servicio prestado ('movigo_estandar', 'movigo_comfort', 'movigo_moto').",
+        examples=["movigo_estandar"],
+    )
+    modelo_vehiculo: str = Field(
+        ...,
+        description="Marca y modelo del automóvil o moto.",
+        examples=["Toyota Yaris Sedan"],
+    )
+    anio_vehiculo: int = Field(
+        ...,
+        description="Año de fabricación del vehículo automotor.",
+        examples=[2021],
+    )
+    placa: str = Field(
+        ...,
+        description="Matrícula vehicular de Managua (ej. 'M 284-910').",
+        examples=["M 284-910"],
+    )
+    calificacion_promedio: float = Field(
+        ...,
+        description="Calificación promedio histórica recibida de pasajeros (escala 1.0 a 5.0).",
+        examples=[4.88],
+    )
+    tasa_aceptacion_pct: float = Field(
+        ...,
+        description="Tasa histórica de aceptación de solicitudes de viaje (0.00 a 1.00).",
+        examples=[0.94],
+    )
+    estado: str = Field(
+        ...,
+        description="Disponibilidad operativa actual ('activo', 'inactivo', 'en_viaje', 'desconectado').",
+        examples=["activo"],
+    )
 
 
 class CampanaIncentivoOut(BaseModel):
+    """Programa de bonos y estímulos para horas de conexión de conductores."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_campana: int
-    nombre_bono: str
-    costo_presupuesto_nio: float
-    incremento_horas_conexion: float
-    tipo_incentivo: str
-    fecha_inicio: date
-    fecha_fin: date
-    estado: str
+
+    id_campana: int = Field(
+        ...,
+        description="Identificador único del programa de incentivos.",
+        examples=[8],
+    )
+    nombre_bono: str = Field(
+        ...,
+        description="Nombre del bono o reto operativo (ej. 'Bono Aguacero Nocturno').",
+        examples=["Bono Aguacero Nocturno"],
+    )
+    costo_presupuesto_nio: float = Field(
+        ...,
+        description="Presupuesto asignado al bono en Córdobas (NIO). Peso en el problema de la Mochila.",
+        examples=[12000.0],
+    )
+    incremento_horas_conexion: float = Field(
+        ...,
+        description="Aumento estimado en horas de conexión activa. Retorno a maximizar en Optimización.",
+        examples=[180.0],
+    )
+    tipo_incentivo: str = Field(
+        ...,
+        description="Mecánica del incentivo ('meta_viajes', 'hora_pico_lluvia', 'zona_alta_demanda').",
+        examples=["hora_pico_lluvia"],
+    )
+    fecha_inicio: date = Field(
+        ...,
+        description="Fecha de inicio de la vigencia (YYYY-MM-DD).",
+        examples=["2024-05-01"],
+    )
+    fecha_fin: date = Field(
+        ...,
+        description="Fecha de cierre de la vigencia (YYYY-MM-DD).",
+        examples=["2024-05-31"],
+    )
+    estado: str = Field(
+        ...,
+        description="Estado del programa ('activa', 'finalizada').",
+        examples=["activa"],
+    )
 
 
 class ClimaCuadranteOut(BaseModel):
+    """Condición climática e índice de congestión vehicular por cuadrante en Managua."""
+
     model_config = ConfigDict(from_attributes=True)
-    fecha: date
-    precipitacion_mm: float
-    temperatura_c: float
-    indice_congestion: float
-    condicion_cielo: str
+
+    fecha: date = Field(
+        ...,
+        description="Fecha del registro meteorológico y de tráfico (YYYY-MM-DD).",
+        examples=["2024-05-18"],
+    )
+    precipitacion_mm: float = Field(
+        ...,
+        description="Milímetros de lluvia caída en el cuadrante (mm). Driver exógeno principal.",
+        examples=[22.0],
+    )
+    temperatura_c: float = Field(
+        ...,
+        description="Temperatura ambiente media en grados Celsius (°C).",
+        examples=[31.2],
+    )
+    indice_congestion: float = Field(
+        ...,
+        description="Índice de saturación vial (1.00 flujo totalmente despejado a 3.50 colapso por lluvias).",
+        examples=[2.45],
+    )
+    condicion_cielo: str = Field(
+        ...,
+        description="Condición atmosférica ('despejado', 'nublado', 'lluvia_ligera', 'tormenta').",
+        examples=["tormenta"],
+    )
 
 
 class ViajeOut(BaseModel):
+    """Registro transaccional de un viaje realizado en la plataforma MoviGo."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_viaje: int
-    id_usuario: int
-    id_conductor: int | None = None
-    id_zona_origen: int
-    id_zona_destino: int
-    fecha_hora_solicitud: datetime
-    fecha_hora_inicio: datetime | None = None
-    fecha_hora_fin: datetime | None = None
-    distancia_km: float
-    duracion_minutos: float
-    tarifa_base: float
-    multiplicador_dinamico: float
-    tarifa_final: float
-    metodo_pago: str
-    estado_viaje: str
-    calificacion_usuario: float | None = None
-    calificacion_conductor: float | None = None
-    propina: float
-    motivo_cancelacion: str | None = None
+
+    id_viaje: int = Field(
+        ...,
+        description="Identificador único transaccional del viaje.",
+        examples=[10042],
+    )
+    id_usuario: int = Field(
+        ...,
+        description="Clave foránea del pasajero que solicitó el traslado.",
+        examples=[501],
+    )
+    id_conductor: int | None = Field(
+        default=None,
+        description="Clave foránea del socio conductor que atendió el viaje.",
+        examples=[205],
+    )
+    id_zona_origen: int = Field(
+        ...,
+        description="Clave foránea del cuadrante urbano de origen.",
+        examples=[1],
+    )
+    id_zona_destino: int = Field(
+        ...,
+        description="Clave foránea del cuadrante urbano de destino.",
+        examples=[4],
+    )
+    fecha_hora_solicitud: datetime = Field(
+        ...,
+        description="Marca de tiempo en que el pasajero pidió el viaje (ISO 8601).",
+        examples=["2024-05-18T17:45:00"],
+    )
+    fecha_hora_inicio: datetime | None = Field(
+        default=None,
+        description="Marca de tiempo en que el conductor abordó al pasajero.",
+        examples=["2024-05-18T17:52:00"],
+    )
+    fecha_hora_fin: datetime | None = Field(
+        default=None,
+        description="Marca de tiempo de finalización del viaje en destino.",
+        examples=["2024-05-18T18:22:00"],
+    )
+    distancia_km: float = Field(
+        ...,
+        description="Distancia real del trayecto en kilómetros (km).",
+        examples=[6.8],
+    )
+    duracion_minutos: float = Field(
+        ...,
+        description="Tiempo total transcurrido del viaje en minutos.",
+        examples=[30.0],
+    )
+    tarifa_base: float = Field(
+        ...,
+        description="Tarifa base regular antes de aplicar recargos dinámicos en Córdobas (NIO).",
+        examples=[85.0],
+    )
+    multiplicador_dinamico: float = Field(
+        ...,
+        description="Factor multiplicador por alta demanda o lluvia (surge pricing, 1.00x a 2.80x).",
+        examples=[1.45],
+    )
+    tarifa_final: float = Field(
+        ...,
+        description="Monto final efectivamente facturado al pasajero en Córdobas (NIO).",
+        examples=[158.25],
+    )
+    metodo_pago: str = Field(
+        ...,
+        description="Modalidad de pago ('efectivo', 'tarjeta', 'billetera_digital').",
+        examples=["tarjeta"],
+    )
+    estado_viaje: str = Field(
+        ...,
+        description="Estado final del servicio ('completado', 'cancelado_usuario', 'cancelado_conductor', 'no_asignado').",
+        examples=["completado"],
+    )
+    calificacion_usuario: float | None = Field(
+        default=None,
+        description="Puntuación otorgada por el conductor al pasajero (1.0 a 5.0).",
+        examples=[5.0],
+    )
+    calificacion_conductor: float | None = Field(
+        default=None,
+        description="Puntuación otorgada por el pasajero al conductor (1.0 a 5.0).",
+        examples=[4.9],
+    )
+    propina: float = Field(
+        default=0.0,
+        description="Monto voluntario de gratificación dejado al conductor en Córdobas (NIO).",
+        examples=[20.0],
+    )
+    motivo_cancelacion: str | None = Field(
+        default=None,
+        description="Motivo registrado en caso de viaje cancelado.",
+        examples=[None],
+    )
 
 
 class TelemetriaConductorOut(BaseModel):
+    """Ping de telemetría GPS vehicular y velocidad en tiempo real."""
+
     model_config = ConfigDict(from_attributes=True)
-    id_telemetria: int
-    id_conductor: int
-    id_zona: int
-    fecha_hora: datetime
-    latitud: float
-    longitud: float
-    velocidad_kmh: float
-    estado_disponibilidad: str
+
+    id_telemetria: int = Field(
+        ...,
+        description="Identificador único del registro de telemetría GPS.",
+        examples=[99001],
+    )
+    id_conductor: int = Field(
+        ...,
+        description="Clave foránea del conductor monitoreado.",
+        examples=[205],
+    )
+    id_zona: int = Field(
+        ...,
+        description="Clave foránea del cuadrante urbano donde se captó la señal.",
+        examples=[1],
+    )
+    fecha_hora: datetime = Field(
+        ...,
+        description="Marca de tiempo precisa de emisión del ping GPS (ISO 8601).",
+        examples=["2024-05-18T18:00:15"],
+    )
+    latitud: float = Field(
+        ...,
+        description="Coordenada de latitud en grados decimales WGS84.",
+        examples=[12.1288],
+    )
+    longitud: float = Field(
+        ...,
+        description="Coordenada de longitud en grados decimales WGS84.",
+        examples=[-86.2642],
+    )
+    velocidad_kmh: float = Field(
+        ...,
+        description="Velocidad instantánea registrada por el GPS en kilómetros por hora (km/h).",
+        examples=[34.5],
+    )
+    estado_disponibilidad: str = Field(
+        ...,
+        description="Estado del conductor en ese instante ('disponible', 'ocupado', 'en_camino_recogida').",
+        examples=["ocupado"],
+    )

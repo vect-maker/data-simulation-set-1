@@ -53,6 +53,52 @@ class TestAPIService(unittest.TestCase):
         self.assertIn("/movigo/zonas", paths)
         self.assertIn("/movigo/viajes", paths)
 
+    def test_openapi_spanish_documentation(self):
+        """Verify OpenAPI schema contains rich Spanish documentation, tags, and field descriptions."""
+        response = self.client.get("/openapi.json")
+        self.assertEqual(response.status_code, 200)
+        spec = response.json()
+
+        # 1. Global metadata & conventions in Spanish
+        info = spec.get("info", {})
+        self.assertIn("Proyecto Integrador", info.get("title", ""))
+        self.assertIn("Portal de Datos", info.get("description", ""))
+        self.assertIn("Convenciones de Uso", info.get("description", ""))
+        self.assertNotIn("Asignaturas del Ecosistema", info.get("description", ""))
+
+        # 2. Tag descriptions for each case
+        tags = {t["name"]: t.get("description", "") for t in spec.get("tags", [])}
+        self.assertIn("Root", tags)
+        self.assertIn("Caso 1: Antojitos Express", tags)
+        self.assertIn("Caso 2: Cooperativa El Volcán", tags)
+        self.assertIn("Caso 3: MoviGo", tags)
+        self.assertTrue(len(tags["Caso 1: Antojitos Express"]) > 50)
+        self.assertTrue(len(tags["Caso 2: Cooperativa El Volcán"]) > 50)
+        self.assertTrue(len(tags["Caso 3: MoviGo"]) > 50)
+        self.assertNotIn("Aplicaciones por Asignatura", tags["Caso 1: Antojitos Express"])
+
+        # 3. Path documentation, summary, description and responses
+        paths = spec.get("paths", {})
+        orden_detail = paths.get("/antojitos/ordenes/{id_orden}", {}).get("get", {})
+        self.assertIn("summary", orden_detail)
+        self.assertIn("description", orden_detail)
+        self.assertNotIn("Relevancia Académica", orden_detail.get("description", ""))
+        self.assertIn("200", orden_detail.get("responses", {}))
+        self.assertIn("404", orden_detail.get("responses", {}))
+        self.assertIn("422", orden_detail.get("responses", {}))
+
+        # 4. Pydantic schema field descriptions in Spanish
+        schemas = spec.get("components", {}).get("schemas", {})
+        for model_name in ["ZonaOut", "PlatilloOut", "FincaOut", "LoteAcopioOut", "ViajeOut"]:
+            self.assertIn(model_name, schemas)
+            properties = schemas[model_name].get("properties", {})
+            for prop_name, prop_meta in properties.items():
+                self.assertIn(
+                    "description",
+                    prop_meta,
+                    f"Property '{prop_name}' in schema '{model_name}' is missing description.",
+                )
+
     def test_health_check_ok(self):
         """Verify /health returns 200 when database check succeeds."""
         with patch("src.api.main.check_db_health", return_value=(True, None)):

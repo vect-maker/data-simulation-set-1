@@ -23,12 +23,60 @@ async def lifespan(app: FastAPI):
     close_pool()
 
 
+TAGS_METADATA = [
+    {
+        "name": "Root",
+        "description": (
+            "Endpoints base de bienvenida, catálogo de casos de estudio y monitoreo del estado operativo "
+            "del servicio y conectividad con la base de datos PostgreSQL."
+        ),
+    },
+    {
+        "name": "Caso 1: Antojitos Express",
+        "description": (
+            "### Cocina Fantasma (Dark Kitchen) y Delivery en Managua, Nicaragua\n\n"
+            "Modela la operación de un restaurante digital con servicio a domicilio en el área urbana de Managua. "
+            "Permite analizar la dinámica de pedidos, tiempos de entrega, canasta de platillos, rendimiento de repartidores, "
+            "campañas promocionales y el impacto del clima diario sobre la demanda."
+        ),
+    },
+    {
+        "name": "Caso 2: Cooperativa El Volcán",
+        "description": (
+            "### Cooperativa Cafetalera y Exportación de Café de Altura (Jinotega / Matagalpa)\n\n"
+            "Simulación de la cadena de valor completa del café especial en el norte montañoso de Nicaragua. "
+            "Abarca desde las fincas productoras y sus variedades botánicas (Geisha, Bourbon, Pacamara, Caturra), "
+            "cuadrillas de recolectores, recepción de lotes en cereza con catación SCAA, etapas agroindustriales en beneficios húmedos/secos "
+            "(despulpado, fermentación, secado en patios), subastas de microlotes y embarques marítimos de exportación por Puerto Corinto."
+        ),
+    },
+    {
+        "name": "Caso 3: MoviGo",
+        "description": (
+            "### Plataforma Tecnológica de Movilidad Urbana y Transporte por App (Managua)\n\n"
+            "Simulación de viajes urbanos bajo demanda en los cuadrantes de Managua. Incluye perfiles de usuarios y flota "
+            "de socios conductores (`movigo_estandar`, `movigo_comfort`, `movigo_moto`), histórico de viajes con cálculo de tarifa dinámica "
+            "(*surge pricing* 1.0x a 2.8x), eventos de lluvia e índice de congestión vial, telemetría GPS vehicular en tiempo real "
+            "y programas de bonos e incentivos de horas de conexión."
+        ),
+    },
+]
+
 app = FastAPI(
     title=settings.API_TITLE,
     description=settings.API_DESCRIPTION,
     version=settings.API_VERSION,
     docs_url="/docs",
     redoc_url="/redoc",
+    openapi_tags=TAGS_METADATA,
+    contact={
+        "name": "Cátedra del Proyecto Integrador",
+        "url": "https://github.com/vect-maker/cs-datos-simulations",
+    },
+    license_info={
+        "name": "MIT License",
+        "identifier": "MIT",
+    },
     lifespan=lifespan,
 )
 
@@ -47,7 +95,17 @@ app.include_router(volcan.router)
 app.include_router(movigo.router)
 
 
-@app.get("/", summary="Información y estado del servicio", tags=["Root"])
+@app.get(
+    "/",
+    summary="Información y catálogo de casos de estudio",
+    description=(
+        "Punto de entrada principal de la API. Retorna metadatos del servicio, enlaces a las "
+        "interfaces interactivas de Swagger UI y ReDoc, la especificación OpenAPI en JSON, "
+        "y el directorio de los tres casos de estudio de Nicaragua con sus prefijos y rutas de ejemplo."
+    ),
+    response_description="Metadatos globales del servicio y directorio de casos de estudio",
+    tags=["Root"],
+)
 def root_info() -> dict:
     """Retorna información general de la API, enlaces a documentación y casos de estudio."""
     return {
@@ -79,7 +137,36 @@ def root_info() -> dict:
     }
 
 
-@app.get("/health", summary="Healthcheck de la API y PostgreSQL", tags=["Root"])
+@app.get(
+    "/health",
+    summary="Healthcheck de la API y PostgreSQL",
+    description=(
+        "Verifica el estado operativo del servicio web FastAPI y la conectividad activa con el "
+        "servidor de base de datos PostgreSQL (`integrador_db`). Retorna HTTP 200 si todo opera con normalidad, "
+        "o HTTP 503 con diagnóstico de error si la base de datos no está disponible."
+    ),
+    response_description="Diagnóstico operativo del servicio y conectividad con PostgreSQL",
+    responses={
+        200: {
+            "description": "Servicio FastAPI en ejecución y base de datos PostgreSQL conectada exitosamente.",
+            "content": {"application/json": {"example": {"status": "ok", "database": "connected"}}},
+        },
+        503: {
+            "description": "Base de datos PostgreSQL no accesible o error de conexión.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "degraded",
+                        "database": "disconnected",
+                        "error": "connection to server at 'localhost' failed",
+                        "hint": "Verifique que el contenedor PostgreSQL esté arriba y las tablas cargadas con 'just load-all'.",
+                    }
+                }
+            },
+        },
+    },
+    tags=["Root"],
+)
 def health_check():
     """Verifica el estado operativo del servicio y la conectividad a la base de datos PostgreSQL."""
     db_ok, db_err = check_db_health()
