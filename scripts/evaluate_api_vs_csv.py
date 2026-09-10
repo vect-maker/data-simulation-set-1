@@ -11,6 +11,7 @@ Performs automated verification:
 import argparse
 import csv
 import math
+import os
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -339,7 +340,11 @@ def evaluate_endpoint(
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate FastAPI Data Exposure vs CSV Artifacts.")
-    parser.add_argument("--base-url", default="http://localhost:8000", help="FastAPI base URL (default: http://localhost:8000)")
+    parser.add_argument(
+        "--base-url",
+        default=os.getenv("API_BASE_URL", "http://localhost:8000"),
+        help="FastAPI base URL (default: http://localhost:8000 or $API_BASE_URL)",
+    )
     parser.add_argument("--case", choices=["all", "antojitos", "volcan", "movigo"], default="all", help="Case to evaluate")
     parser.add_argument("--artifacts-dir", type=Path, default=Path("artifacts"), help="Path to artifacts directory")
     parser.add_argument("--sample-size", type=int, default=50, help="Number of records to sample per endpoint")
