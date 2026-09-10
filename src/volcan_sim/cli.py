@@ -12,11 +12,16 @@ from volcan_sim.config import (
     CSV_ARTIFACTS_DIR,
     SQL_ARTIFACTS_DIR,
     ARTIFACTS_DIR,
+    RAW_DATA_DIR,
     MOCK_API_PORT,
     MOCK_API_HOST,
     POSTGRES_SCHEMA,
 )
-from volcan_sim.weather import get_coffee_weather_series, start_volcan_mock_api_server
+from volcan_sim.weather import (
+    get_coffee_weather_series,
+    fetch_jinotega_weather_archive,
+    start_volcan_mock_api_server,
+)
 from volcan_sim.generator import VolcanSimulationEngine
 from volcan_sim.enrichment import VolcanSemanticEnricher
 from volcan_sim.exporter import export_volcan_to_csv, export_volcan_to_sql_dump, compute_volcan_simulation_summary
@@ -37,7 +42,7 @@ def cmd_generate(args):
 
     # 1. Weather series
     with console.status("[bold yellow]Fetching/loading Jinotega agro-weather from Open-Meteo..."):
-        weather_df, clima_records = get_coffee_weather_series()
+        weather_df, clima_records = get_coffee_weather_series(force_refresh=args.refresh_weather)
         if args.days and args.days < len(weather_df):
             weather_df = weather_df.head(args.days)
             clima_records = clima_records[:args.days]
@@ -189,6 +194,13 @@ def cmd_inspect(args):
     console.print_json(data=summary)
 
 
+def cmd_fetch_weather(args):
+    """Fetch/generate fresh agro-weather series from Open-Meteo API and save to cache."""
+    console.print("[bold green]Fetching agro-weather series for Jinotega from Open-Meteo Archive API...[/bold green]")
+    fetch_jinotega_weather_archive(force_refresh=True)
+    console.print(f"[bold green]✓ Successfully fetched and saved weather to {RAW_DATA_DIR / 'clima_jinotega_2024.json'}[/bold green]")
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="volcan-sim",
@@ -200,11 +212,16 @@ def main():
     gen_parser = subparsers.add_parser("generate", help="Generate 2024 coffee supply chain facts")
     gen_parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
     gen_parser.add_argument("--days", type=int, default=None, help="Days to simulate (default: 366)")
+    gen_parser.add_argument("--refresh-weather", action="store_true", help="Force refresh weather from Open-Meteo API")
     gen_parser.add_argument("--live-llm", action="store_true", help="Use live Gemini LLM for dynamic enrichment")
     gen_parser.add_argument("--load-db", action="store_true", help="Load into PostgreSQL via dlt immediately")
     gen_parser.add_argument("--schema", type=str, default=POSTGRES_SCHEMA, help="Target PostgreSQL staging schema")
     gen_parser.add_argument("--output-dir", type=str, default=str(CSV_ARTIFACTS_DIR), help="Output directory for CSVs")
     gen_parser.set_defaults(func=cmd_generate)
+
+    # fetch-weather
+    weather_parser = subparsers.add_parser("fetch-weather", help="Fetch/generate fresh weather data from Open-Meteo API")
+    weather_parser.set_defaults(func=cmd_fetch_weather)
 
     # load
     load_parser = subparsers.add_parser("load", help="Load coffee data into PostgreSQL via dlt")

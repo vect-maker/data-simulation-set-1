@@ -160,9 +160,9 @@ def parse_jinotega_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
     return df
 
 
-def get_coffee_weather_series() -> Tuple[pd.DataFrame, List[ClimaZonasCafetaleras]]:
+def get_coffee_weather_series(force_refresh: bool = False) -> Tuple[pd.DataFrame, List[ClimaZonasCafetaleras]]:
     """Retrieve full 2024 coffee weather DataFrame and Pydantic records."""
-    raw = fetch_jinotega_weather_archive()
+    raw = fetch_jinotega_weather_archive(force_refresh=force_refresh)
     df = parse_jinotega_weather_dataframe(raw)
     records = [
         ClimaZonasCafetaleras(

@@ -12,11 +12,12 @@ from antojitos_sim.config import (
     CSV_ARTIFACTS_DIR,
     SQL_ARTIFACTS_DIR,
     ARTIFACTS_DIR,
+    RAW_DATA_DIR,
     MOCK_API_PORT,
     MOCK_API_HOST,
     POSTGRES_SCHEMA,
 )
-from antojitos_sim.weather import get_daily_weather_series, start_mock_api_server
+from antojitos_sim.weather import get_daily_weather_series, fetch_open_meteo_archive, start_mock_api_server
 from antojitos_sim.generator import AntojitosSimulationEngine
 from antojitos_sim.enrichment import SemanticEnricher
 from antojitos_sim.exporter import export_to_csv, export_to_sql_dump, compute_simulation_summary
@@ -37,7 +38,7 @@ def cmd_generate(args):
 
     # 1. Weather series
     with console.status("[bold yellow]Fetching/loading 2024 Managua weather from Open-Meteo..."):
-        weather_df, clima_records = get_daily_weather_series()
+        weather_df, clima_records = get_daily_weather_series(force_refresh=args.refresh_weather)
         if args.days and args.days < len(weather_df):
             weather_df = weather_df.head(args.days)
             clima_records = clima_records[:args.days]
@@ -168,6 +169,13 @@ def cmd_inspect(args):
     console.print_json(data=summary)
 
 
+def cmd_fetch_weather(args):
+    """Fetch/generate fresh weather series from Open-Meteo API and save to cache."""
+    console.print("[bold cyan]Fetching weather series from Open-Meteo Archive API...[/bold cyan]")
+    fetch_open_meteo_archive(force_refresh=True)
+    console.print(f"[bold green]✓ Successfully fetched and saved weather to {RAW_DATA_DIR / 'clima_managua_2024.json'}[/bold green]")
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="antojitos-sim",
@@ -179,11 +187,16 @@ def main():
     gen_parser = subparsers.add_parser("generate", help="Generate 2024 synthetic data facts")
     gen_parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
     gen_parser.add_argument("--days", type=int, default=None, help="Number of days to simulate (default: full year 366)")
+    gen_parser.add_argument("--refresh-weather", action="store_true", help="Force refresh weather from Open-Meteo API")
     gen_parser.add_argument("--live-llm", action="store_true", help="Use live Gemini LLM for dynamic enrichment")
     gen_parser.add_argument("--load-db", action="store_true", help="Load into PostgreSQL via dlt immediately")
     gen_parser.add_argument("--schema", type=str, default=POSTGRES_SCHEMA, help="Target PostgreSQL staging schema")
     gen_parser.add_argument("--output-dir", type=str, default=str(CSV_ARTIFACTS_DIR), help="Output directory for CSVs")
     gen_parser.set_defaults(func=cmd_generate)
+
+    # fetch-weather
+    weather_parser = subparsers.add_parser("fetch-weather", help="Fetch/generate fresh weather data from Open-Meteo API")
+    weather_parser.set_defaults(func=cmd_fetch_weather)
 
     # load
     load_parser = subparsers.add_parser("load", help="Load data into PostgreSQL via dlt")

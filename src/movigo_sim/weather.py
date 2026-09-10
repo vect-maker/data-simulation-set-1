@@ -148,9 +148,9 @@ def parse_movigo_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
     return df
 
 
-def get_movigo_weather_series() -> Tuple[pd.DataFrame, List[ClimaCuadrantes]]:
+def get_movigo_weather_series(force_refresh: bool = False) -> Tuple[pd.DataFrame, List[ClimaCuadrantes]]:
     """Retrieve full 2024 weather DataFrame and Pydantic records."""
-    raw = fetch_movigo_weather_archive()
+    raw = fetch_movigo_weather_archive(force_refresh=force_refresh)
     df = parse_movigo_weather_dataframe(raw)
     records = [
         ClimaCuadrantes(

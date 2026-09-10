@@ -42,9 +42,9 @@ env/
 .dlt/secrets.toml
 .dlt/pipelines/
 
-# Data cache & local database
+# Data cache, generated raw datasets & local database
 data/cache/
-data/raw/**/*.tmp
+data/raw/
 postgres_data/
 
 # Generated artifacts and datasets

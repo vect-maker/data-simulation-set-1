@@ -152,9 +152,9 @@ def parse_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
     return df[["fecha", "precipitacion_mm", "temperatura_c", "condicion_cielo"]]
 
 
-def get_daily_weather_series() -> Tuple[pd.DataFrame, List[ClimaDiario]]:
+def get_daily_weather_series(force_refresh: bool = False) -> Tuple[pd.DataFrame, List[ClimaDiario]]:
     """Retrieve full 2024 weather DataFrame and Pydantic records."""
-    raw = fetch_open_meteo_archive()
+    raw = fetch_open_meteo_archive(force_refresh=force_refresh)
     df = parse_weather_dataframe(raw)
     records = [
         ClimaDiario(

@@ -125,7 +125,11 @@ El repositorio incluye un [`justfile`](file:///var/home/ocelot/Repositories/data
 | :--- | :--- |
 | `just` | Lista todos los comandos disponibles con su descripción |
 | `just install` | Instala dependencias y los tres paquetes en modo editable (`pip install -e .`) |
-| `just generate-all` | Genera las 3 simulaciones completas para el año 2024 |
+| `just fetch-weather` / `just weather` | Descarga y actualiza desde la API Open-Meteo los datos climáticos para los 3 casos (reemplaza raw data) |
+| `just fetch-weather-antojitos` | Descarga datos meteorológicos de Managua para Antojitos Express |
+| `just fetch-weather-volcan` | Descarga datos agroclimáticos de Jinotega para Cooperativa El Volcán |
+| `just fetch-weather-movigo` | Descarga datos de clima y tráfico de Managua para MoviGo |
+| `just generate-all` | Genera las 3 simulaciones completas para el año 2024 (descarga clima si no existe) |
 | `just generate-antojitos [days]` | Genera datos de Caso 1: Antojitos Express (ej. `just generate-antojitos 30`) |
 | `just generate-volcan [days]` | Genera datos de Caso 2: Cooperativa El Volcán |
 | `just generate-movigo [days]` | Genera datos de Caso 3: MoviGo |
@@ -145,6 +149,7 @@ El repositorio incluye un [`justfile`](file:///var/home/ocelot/Repositories/data
 | `just load-movigo` | Carga MoviGo en el esquema `raw_staging_movigo` |
 | `just test` | Ejecuta un ciclo de verificación rápida (3 días por caso), verifica y limpia |
 | `just clean` | Elimina artefactos generados, cachés temporales y archivos `__pycache__` |
+| `just clean-all` | Elimina artefactos generados, cachés temporales y la carpeta `data/raw/` de clima |
 
 ---
 
@@ -184,7 +189,7 @@ El repositorio incluye un [`justfile`](file:///var/home/ocelot/Repositories/data
 │       ├── sql/schema_and_data.sql  # DDL + COPY (schema raw_staging_movigo)
 │       └── simulation_summary.json  # Métricas y pruebas Ji-Cuadrado
 └── data/
-    └── raw/
+    └── raw/                         # (Ignorado en git via .gitignore, generado vía API)
         ├── antojitos/clima_managua_2024.json
         ├── volcan/clima_jinotega_2024.json
         └── movigo/clima_managua_movigo_2024.json

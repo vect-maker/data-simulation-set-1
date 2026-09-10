@@ -25,6 +25,36 @@ clean:
     find . -name "*.tmp" -delete
     @echo "✓ Cleaned artifacts, caches, and temporary files."
 
+# Clean all generated artifacts, raw weather caches, and temporary files
+clean-all: clean
+    rm -rf data/raw/
+    @echo "✓ Cleaned all raw weather datasets."
+
+# Fetch/generate weather data from Open-Meteo API for Antojitos Express
+fetch-weather-antojitos:
+    {{ ANTOJITOS }} fetch-weather
+
+# Fetch/generate weather data from Open-Meteo API for Cooperativa El Volcán
+fetch-weather-volcan:
+    {{ VOLCAN }} fetch-weather
+
+# Fetch/generate weather data from Open-Meteo API for MoviGo
+fetch-weather-movigo:
+    {{ MOVIGO }} fetch-weather
+
+# Fetch/generate weather data from Open-Meteo API for all 3 cases (replaces raw data)
+fetch-weather:
+    @echo "=== [1/3] Fetching weather from Open-Meteo for Antojitos Express ==="
+    @just fetch-weather-antojitos
+    @echo "\n=== [2/3] Fetching agro-weather from Open-Meteo for Cooperativa El Volcán ==="
+    @just fetch-weather-volcan
+    @echo "\n=== [3/3] Fetching weather from Open-Meteo for MoviGo ==="
+    @just fetch-weather-movigo
+    @echo "\n✓ Weather data fetched and raw datasets updated for all 3 cases."
+
+# Alias for fetch-weather
+weather: fetch-weather
+
 # Generate synthetic dataset for Antojitos Express (Caso 1)
 generate-antojitos days="":
     @if [ -n "{{ days }}" ]; then \
