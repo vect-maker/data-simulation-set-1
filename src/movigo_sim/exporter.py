@@ -120,13 +120,12 @@ CREATE TABLE campanas_incentivos (
     incremento_horas_conexion DECIMAL(10,2) NOT NULL,
     tipo_incentivo VARCHAR(30) NOT NULL CHECK (tipo_incentivo IN ('meta_viajes', 'hora_pico_lluvia', 'zona_alta_demanda')),
     fecha_inicio DATE NOT NULL,
-    fecha_fin DATE NOT NULL
+    fecha_fin DATE NOT NULL,
+    estado VARCHAR(20) NOT NULL CHECK (estado IN ('activa', 'finalizada'))
 );
 
 CREATE TABLE clima_cuadrantes (
-    id_registro SERIAL PRIMARY KEY,
-    fecha DATE NOT NULL,
-    id_zona VARCHAR(10) NOT NULL REFERENCES zonas_urbanas(id_zona),
+    fecha DATE PRIMARY KEY,
     precipitacion_mm DECIMAL(6,2) NOT NULL,
     temperatura_c DECIMAL(4,1) NOT NULL,
     indice_congestion DECIMAL(4,2) NOT NULL,
@@ -144,22 +143,26 @@ CREATE TABLE viajes (
     fecha_hora_fin TIMESTAMP,
     distancia_km DECIMAL(6,2) NOT NULL CHECK (distancia_km >= 0),
     duracion_minutos DECIMAL(6,2) NOT NULL CHECK (duracion_minutos >= 0),
+    tarifa_base DECIMAL(8,2) NOT NULL,
     multiplicador_dinamico DECIMAL(4,2) NOT NULL DEFAULT 1.00 CHECK (multiplicador_dinamico >= 1.00),
     tarifa_final DECIMAL(8,2) NOT NULL CHECK (tarifa_final >= 0),
     metodo_pago VARCHAR(30) NOT NULL CHECK (metodo_pago IN ('efectivo', 'tarjeta', 'billetera_digital')),
-    estado_viaje VARCHAR(25) NOT NULL CHECK (estado_viaje IN ('solicitado', 'asignado', 'en_curso', 'completado', 'cancelado_usuario', 'cancelado_conductor')),
+    estado_viaje VARCHAR(25) NOT NULL CHECK (estado_viaje IN ('completado', 'cancelado_usuario', 'cancelado_conductor', 'no_asignado')),
+    calificacion_usuario DECIMAL(3,2),
+    calificacion_conductor DECIMAL(3,2),
+    propina DECIMAL(8,2) NOT NULL DEFAULT 0.0,
     motivo_cancelacion TEXT
 );
 
 CREATE TABLE telemetria_conductores (
     id_telemetria SERIAL PRIMARY KEY,
     id_conductor VARCHAR(15) NOT NULL REFERENCES conductores(id_conductor),
-    id_viaje VARCHAR(25) REFERENCES viajes(id_viaje),
+    id_zona VARCHAR(10) NOT NULL REFERENCES zonas_urbanas(id_zona),
     fecha_hora TIMESTAMP NOT NULL,
     latitud DECIMAL(9,6) NOT NULL,
     longitud DECIMAL(9,6) NOT NULL,
     velocidad_kmh DECIMAL(5,2) NOT NULL,
-    bateria_telefono_pct INT NOT NULL
+    estado_disponibilidad VARCHAR(30) NOT NULL CHECK (estado_disponibilidad IN ('disponible', 'ocupado', 'en_camino_recogida'))
 );
 
 CREATE TABLE auditoria_viajes (

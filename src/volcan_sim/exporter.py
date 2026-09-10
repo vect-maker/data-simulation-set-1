@@ -133,68 +133,75 @@ CREATE TABLE cuadrillas_corte (
 
 CREATE TABLE clima_zonas_cafetaleras (
     fecha DATE PRIMARY KEY,
+    region VARCHAR(50) NOT NULL,
     precipitacion_mm DECIMAL(6,2) NOT NULL,
     temperatura_media_c DECIMAL(4,1) NOT NULL,
     temperatura_min_c DECIMAL(4,1) NOT NULL,
     temperatura_max_c DECIMAL(4,1) NOT NULL,
-    condicion_cielo VARCHAR(20) NOT NULL CHECK (condicion_cielo IN ('soleado', 'nublado', 'llovizna', 'temporal'))
+    humedad_relativa_pct DECIMAL(5,2) NOT NULL,
+    condicion_clima VARCHAR(20) NOT NULL CHECK (condicion_clima IN ('soleado', 'nublado', 'llovizna', 'temporal'))
 );
 
 CREATE TABLE lotes_acopio (
     id_lote VARCHAR(20) PRIMARY KEY,
     id_finca VARCHAR(10) NOT NULL REFERENCES fincas(id_finca),
     id_variedad VARCHAR(10) NOT NULL REFERENCES variedades_cafe(id_variedad),
+    id_cuadrilla VARCHAR(10) REFERENCES cuadrillas_corte(id_cuadrilla),
     fecha_corte DATE NOT NULL,
     peso_cereza_kg DECIMAL(10,2) NOT NULL CHECK (peso_cereza_kg > 0),
-    peso_bruto_quintales DECIMAL(8,2) NOT NULL,
-    humedad_porcentaje DECIMAL(4,1) NOT NULL,
+    humedad_porcentaje DECIMAL(5,2) NOT NULL,
     puntaje_catacion_scaa DECIMAL(4,2) NOT NULL,
-    precio_liquidado_qq_usd DECIMAL(8,2) NOT NULL,
-    estado_lote VARCHAR(20) NOT NULL CHECK (estado_lote IN ('acopiado', 'en_beneficio', 'listo_embarque', 'exportado')),
-    notas_catacion TEXT
+    certificacion VARCHAR(50) NOT NULL,
+    notas_catacion TEXT,
+    costo_recoleccion_nio DECIMAL(10,2) NOT NULL,
+    estado_lote VARCHAR(30) NOT NULL CHECK (estado_lote IN ('recolectado', 'en_beneficio_humedo', 'en_secado', 'listo_exportacion', 'descartado'))
 );
 
 CREATE TABLE auditoria_lotes (
     id_auditoria SERIAL PRIMARY KEY,
     id_lote VARCHAR(20) NOT NULL,
-    estado_anterior VARCHAR(20),
-    estado_nuevo VARCHAR(20),
+    estado_anterior VARCHAR(30),
+    estado_nuevo VARCHAR(30),
     fecha_cambio TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     usuario_db VARCHAR(50) NOT NULL DEFAULT CURRENT_USER
 );
 
 CREATE TABLE procesamiento_beneficio (
-    id_proceso VARCHAR(20) PRIMARY KEY,
+    id_proceso INT PRIMARY KEY,
     id_lote VARCHAR(20) NOT NULL REFERENCES lotes_acopio(id_lote),
     id_beneficio VARCHAR(10) NOT NULL REFERENCES beneficios(id_beneficio),
-    tipo_etapa VARCHAR(20) NOT NULL CHECK (tipo_etapa IN ('despulpado', 'fermentacion', 'lavado', 'secado', 'trillado')),
+    etapa VARCHAR(30) NOT NULL CHECK (etapa IN ('despulpado', 'fermentacion', 'secado_patio', 'trillado', 'clasificacion')),
     fecha_inicio TIMESTAMP NOT NULL,
     fecha_fin TIMESTAMP,
-    peso_entrada_qq DECIMAL(8,2) NOT NULL,
-    peso_salida_qq DECIMAL(8,2),
-    merma_porcentaje DECIMAL(4,2),
-    estado_proceso VARCHAR(20) NOT NULL CHECK (estado_proceso IN ('iniciado', 'en_proceso', 'completado'))
+    temperatura_fermentacion_c DECIMAL(4,1),
+    merma_porcentaje DECIMAL(5,2) NOT NULL,
+    peso_salida_kg DECIMAL(10,2) NOT NULL,
+    observaciones_proceso TEXT
 );
 
 CREATE TABLE subastas_especiales (
     id_subasta VARCHAR(10) PRIMARY KEY,
-    nombre_evento VARCHAR(100) NOT NULL,
+    id_lote VARCHAR(20) REFERENCES lotes_acopio(id_lote),
+    nombre_lote_especial VARCHAR(100) NOT NULL,
     peso_quintales DECIMAL(6,2) NOT NULL,
-    puntaje_catacion_minimo DECIMAL(4,2) NOT NULL,
     costo_certificacion_usd DECIMAL(8,2) NOT NULL,
     retorno_esperado_usd DECIMAL(10,2) NOT NULL,
-    fecha_evento DATE NOT NULL
+    puntaje_taza DECIMAL(4,2) NOT NULL,
+    fecha_subasta DATE NOT NULL,
+    estado_subasta VARCHAR(20) NOT NULL CHECK (estado_subasta IN ('programada', 'adjudicada', 'desierta'))
 );
 
 CREATE TABLE embarques_exportacion (
     id_embarque VARCHAR(20) PRIMARY KEY,
     id_lote VARCHAR(20) NOT NULL REFERENCES lotes_acopio(id_lote),
     numero_contenedor VARCHAR(20) NOT NULL,
+    puerto_salida VARCHAR(100) NOT NULL,
     pais_destino VARCHAR(50) NOT NULL,
-    puerto_destino VARCHAR(50) NOT NULL,
+    cliente_comprador VARCHAR(100) NOT NULL,
     fecha_embarque DATE NOT NULL,
     peso_oro_quintales DECIMAL(8,2) NOT NULL,
     precio_quintal_usd DECIMAL(8,2) NOT NULL,
+    flete_transporte_usd DECIMAL(8,2) NOT NULL,
     total_usd DECIMAL(10,2) NOT NULL
 );
 
@@ -217,17 +224,16 @@ EXECUTE FUNCTION fn_trg_auditar_lotes();
 
 -- Procedimiento Almacenado de Cierre de Etapa
 CREATE OR REPLACE PROCEDURE sp_cerrar_etapa_beneficio(
-    p_id_proceso VARCHAR(20),
-    p_merma DECIMAL(4,2),
-    p_peso_salida DECIMAL(8,2)
+    p_id_proceso INT,
+    p_merma DECIMAL(5,2),
+    p_peso_salida DECIMAL(10,2)
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
     UPDATE raw_staging_volcan.procesamiento_beneficio
     SET merma_porcentaje = p_merma,
-        peso_salida_qq = p_peso_salida,
-        estado_proceso = 'completado',
+        peso_salida_kg = p_peso_salida,
         fecha_fin = CURRENT_TIMESTAMP
     WHERE id_proceso = p_id_proceso;
 END;

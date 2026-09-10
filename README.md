@@ -121,6 +121,7 @@ Modelos prescriptivos aplicados al negocio:
 | `just api-up` / `just api-down` | Levanta o apaga todos los servicios (PostgreSQL + FastAPI API en puerto 8000) |
 | `just api-logs` | Visualiza los logs en tiempo real del contenedor FastAPI |
 | `just api-run` | Inicia la API localmente con Uvicorn y recarga en caliente para desarrollo |
+| `just api-eval [case]` | Evalúa la integridad de los datos de la API contra los CSVs generados |
 | `just clean` | Limpia artefactos generados, cachés temporales y archivos `.pyc` |
 
 ---

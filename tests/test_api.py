@@ -167,46 +167,51 @@ class TestAPIService(unittest.TestCase):
         """Test GET /volcan/lotes/{id_lote} returns lot details."""
         import datetime
         mock_fetch_one.return_value = {
-            "id_lote": "LOT-001",
-            "id_finca": "FIN-01",
-            "id_variedad": "VAR-01",
+            "id_lote": "LOT-2024-00001",
+            "id_finca": "FNC-001",
+            "id_variedad": "VAR-001",
+            "id_cuadrilla": "CUA-001",
             "fecha_corte": datetime.date(2024, 2, 10),
             "peso_cereza_kg": 1500.0,
-            "peso_bruto_quintales": 32.5,
-            "humedad_porcentaje": 12.0,
+            "humedad_porcentaje": 55.0,
             "puntaje_catacion_scaa": 86.5,
-            "precio_liquidado_qq_usd": 210.0,
-            "estado_lote": "acopiado",
+            "certificacion": "SHG",
             "notas_catacion": "Notas florales y cítricas.",
+            "costo_recoleccion_nio": 3200.0,
+            "estado_lote": "recolectado",
         }
-        response = self.client.get("/volcan/lotes/LOT-001")
+        response = self.client.get("/volcan/lotes/LOT-2024-00001")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["id_lote"], "LOT-001")
+        self.assertEqual(response.json()["id_lote"], "LOT-2024-00001")
 
     @patch("src.api.utils.fetch_one")
     def test_single_item_lookup_movigo(self, mock_fetch_one):
         """Test GET /movigo/viajes/{id_viaje} returns trip details."""
         import datetime
         mock_fetch_one.return_value = {
-            "id_viaje": "VIA-001",
-            "id_usuario": "USR-01",
-            "id_conductor": "CND-01",
-            "id_zona_origen": "Z01",
-            "id_zona_destino": "Z02",
+            "id_viaje": "VIJ-2024-000001",
+            "id_usuario": "USR-0001",
+            "id_conductor": "CND-001",
+            "id_zona_origen": "ZON-01",
+            "id_zona_destino": "ZON-02",
             "fecha_hora_solicitud": datetime.datetime(2024, 3, 5, 8, 15, 0),
             "fecha_hora_inicio": datetime.datetime(2024, 3, 5, 8, 20, 0),
             "fecha_hora_fin": datetime.datetime(2024, 3, 5, 8, 45, 0),
             "distancia_km": 7.2,
             "duracion_minutos": 25.0,
+            "tarifa_base": 70.0,
             "multiplicador_dinamico": 1.2,
             "tarifa_final": 180.0,
             "metodo_pago": "tarjeta",
             "estado_viaje": "completado",
+            "calificacion_usuario": 5.0,
+            "calificacion_conductor": 4.8,
+            "propina": 15.0,
             "motivo_cancelacion": None,
         }
-        response = self.client.get("/movigo/viajes/VIA-001")
+        response = self.client.get("/movigo/viajes/VIJ-2024-000001")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["id_viaje"], "VIA-001")
+        self.assertEqual(response.json()["id_viaje"], "VIJ-2024-000001")
 
 
 if __name__ == "__main__":

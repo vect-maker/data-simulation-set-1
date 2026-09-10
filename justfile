@@ -163,6 +163,10 @@ api-restart:
 api-run:
     {{ VENV_BIN }}uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
 
+# Evaluate FastAPI endpoints against CSV artifacts (e.g. just api-eval or just api-eval volcan)
+api-eval case="all":
+    {{ PYTHON }} scripts/evaluate_api_vs_csv.py --case {{ case }}
+
 # Open interactive PostgreSQL shell (psql)
 db-psql:
     docker compose exec postgres psql -U postgres -d integrador_db

@@ -164,11 +164,13 @@ class CuadrillaCorteOut(BaseModel):
 class ClimaCafetaleroOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     fecha: date
+    region: str
     precipitacion_mm: float
     temperatura_media_c: float
     temperatura_min_c: float
     temperatura_max_c: float
-    condicion_cielo: str
+    humedad_relativa_pct: float
+    condicion_clima: str
 
 
 class LoteAcopioOut(BaseModel):
@@ -176,39 +178,42 @@ class LoteAcopioOut(BaseModel):
     id_lote: str
     id_finca: str
     id_variedad: str
+    id_cuadrilla: Optional[str] = None
     fecha_corte: date
     peso_cereza_kg: float
-    peso_bruto_quintales: float
     humedad_porcentaje: float
     puntaje_catacion_scaa: float
-    precio_liquidado_qq_usd: float
-    estado_lote: str
+    certificacion: str
     notas_catacion: Optional[str] = None
+    costo_recoleccion_nio: float
+    estado_lote: str
 
 
 class ProcesamientoBeneficioOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_proceso: str
+    id_proceso: int
     id_lote: str
     id_beneficio: str
-    tipo_etapa: str
+    etapa: str
     fecha_inicio: datetime
     fecha_fin: Optional[datetime] = None
-    peso_entrada_qq: float
-    peso_salida_qq: Optional[float] = None
-    merma_porcentaje: Optional[float] = None
-    estado_proceso: str
+    temperatura_fermentacion_c: Optional[float] = None
+    merma_porcentaje: float
+    peso_salida_kg: float
+    observaciones_proceso: Optional[str] = None
 
 
 class SubastaEspecialOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id_subasta: str
-    nombre_evento: str
+    id_lote: Optional[str] = None
+    nombre_lote_especial: str
     peso_quintales: float
-    puntaje_catacion_minimo: float
     costo_certificacion_usd: float
     retorno_esperado_usd: float
-    fecha_evento: date
+    puntaje_taza: float
+    fecha_subasta: date
+    estado_subasta: str
 
 
 class EmbarqueExportacionOut(BaseModel):
@@ -216,11 +221,13 @@ class EmbarqueExportacionOut(BaseModel):
     id_embarque: str
     id_lote: str
     numero_contenedor: str
+    puerto_salida: str
     pais_destino: str
-    puerto_destino: str
+    cliente_comprador: str
     fecha_embarque: date
     peso_oro_quintales: float
     precio_quintal_usd: float
+    flete_transporte_usd: float
     total_usd: float
 
 
@@ -271,13 +278,12 @@ class CampanaIncentivoOut(BaseModel):
     tipo_incentivo: str
     fecha_inicio: date
     fecha_fin: date
+    estado: str
 
 
 class ClimaCuadranteOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_registro: int
     fecha: date
-    id_zona: str
     precipitacion_mm: float
     temperatura_c: float
     indice_congestion: float
@@ -296,10 +302,14 @@ class ViajeOut(BaseModel):
     fecha_hora_fin: Optional[datetime] = None
     distancia_km: float
     duracion_minutos: float
+    tarifa_base: float
     multiplicador_dinamico: float
     tarifa_final: float
     metodo_pago: str
     estado_viaje: str
+    calificacion_usuario: Optional[float] = None
+    calificacion_conductor: Optional[float] = None
+    propina: float
     motivo_cancelacion: Optional[str] = None
 
 
@@ -307,9 +317,9 @@ class TelemetriaConductorOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id_telemetria: int
     id_conductor: str
-    id_viaje: Optional[str] = None
+    id_zona: str
     fecha_hora: datetime
     latitud: float
     longitud: float
     velocidad_kmh: float
-    bateria_telefono_pct: int
+    estado_disponibilidad: str

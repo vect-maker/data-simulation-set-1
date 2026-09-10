@@ -104,6 +104,7 @@ def get_conductores(
 @router.get("/campanas", response_model=PaginatedResponse[CampanaIncentivoOut], summary="Listar campañas de incentivos")
 def get_campanas(
     tipo_incentivo: Optional[str] = Query(None, description="meta_viajes, hora_pico_lluvia, zona_alta_demanda"),
+    estado: Optional[str] = Query(None, description="activa, finalizada"),
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
 ):
@@ -111,8 +112,10 @@ def get_campanas(
     filters = []
     if tipo_incentivo:
         filters.append(("tipo_incentivo", "=", tipo_incentivo))
+    if estado:
+        filters.append(("estado", "=", estado))
 
-    allowed = {"id_campana", "costo_presupuesto_nio", "tipo_incentivo", "fecha_inicio", "fecha_fin"}
+    allowed = {"id_campana", "costo_presupuesto_nio", "tipo_incentivo", "fecha_inicio", "fecha_fin", "estado"}
     return execute_paginated_query(
         schema=SCHEMA,
         table="campanas_incentivos",
@@ -124,28 +127,25 @@ def get_campanas(
     )
 
 
-@router.get("/clima", response_model=PaginatedResponse[ClimaCuadranteOut], summary="Clima y congestión por cuadrante")
+@router.get("/clima", response_model=PaginatedResponse[ClimaCuadranteOut], summary="Clima y congestión urbana")
 def get_clima_movigo(
     fecha_desde: Optional[date] = Query(None, description="Fecha mínima YYYY-MM-DD"),
     fecha_hasta: Optional[date] = Query(None, description="Fecha máxima YYYY-MM-DD"),
-    id_zona: Optional[str] = Query(None, description="Filtrar por zona/cuadrante urbano"),
     condicion_cielo: Optional[str] = Query(None, description="despejado, nublado, lluvia_ligera, tormenta"),
     sort: Optional[str] = Query(None, description="Ordenar por fecha o indice_congestion"),
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
 ):
-    """Series de microclima urbano e índice de congestión vial por zona en Managua."""
+    """Series de microclima urbano e índice de congestión vial en Managua."""
     filters = []
     if fecha_desde:
         filters.append(("fecha", ">=", fecha_desde))
     if fecha_hasta:
         filters.append(("fecha", "<=", fecha_hasta))
-    if id_zona:
-        filters.append(("id_zona", "=", id_zona))
     if condicion_cielo:
         filters.append(("condicion_cielo", "=", condicion_cielo))
 
-    allowed = {"fecha", "id_zona", "precipitacion_mm", "indice_congestion", "condicion_cielo"}
+    allowed = {"fecha", "precipitacion_mm", "indice_congestion", "condicion_cielo"}
     return execute_paginated_query(
         schema=SCHEMA,
         table="clima_cuadrantes",
@@ -161,8 +161,10 @@ def get_clima_movigo(
 @router.get("/viajes", response_model=PaginatedResponse[ViajeOut], summary="Listar viajes en plataforma")
 def get_viajes(
     id_zona_origen: Optional[str] = Query(None, description="Zona de partida"),
+    id_zona_destino: Optional[str] = Query(None, description="Zona de destino"),
     id_conductor: Optional[str] = Query(None, description="Conductor asignado"),
-    estado_viaje: Optional[str] = Query(None, description="solicitado, asignado, en_curso, completado, cancelado_usuario, cancelado_conductor"),
+    id_usuario: Optional[str] = Query(None, description="Usuario pasajero"),
+    estado_viaje: Optional[str] = Query(None, description="completado, cancelado_usuario, cancelado_conductor, no_asignado"),
     metodo_pago: Optional[str] = Query(None, description="efectivo, tarjeta, billetera_digital"),
     sort: Optional[str] = Query(None, description="Ordenar por fecha_hora_solicitud, tarifa_final, duracion_minutos"),
     offset: int = Query(0, ge=0),
@@ -172,8 +174,12 @@ def get_viajes(
     filters = []
     if id_zona_origen:
         filters.append(("id_zona_origen", "=", id_zona_origen))
+    if id_zona_destino:
+        filters.append(("id_zona_destino", "=", id_zona_destino))
     if id_conductor:
         filters.append(("id_conductor", "=", id_conductor))
+    if id_usuario:
+        filters.append(("id_usuario", "=", id_usuario))
     if estado_viaje:
         filters.append(("estado_viaje", "=", estado_viaje))
     if metodo_pago:
@@ -201,19 +207,22 @@ def get_viaje_by_id(id_viaje: str):
 @router.get("/telemetria", response_model=PaginatedResponse[TelemetriaConductorOut], summary="Listar registros de telemetría")
 def get_telemetria(
     id_conductor: Optional[str] = Query(None, description="Filtrar por conductor"),
-    id_viaje: Optional[str] = Query(None, description="Filtrar por viaje"),
+    id_zona: Optional[str] = Query(None, description="Filtrar por zona"),
+    estado_disponibilidad: Optional[str] = Query(None, description="disponible, ocupado, en_camino_recogida"),
     sort: Optional[str] = Query(None, description="Ordenar por fecha_hora o velocidad_kmh"),
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
 ):
-    """Datos telemétricos de conducción (velocidad, nivel de batería, coordenadas)."""
+    """Datos telemétricos de conducción (velocidad, coordenadas, estado de disponibilidad)."""
     filters = []
     if id_conductor:
         filters.append(("id_conductor", "=", id_conductor))
-    if id_viaje:
-        filters.append(("id_viaje", "=", id_viaje))
+    if id_zona:
+        filters.append(("id_zona", "=", id_zona))
+    if estado_disponibilidad:
+        filters.append(("estado_disponibilidad", "=", estado_disponibilidad))
 
-    allowed = {"id_telemetria", "fecha_hora", "velocidad_kmh", "bateria_telefono_pct"}
+    allowed = {"id_telemetria", "fecha_hora", "velocidad_kmh"}
     return execute_paginated_query(
         schema=SCHEMA,
         table="telemetria_conductores",

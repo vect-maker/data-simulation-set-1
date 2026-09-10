@@ -126,6 +126,8 @@ def get_cuadrillas(
 def get_clima_volcan(
     fecha_desde: Optional[date] = Query(None, description="Fecha inicio YYYY-MM-DD"),
     fecha_hasta: Optional[date] = Query(None, description="Fecha fin YYYY-MM-DD"),
+    region: Optional[str] = Query(None, description="Filtrar por región"),
+    condicion_clima: Optional[str] = Query(None, description="soleado, nublado, llovizna, temporal"),
     sort: Optional[str] = Query(None, description="Ordenar por fecha o precipitación"),
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
@@ -136,8 +138,12 @@ def get_clima_volcan(
         filters.append(("fecha", ">=", fecha_desde))
     if fecha_hasta:
         filters.append(("fecha", "<=", fecha_hasta))
+    if region:
+        filters.append(("region", "=", region))
+    if condicion_clima:
+        filters.append(("condicion_clima", "=", condicion_clima))
 
-    allowed = {"fecha", "precipitacion_mm", "temperatura_media_c"}
+    allowed = {"fecha", "precipitacion_mm", "temperatura_media_c", "humedad_relativa_pct"}
     return execute_paginated_query(
         schema=SCHEMA,
         table="clima_zonas_cafetaleras",
@@ -156,8 +162,10 @@ def get_lotes(
     fecha_hasta: Optional[date] = Query(None, description="Fecha máxima de corte"),
     id_finca: Optional[str] = Query(None, description="Filtrar por finca de origen"),
     id_variedad: Optional[str] = Query(None, description="Filtrar por variedad"),
-    estado_lote: Optional[str] = Query(None, description="acopiado, en_beneficio, listo_embarque, exportado"),
-    sort: Optional[str] = Query(None, description="Ordenar por fecha_corte, -peso_cereza_kg"),
+    certificacion: Optional[str] = Query(None, description="Convencional, Fairtrade, Orgánico, Rainforest Alliance, SHG"),
+    estado_lote: Optional[str] = Query(None, description="recolectado, en_beneficio_humedo, en_secado, listo_exportacion, descartado"),
+    scaa_min: Optional[float] = Query(None, description="Puntaje de catación SCAA mínimo"),
+    sort: Optional[str] = Query(None, description="Ordenar por fecha_corte, -peso_cereza_kg, -puntaje_catacion_scaa"),
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
 ):
@@ -171,10 +179,14 @@ def get_lotes(
         filters.append(("id_finca", "=", id_finca))
     if id_variedad:
         filters.append(("id_variedad", "=", id_variedad))
+    if certificacion:
+        filters.append(("certificacion", "=", certificacion))
     if estado_lote:
         filters.append(("estado_lote", "=", estado_lote))
+    if scaa_min is not None:
+        filters.append(("puntaje_catacion_scaa", ">=", scaa_min))
 
-    allowed = {"id_lote", "fecha_corte", "peso_cereza_kg", "humedad_porcentaje", "puntaje_catacion_scaa", "precio_liquidado_qq_usd"}
+    allowed = {"id_lote", "fecha_corte", "peso_cereza_kg", "humedad_porcentaje", "puntaje_catacion_scaa", "costo_recoleccion_nio"}
     return execute_paginated_query(
         schema=SCHEMA,
         table="lotes_acopio",
@@ -197,8 +209,7 @@ def get_lote_by_id(id_lote: str):
 def get_procesamiento(
     id_lote: Optional[str] = Query(None, description="Filtrar por lote"),
     id_beneficio: Optional[str] = Query(None, description="Filtrar por beneficio"),
-    tipo_etapa: Optional[str] = Query(None, description="despulpado, fermentacion, lavado, secado, trillado"),
-    estado_proceso: Optional[str] = Query(None, description="iniciado, en_proceso, completado"),
+    etapa: Optional[str] = Query(None, description="despulpado, fermentacion, secado_patio, trillado, clasificacion"),
     sort: Optional[str] = Query(None, description="Ordenar por fecha_inicio o merma_porcentaje"),
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
@@ -209,12 +220,10 @@ def get_procesamiento(
         filters.append(("id_lote", "=", id_lote))
     if id_beneficio:
         filters.append(("id_beneficio", "=", id_beneficio))
-    if tipo_etapa:
-        filters.append(("tipo_etapa", "=", tipo_etapa))
-    if estado_proceso:
-        filters.append(("estado_proceso", "=", estado_proceso))
+    if etapa:
+        filters.append(("etapa", "=", etapa))
 
-    allowed = {"id_proceso", "tipo_etapa", "peso_entrada_qq", "merma_porcentaje", "fecha_inicio"}
+    allowed = {"id_proceso", "etapa", "merma_porcentaje", "peso_salida_kg", "fecha_inicio"}
     return execute_paginated_query(
         schema=SCHEMA,
         table="procesamiento_beneficio",
@@ -229,16 +238,22 @@ def get_procesamiento(
 
 @router.get("/subastas", response_model=PaginatedResponse[SubastaEspecialOut], summary="Subastas de microlotes especiales")
 def get_subastas(
+    estado_subasta: Optional[str] = Query(None, description="programada, adjudicada, desierta"),
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
 ):
     """Consulta de subastas internacionales de café de especialidad."""
-    allowed = {"id_subasta", "nombre_evento", "peso_quintales", "puntaje_catacion_minimo", "fecha_evento"}
+    filters = []
+    if estado_subasta:
+        filters.append(("estado_subasta", "=", estado_subasta))
+
+    allowed = {"id_subasta", "nombre_lote_especial", "peso_quintales", "puntaje_taza", "fecha_subasta"}
     return execute_paginated_query(
         schema=SCHEMA,
         table="subastas_especiales",
+        filters=filters,
         allowed_sort_columns=allowed,
-        default_sort="-fecha_evento",
+        default_sort="-fecha_subasta",
         offset=offset,
         limit=limit,
     )
@@ -247,7 +262,7 @@ def get_subastas(
 @router.get("/embarques", response_model=PaginatedResponse[EmbarqueExportacionOut], summary="Embarques marítimos de exportación")
 def get_embarques(
     pais_destino: Optional[str] = Query(None, description="País comprador"),
-    puerto_destino: Optional[str] = Query(None, description="Puerto de destino"),
+    puerto_salida: Optional[str] = Query(None, description="Puerto de salida"),
     fecha_desde: Optional[date] = Query(None, description="Fecha mínima de embarque"),
     sort: Optional[str] = Query(None, description="Ordenar por fecha_embarque o -total_usd"),
     offset: int = Query(0, ge=0),
@@ -257,8 +272,8 @@ def get_embarques(
     filters = []
     if pais_destino:
         filters.append(("pais_destino", "=", pais_destino))
-    if puerto_destino:
-        filters.append(("puerto_destino", "=", puerto_destino))
+    if puerto_salida:
+        filters.append(("puerto_salida", "=", puerto_salida))
     if fecha_desde:
         filters.append(("fecha_embarque", ">=", fecha_desde))
 
