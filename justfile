@@ -107,12 +107,12 @@ db-reset:
 
 # Open interactive PostgreSQL shell (psql)
 db-psql:
-    docker compose exec postgres psql -U antojitos_user -d antojitos_db
+    docker compose exec postgres psql -U postgres -d integrador_db
 
 # Load Antojitos Express data into PostgreSQL (schema raw_staging)
 load-antojitos:
     @if [ -f artifacts/antojitos/sql/schema_and_data.sql ]; then \
-        cd artifacts/antojitos/csv && PGPASSWORD=antojitos_secure_password psql -h localhost -U antojitos_user -d antojitos_db -f ../sql/schema_and_data.sql; \
+        cd artifacts/antojitos/csv && PGPASSWORD=postgres psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
     else \
         {{ ANTOJITOS }} load; \
     fi
@@ -120,7 +120,7 @@ load-antojitos:
 # Load Cooperativa El Volcán data into PostgreSQL (schema raw_staging_volcan)
 load-volcan:
     @if [ -f artifacts/volcan/sql/schema_and_data.sql ]; then \
-        cd artifacts/volcan/csv && PGPASSWORD=antojitos_secure_password psql -h localhost -U antojitos_user -d antojitos_db -f ../sql/schema_and_data.sql; \
+        cd artifacts/volcan/csv && PGPASSWORD=postgres psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
     else \
         {{ VOLCAN }} load; \
     fi
@@ -128,7 +128,7 @@ load-volcan:
 # Load MoviGo data into PostgreSQL (schema raw_staging_movigo)
 load-movigo:
     @if [ -f artifacts/movigo/sql/schema_and_data.sql ]; then \
-        cd artifacts/movigo/csv && PGPASSWORD=antojitos_secure_password psql -h localhost -U antojitos_user -d antojitos_db -f ../sql/schema_and_data.sql; \
+        cd artifacts/movigo/csv && PGPASSWORD=postgres psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
     else \
         {{ MOVIGO }} load; \
     fi

@@ -64,9 +64,9 @@ MOISTURE_TARGET_EXPORT = 11.5 # 11.5% optimal parchment moisture for export
 # PostgreSQL Database Configuration
 POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
 POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
-POSTGRES_DB = os.getenv("POSTGRES_DB", "antojitos_db")
-POSTGRES_USER = os.getenv("POSTGRES_USER", "antojitos_user")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "antojitos_secure_password")
+POSTGRES_DB = os.getenv("POSTGRES_DB", "integrador_db")
+POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
 POSTGRES_SCHEMA = "raw_staging_volcan"
 
 # Mock API settings for Shell Scripting (ingesta.sh)

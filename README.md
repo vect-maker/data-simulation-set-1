@@ -136,7 +136,7 @@ El repositorio incluye un [`justfile`](file:///var/home/ocelot/Repositories/data
 | `just mock-antojitos [port]` | Inicia servidor mock de Open-Meteo para Antojitos (defecto: 8000) |
 | `just mock-volcan [port]` | Inicia servidor mock de agro-clima para El Volcán (defecto: 8001) |
 | `just mock-movigo [port]` | Inicia servidor mock de clima/tráfico para MoviGo (defecto: 8002) |
-| `just db-up` / `just db-down` | Levanta o detiene el contenedor local de PostgreSQL 16 con Docker Compose |
+| `just db-up` / `just db-down` | Levanta o detiene el contenedor local de PostgreSQL 18 Alpine con Compose (`compose.yml`) |
 | `just db-reset` | Detiene el contenedor, borra los volúmenes persistentes y lo inicia limpio |
 | `just db-psql` | Abre una terminal interactiva `psql` dentro de la base de datos |
 | `just load-all` | Carga los 3 casos en sus respectivos esquemas PostgreSQL |
@@ -157,7 +157,7 @@ El repositorio incluye un [`justfile`](file:///var/home/ocelot/Repositories/data
 ├── justfile                         # Orquestador de comandos Just
 ├── pyproject.toml                   # Configuración de paquete Python data-simulation
 ├── requirements.txt                 # Dependencias Python
-├── docker-compose.yml               # PostgreSQL 16 local
+├── compose.yml                      # PostgreSQL 18 Alpine local
 ├── .env.example                     # Variables de entorno
 ├── info.md                          # Definición del proyecto integrador
 ├── src/
@@ -208,11 +208,11 @@ just load-all
 ### O cargar individualmente con psql:
 ```bash
 # Caso 1 (Antojitos Express -> raw_staging)
-cd artifacts/antojitos/csv && psql -h localhost -U antojitos_user -d antojitos_db -f ../sql/schema_and_data.sql
+cd artifacts/antojitos/csv && psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql
 
 # Caso 2 (Cooperativa El Volcán -> raw_staging_volcan)
-cd artifacts/volcan/csv && psql -h localhost -U antojitos_user -d antojitos_db -f ../sql/schema_and_data.sql
+cd artifacts/volcan/csv && psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql
 
 # Caso 3 (MoviGo -> raw_staging_movigo)
-cd artifacts/movigo/csv && psql -h localhost -U antojitos_user -d antojitos_db -f ../sql/schema_and_data.sql
+cd artifacts/movigo/csv && psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql
 ```
