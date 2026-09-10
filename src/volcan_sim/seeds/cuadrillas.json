@@ -1,6 +1,6 @@
 [
   {
-    "id_cuadrilla": "CUA-001",
+    "id_cuadrilla": 1,
     "nombre_cuadrilla": "Cuadrilla Los Pinares",
     "capacidad_recolectores": 25,
     "rendimiento_latas_dia": 180.5,
@@ -8,7 +8,7 @@
     "estado": "activa"
   },
   {
-    "id_cuadrilla": "CUA-002",
+    "id_cuadrilla": 2,
     "nombre_cuadrilla": "Cuadrilla El Esfuerzo",
     "capacidad_recolectores": 30,
     "rendimiento_latas_dia": 210.0,
@@ -16,7 +16,7 @@
     "estado": "activa"
   },
   {
-    "id_cuadrilla": "CUA-003",
+    "id_cuadrilla": 3,
     "nombre_cuadrilla": "Cuadrilla Las Segovias",
     "capacidad_recolectores": 20,
     "rendimiento_latas_dia": 150.0,
@@ -24,7 +24,7 @@
     "estado": "asignada"
   },
   {
-    "id_cuadrilla": "CUA-004",
+    "id_cuadrilla": 4,
     "nombre_cuadrilla": "Cuadrilla Volcánica",
     "capacidad_recolectores": 35,
     "rendimiento_latas_dia": 260.0,
@@ -32,7 +32,7 @@
     "estado": "activa"
   },
   {
-    "id_cuadrilla": "CUA-005",
+    "id_cuadrilla": 5,
     "nombre_cuadrilla": "Cuadrilla Datanlí",
     "capacidad_recolectores": 15,
     "rendimiento_latas_dia": 110.0,
@@ -40,7 +40,7 @@
     "estado": "descanso"
   },
   {
-    "id_cuadrilla": "CUA-006",
+    "id_cuadrilla": 6,
     "nombre_cuadrilla": "Cuadrilla Dipilto Gold",
     "capacidad_recolectores": 28,
     "rendimiento_latas_dia": 195.0,
@@ -48,7 +48,7 @@
     "estado": "activa"
   },
   {
-    "id_cuadrilla": "CUA-007",
+    "id_cuadrilla": 7,
     "nombre_cuadrilla": "Cuadrilla Aurora",
     "capacidad_recolectores": 22,
     "rendimiento_latas_dia": 160.0,
@@ -56,7 +56,7 @@
     "estado": "asignada"
   },
   {
-    "id_cuadrilla": "CUA-008",
+    "id_cuadrilla": 8,
     "nombre_cuadrilla": "Cuadrilla Matagalpa Norte",
     "capacidad_recolectores": 32,
     "rendimiento_latas_dia": 240.0,
@@ -64,7 +64,7 @@
     "estado": "activa"
   },
   {
-    "id_cuadrilla": "CUA-009",
+    "id_cuadrilla": 9,
     "nombre_cuadrilla": "Cuadrilla San Juan",
     "capacidad_recolectores": 18,
     "rendimiento_latas_dia": 130.0,
@@ -72,7 +72,7 @@
     "estado": "descanso"
   },
   {
-    "id_cuadrilla": "CUA-010",
+    "id_cuadrilla": 10,
     "nombre_cuadrilla": "Cuadrilla Pantasma Libre",
     "capacidad_recolectores": 26,
     "rendimiento_latas_dia": 185.0,
@@ -80,7 +80,7 @@
     "estado": "activa"
   },
   {
-    "id_cuadrilla": "CUA-011",
+    "id_cuadrilla": 11,
     "nombre_cuadrilla": "Cuadrilla Jalapa Select",
     "capacidad_recolectores": 24,
     "rendimiento_latas_dia": 175.0,
@@ -88,7 +88,7 @@
     "estado": "asignada"
   },
   {
-    "id_cuadrilla": "CUA-012",
+    "id_cuadrilla": 12,
     "nombre_cuadrilla": "Cuadrilla Central",
     "capacidad_recolectores": 30,
     "rendimiento_latas_dia": 220.0,

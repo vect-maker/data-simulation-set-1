@@ -6,9 +6,9 @@
 // ==========================================
 
 Table fincas {
-  id_finca varchar(10) [pk]
+  id_finca int [pk]
   nombre_finca varchar(100) [not null]
-  id_productor varchar(10) [not null]
+  id_productor int [not null]
   nombre_productor varchar(100) [not null]
   region varchar(50) [not null, note: 'Jinotega, Matagalpa, Nueva Segovia - Dipilto, Madriz']
   municipio varchar(50) [not null]
@@ -19,7 +19,7 @@ Table fincas {
 }
 
 Table variedades_cafe {
-  id_variedad varchar(10) [pk]
+  id_variedad int [pk]
   nombre_variedad varchar(50) [not null, note: 'Geisha, Pacamara, Bourbon, Caturra, Maragogipe, Catuaí']
   especie varchar(30) [not null, default: 'Coffea Arabica']
   perfil_sensorial_base varchar(100) [not null]
@@ -28,7 +28,7 @@ Table variedades_cafe {
 }
 
 Table beneficios {
-  id_beneficio varchar(10) [pk]
+  id_beneficio int [pk]
   nombre_beneficio varchar(100) [not null]
   tipo_beneficio varchar(20) [not null, note: 'humedo, seco']
   municipio varchar(50) [not null]
@@ -39,7 +39,7 @@ Table beneficios {
 }
 
 Table cuadrillas_corte {
-  id_cuadrilla varchar(10) [pk]
+  id_cuadrilla int [pk]
   nombre_cuadrilla varchar(100) [not null]
   capacidad_recolectores int [not null]
   rendimiento_latas_dia decimal(8,2) [not null]
@@ -48,10 +48,10 @@ Table cuadrillas_corte {
 }
 
 Table lotes_acopio {
-  id_lote varchar(20) [pk]
-  id_finca varchar(10) [not null, ref: > fincas.id_finca]
-  id_variedad varchar(10) [not null, ref: > variedades_cafe.id_variedad]
-  id_cuadrilla varchar(10) [ref: > cuadrillas_corte.id_cuadrilla]
+  id_lote int [pk]
+  id_finca int [not null, ref: > fincas.id_finca]
+  id_variedad int [not null, ref: > variedades_cafe.id_variedad]
+  id_cuadrilla int [ref: > cuadrillas_corte.id_cuadrilla]
   fecha_corte date [not null]
   peso_cereza_kg decimal(10,2) [not null]
   humedad_porcentaje decimal(4,2) [not null]
@@ -63,9 +63,9 @@ Table lotes_acopio {
 }
 
 Table procesamiento_beneficio {
-  id_proceso bigserial [pk]
-  id_lote varchar(20) [not null, ref: > lotes_acopio.id_lote]
-  id_beneficio varchar(10) [not null, ref: > beneficios.id_beneficio]
+  id_proceso int [pk]
+  id_lote int [not null, ref: > lotes_acopio.id_lote]
+  id_beneficio int [not null, ref: > beneficios.id_beneficio]
   etapa varchar(30) [not null, note: 'despulpado, fermentacion, secado_patio, trillado, clasificacion']
   fecha_inicio timestamp [not null]
   fecha_fin timestamp
@@ -76,8 +76,8 @@ Table procesamiento_beneficio {
 }
 
 Table subastas_especiales {
-  id_subasta varchar(10) [pk]
-  id_lote varchar(20) [not null, ref: > lotes_acopio.id_lote]
+  id_subasta int [pk]
+  id_lote int [not null, ref: > lotes_acopio.id_lote]
   nombre_lote_especial varchar(100) [not null]
   peso_quintales decimal(8,2) [not null, note: 'Peso en quintales (recurso en problema de la Mochila)']
   costo_certificacion_usd decimal(10,2) [not null, note: 'Costo de entrada/auditoría']
@@ -88,8 +88,8 @@ Table subastas_especiales {
 }
 
 Table embarques_exportacion {
-  id_embarque varchar(20) [pk]
-  id_lote varchar(20) [not null, ref: > lotes_acopio.id_lote]
+  id_embarque int [pk]
+  id_lote int [not null, ref: > lotes_acopio.id_lote]
   numero_contenedor varchar(20) [not null]
   puerto_salida varchar(50) [not null, default: 'Puerto Corinto, Nicaragua']
   pais_destino varchar(50) [not null, note: 'Alemania, Estados Unidos, Japón, Bélgica, Taiwán, Italia']

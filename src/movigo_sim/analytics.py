@@ -145,7 +145,7 @@ def compute_movigo_optimizacion() -> Dict[str, Any]:
     res_hungarian = solve_hungarian_assignment(cost_matrix)
     min_response_time = res_hungarian["costo_total_minimo"]
 
-    shortest_path_nodes = ["Villa Fontana (ZON-03)", "Los Robles (ZON-01)", "Metrocentro", "Bello Horizonte (ZON-05)"]
+    shortest_path_nodes = ["Villa Fontana (Zona 3)", "Los Robles (Zona 1)", "Metrocentro", "Bello Horizonte (Zona 5)"]
     shortest_path_km = 8.65
     travel_time_clear_min = 18.2
     travel_time_rain_min = 29.5

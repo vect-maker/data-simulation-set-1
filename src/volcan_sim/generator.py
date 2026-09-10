@@ -52,11 +52,11 @@ REGION_VARIETY_PROBABILITIES: Dict[str, List[float]] = {
 }
 
 # Regional wet mill routing mapping
-REGION_WET_MILL: Dict[str, str] = {
-    "Jinotega": "BNF-001",
-    "Matagalpa": "BNF-002",
-    "Nueva Segovia - Dipilto": "BNF-003",
-    "Madriz": "BNF-004",
+REGION_WET_MILL: Dict[str, int] = {
+    "Jinotega": 1,
+    "Matagalpa": 2,
+    "Nueva Segovia - Dipilto": 3,
+    "Madriz": 4,
 }
 
 
@@ -191,7 +191,7 @@ class VolcanSimulationEngine:
             daily_lots_count = self.get_seasonal_daily_lots(curr_date, precip_mm)
 
             for _ in range(daily_lots_count):
-                lote_id = f"LOT-2024-{lote_counter:05d}"
+                lote_id = lote_counter
                 lote_counter += 1
 
                 # Sample farm
@@ -255,7 +255,7 @@ class VolcanSimulationEngine:
                     continue
 
                 # Wet Milling (Beneficio Húmedo regional)
-                wet_mill_id = REGION_WET_MILL.get(finca.region, "BNF-001")
+                wet_mill_id = REGION_WET_MILL.get(finca.region, 1)
                 wet_start = datetime.combine(curr_date, time(17, 0)) + timedelta(hours=int(np.random.randint(1, 4)))
                 # Fermentation duration: 18 to 36 hours
                 ferm_hours = int(np.random.randint(20, 32))
@@ -313,7 +313,7 @@ class VolcanSimulationEngine:
                     ProcesamientoBeneficio(
                         id_proceso=proceso_counter,
                         id_lote=lote_id,
-                        id_beneficio="BNF-005",
+                        id_beneficio=5,
                         etapa="trillado",
                         fecha_inicio=mill_start,
                         fecha_fin=mill_end,
@@ -345,7 +345,7 @@ class VolcanSimulationEngine:
 
                     embarques.append(
                         EmbarqueExportacion(
-                            id_embarque=f"EXP-2024-{embarque_counter:04d}",
+                            id_embarque=embarque_counter,
                             id_lote=lote_id,
                             numero_contenedor=f"MSCU-NIC-{embarque_counter:05d}",
                             puerto_salida="Puerto Corinto, Nicaragua",

@@ -1,26 +1,26 @@
 [
   {
-    "id_categoria": "CAT-FRT",
+    "id_categoria": 1,
     "nombre_categoria": "Fritanga",
     "margen_contribucion_pct": 0.65
   },
   {
-    "id_categoria": "CAT-QSL",
+    "id_categoria": 2,
     "nombre_categoria": "Quesillos",
     "margen_contribucion_pct": 0.7
   },
   {
-    "id_categoria": "CAT-HAM",
+    "id_categoria": 3,
     "nombre_categoria": "Hamburguesas",
     "margen_contribucion_pct": 0.55
   },
   {
-    "id_categoria": "CAT-BEB",
+    "id_categoria": 4,
     "nombre_categoria": "Bebidas",
     "margen_contribucion_pct": 0.8
   },
   {
-    "id_categoria": "CAT-POS",
+    "id_categoria": 5,
     "nombre_categoria": "Postres",
     "margen_contribucion_pct": 0.6
   }

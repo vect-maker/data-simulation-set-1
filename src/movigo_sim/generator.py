@@ -187,7 +187,7 @@ class MoviGoSimulationEngine:
 
             # Sample daily trips
             for _ in range(daily_target):
-                trip_id = f"VIJ-2024-{trip_counter:06d}"
+                trip_id = trip_counter
                 trip_counter += 1
 
                 req_time = self.sample_trip_time(curr_date)

@@ -9,7 +9,7 @@ class ZonaUrbana(BaseModel):
     """Urban zone in Managua."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_zona: str = Field(pattern=r"^ZON-\d{2}$")
+    id_zona: int = Field(ge=1)
     nombre_zona: str
     estrato_socioeconomico: str = Field(pattern=r"^(alto|medio|popular|comercial)$")
     latitud: float = Field(ge=12.00, le=12.30)
@@ -22,7 +22,7 @@ class Usuario(BaseModel):
     """App passenger user."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_usuario: str = Field(pattern=r"^USR-\d{4}$")
+    id_usuario: int = Field(ge=1)
     nombre: str
     telefono: str
     metodo_pago_preferido: str = Field(pattern=r"^(efectivo|tarjeta|billetera_digital)$")
@@ -34,7 +34,7 @@ class Conductor(BaseModel):
     """Ride-hailing driver."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_conductor: str = Field(pattern=r"^CND-\d{3}$")
+    id_conductor: int = Field(ge=1)
     nombre: str
     tipo_servicio: str = Field(pattern=r"^(movigo_estandar|movigo_comfort|movigo_moto)$")
     modelo_vehiculo: str
@@ -49,11 +49,11 @@ class Viaje(BaseModel):
     """Ride transaction header."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_viaje: str = Field(pattern=r"^VIJ-2024-\d{6}$")
-    id_usuario: str
-    id_conductor: Optional[str] = None
-    id_zona_origen: str
-    id_zona_destino: str
+    id_viaje: int = Field(ge=1)
+    id_usuario: int = Field(ge=1)
+    id_conductor: Optional[int] = None
+    id_zona_origen: int = Field(ge=1)
+    id_zona_destino: int = Field(ge=1)
     fecha_hora_solicitud: datetime
     fecha_hora_inicio: Optional[datetime] = None
     fecha_hora_fin: Optional[datetime] = None
@@ -74,9 +74,9 @@ class TelemetriaConductor(BaseModel):
     """Driver GPS tracking ping."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_telemetria: int
-    id_conductor: str
-    id_zona: str
+    id_telemetria: int = Field(ge=1)
+    id_conductor: int = Field(ge=1)
+    id_zona: int = Field(ge=1)
     fecha_hora: datetime
     latitud: float = Field(ge=12.00, le=12.30)
     longitud: float = Field(ge=-86.45, le=-86.10)
@@ -88,7 +88,7 @@ class CampanaIncentivo(BaseModel):
     """Driver bonus incentive campaign for Knapsack modeling."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_campana: str = Field(pattern=r"^CMP-\d{3}$")
+    id_campana: int = Field(ge=1)
     nombre_bono: str
     costo_presupuesto_nio: float = Field(ge=2000.0, le=50000.0)
     incremento_horas_conexion: float = Field(ge=50.0, le=1200.0)

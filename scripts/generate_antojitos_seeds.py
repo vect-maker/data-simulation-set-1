@@ -84,11 +84,11 @@ def generate_antojitos_bundle(seeds_dir: Path, dry_run: bool = False):
 
     prompt = """
     Genera el catálogo dimensional completo para una cocina fantasma (ghost kitchen) en Managua, Nicaragua:
-    1. categorias (exactamente 5): 'CAT-FRT' (Fritanga), 'CAT-QSL' (Quesillos), 'CAT-HAM' (Hamburguesas), 'CAT-BEB' (Bebidas), 'CAT-POS' (Postres).
-    2. platillos (exactamente 35): 'PLT-001' a 'PLT-035', precios 50-380 NIO, id_categoria válido, recetas auténticas nicaragüenses (carne asada, chancho con yuca, quesillo, nacatamal, vigorón, cacao, chicha, Toña, pío V, etc.).
-    3. zonas (exactamente 12): 'ZON-01' a 'ZON-12' en Managua (Los Robles, Altamira, Villa Fontana, Las Colinas, Bello Horizonte, Bolonia, Linda Vista, Santo Domingo, Carretera Sur, Ciudad Jardín, Centroamérica, Rubenia), latitud 12.10-12.16, longitud -86.32 a -86.20, distancia_km 1-16.
-    4. repartidores (exactamente 25): 'REP-001' a 'REP-025', nombres nicas, moto (18+), bicicleta (3-4), auto (3-4), calificacion 4.10-4.95.
-    5. promociones (exactamente 12): 'PRM-001' a 'PRM-012' año 2024 para optimización de mochila (costo 2500-16000 NIO, retorno 6500-48000 NIO).
+    1. categorias (exactamente 5): id_categoria enteros del 1 al 5: 1 (Fritanga), 2 (Quesillos), 3 (Hamburguesas), 4 (Bebidas), 5 (Postres).
+    2. platillos (exactamente 35): id_platillo enteros del 1 al 35, precios 50-380 NIO, id_categoria válido (1 a 5), recetas auténticas nicaragüenses (carne asada, chancho con yuca, quesillo, nacatamal, vigorón, cacao, chicha, Toña, pío V, etc.).
+    3. zonas (exactamente 12): id_zona enteros del 1 al 12 en Managua (Los Robles, Altamira, Villa Fontana, Las Colinas, Bello Horizonte, Bolonia, Linda Vista, Santo Domingo, Carretera Sur, Ciudad Jardín, Centroamérica, Rubenia), latitud 12.10-12.16, longitud -86.32 a -86.20, distancia_km 1-16.
+    4. repartidores (exactamente 25): id_repartidor enteros del 1 al 25, nombres nicas, moto (18+), bicicleta (3-4), auto (3-4), calificacion 4.10-4.95.
+    5. promociones (exactamente 12): id_promocion enteros del 1 al 12 año 2024 para optimización de mochila (costo 2500-16000 NIO, retorno 6500-48000 NIO).
     6. semantic_templates: al menos 12 notas_entrega vernáculas de Managua (del portón de la UCA, de donde fue el cine Cabrera, etc.), 8 motivos_cancelacion, 8 comentarios_retraso, 8 comentarios_exitosos.
     """
 
@@ -116,31 +116,31 @@ def generate_antojitos_granular(seeds_dir: Path, target: str = "all", dry_run: b
 
     if target in ("all", "categorias"):
         console.print("[yellow]Generando Categorías...[/yellow]")
-        prompt = "Genera exactamente 5 categorías oficiales ('CAT-FRT', 'CAT-QSL', 'CAT-HAM', 'CAT-BEB', 'CAT-POS') para delivery en Managua."
+        prompt = "Genera exactamente 5 categorías oficiales con id_categoria enteros del 1 al 5 (1: Fritanga, 2: Quesillos, 3: Hamburguesas, 4: Bebidas, 5: Postres) para delivery en Managua."
         data = generate_structured_data(client, prompt, CategoriaCatalog)
         save_json_file([c.model_dump() for c in data.categorias], seeds_dir / "categorias_platillo.json", dry_run)
 
     if target in ("all", "platillos"):
         console.print("[yellow]Generando Platillos (35)...[/yellow]")
-        prompt = "Genera exactamente 35 platillos nicaragüenses ('PLT-001' a 'PLT-035') con precios NIO 50-380 y categorías válidas."
+        prompt = "Genera exactamente 35 platillos nicaragüenses con id_platillo enteros del 1 al 35, precios NIO 50-380 y categorías válidas (id_categoria enteros 1 a 5)."
         data = generate_structured_data(client, prompt, PlatilloCatalog)
         save_json_file([p.model_dump() for p in data.platillos], seeds_dir / "platillos_managua.json", dry_run)
 
     if target in ("all", "zonas"):
         console.print("[yellow]Generando Zonas Urbanas de Managua (12)...[/yellow]")
-        prompt = "Genera 12 zonas de entrega de Managua ('ZON-01' a 'ZON-12') con coordenadas reales respecto a Los Robles."
+        prompt = "Genera 12 zonas de entrega de Managua con id_zona enteros del 1 al 12 con coordenadas reales respecto a Los Robles."
         data = generate_structured_data(client, prompt, ZonaCatalog)
         save_json_file([z.model_dump() for z in data.zonas], seeds_dir / "zonas_managua.json", dry_run)
 
     if target in ("all", "repartidores"):
         console.print("[yellow]Generando Repartidores (25)...[/yellow]")
-        prompt = "Genera 25 repartidores para Managua ('REP-001' a 'REP-025') con moto, bici o auto y calificaciones 4.10-4.95."
+        prompt = "Genera 25 repartidores para Managua con id_repartidor enteros del 1 al 25 con moto, bici o auto y calificaciones 4.10-4.95."
         data = generate_structured_data(client, prompt, RepartidorCatalog)
         save_json_file([r.model_dump() for r in data.repartidores], seeds_dir / "repartidores_managua.json", dry_run)
 
     if target in ("all", "promociones"):
         console.print("[yellow]Generando Promociones Knapsack (12)...[/yellow]")
-        prompt = "Genera 12 promociones ('PRM-001' a 'PRM-012') año 2024 para optimización de mochila."
+        prompt = "Genera 12 promociones con id_promocion enteros del 1 al 12 año 2024 para optimización de mochila."
         data = generate_structured_data(client, prompt, PromocionCatalog)
         save_json_file([p.model_dump(mode="json") for p in data.promociones], seeds_dir / "promociones_knapsack.json", dry_run)
 

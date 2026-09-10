@@ -1,6 +1,6 @@
 [
   {
-    "id_usuario": "USR-0001",
+    "id_usuario": 1,
     "nombre": "Gabriela Solis",
     "telefono": "+505 8888-1111",
     "metodo_pago_preferido": "tarjeta",
@@ -8,7 +8,7 @@
     "fecha_registro": "2023-01-15"
   },
   {
-    "id_usuario": "USR-0002",
+    "id_usuario": 2,
     "nombre": "Humberto Chamorro",
     "telefono": "+505 8777-2222",
     "metodo_pago_preferido": "efectivo",
@@ -16,7 +16,7 @@
     "fecha_registro": "2023-02-20"
   },
   {
-    "id_usuario": "USR-0003",
+    "id_usuario": 3,
     "nombre": "Sofia Montenegro",
     "telefono": "+505 8666-3333",
     "metodo_pago_preferido": "billetera_digital",
@@ -24,7 +24,7 @@
     "fecha_registro": "2023-03-10"
   },
   {
-    "id_usuario": "USR-0004",
+    "id_usuario": 4,
     "nombre": "Ricardo Argüello",
     "telefono": "+505 8555-4444",
     "metodo_pago_preferido": "tarjeta",
@@ -32,7 +32,7 @@
     "fecha_registro": "2023-04-05"
   },
   {
-    "id_usuario": "USR-0005",
+    "id_usuario": 5,
     "nombre": "Valeria Cardenal",
     "telefono": "+505 8444-5555",
     "metodo_pago_preferido": "billetera_digital",
@@ -40,7 +40,7 @@
     "fecha_registro": "2023-05-12"
   },
   {
-    "id_usuario": "USR-0006",
+    "id_usuario": 6,
     "nombre": "Eduardo Cuadra",
     "telefono": "+505 8333-6666",
     "metodo_pago_preferido": "efectivo",
@@ -48,7 +48,7 @@
     "fecha_registro": "2023-06-18"
   },
   {
-    "id_usuario": "USR-0007",
+    "id_usuario": 7,
     "nombre": "Lucia Sacasa",
     "telefono": "+505 8222-7777",
     "metodo_pago_preferido": "tarjeta",
@@ -56,7 +56,7 @@
     "fecha_registro": "2023-07-22"
   },
   {
-    "id_usuario": "USR-0008",
+    "id_usuario": 8,
     "nombre": "Alvaro Pellas",
     "telefono": "+505 8111-8888",
     "metodo_pago_preferido": "billetera_digital",
@@ -64,7 +64,7 @@
     "fecha_registro": "2023-08-30"
   },
   {
-    "id_usuario": "USR-0009",
+    "id_usuario": 9,
     "nombre": "Ximena Holmann",
     "telefono": "+505 8999-9999",
     "metodo_pago_preferido": "efectivo",
@@ -72,7 +72,7 @@
     "fecha_registro": "2023-09-14"
   },
   {
-    "id_usuario": "USR-0010",
+    "id_usuario": 10,
     "nombre": "Guillermo Teran",
     "telefono": "+505 8811-0000",
     "metodo_pago_preferido": "tarjeta",
@@ -80,7 +80,7 @@
     "fecha_registro": "2023-10-01"
   },
   {
-    "id_usuario": "USR-0011",
+    "id_usuario": 11,
     "nombre": "Mariana Lacayo",
     "telefono": "+505 8722-1111",
     "metodo_pago_preferido": "billetera_digital",
@@ -88,7 +88,7 @@
     "fecha_registro": "2023-10-15"
   },
   {
-    "id_usuario": "USR-0012",
+    "id_usuario": 12,
     "nombre": "Diego Munguia",
     "telefono": "+505 8633-2222",
     "metodo_pago_preferido": "efectivo",
@@ -96,7 +96,7 @@
     "fecha_registro": "2023-10-28"
   },
   {
-    "id_usuario": "USR-0013",
+    "id_usuario": 13,
     "nombre": "Renata Velez",
     "telefono": "+505 8544-3333",
     "metodo_pago_preferido": "tarjeta",
@@ -104,7 +104,7 @@
     "fecha_registro": "2023-11-05"
   },
   {
-    "id_usuario": "USR-0014",
+    "id_usuario": 14,
     "nombre": "Esteban Falla",
     "telefono": "+505 8455-4444",
     "metodo_pago_preferido": "billetera_digital",
@@ -112,7 +112,7 @@
     "fecha_registro": "2023-11-19"
   },
   {
-    "id_usuario": "USR-0015",
+    "id_usuario": 15,
     "nombre": "Daniela Zamora",
     "telefono": "+505 8366-5555",
     "metodo_pago_preferido": "efectivo",
@@ -120,7 +120,7 @@
     "fecha_registro": "2023-12-02"
   },
   {
-    "id_usuario": "USR-0016",
+    "id_usuario": 16,
     "nombre": "Mauricio Ocampo",
     "telefono": "+505 8277-6666",
     "metodo_pago_preferido": "tarjeta",
@@ -128,7 +128,7 @@
     "fecha_registro": "2023-12-10"
   },
   {
-    "id_usuario": "USR-0017",
+    "id_usuario": 17,
     "nombre": "Jimena Tijerino",
     "telefono": "+505 8188-7777",
     "metodo_pago_preferido": "billetera_digital",
@@ -136,7 +136,7 @@
     "fecha_registro": "2023-12-15"
   },
   {
-    "id_usuario": "USR-0018",
+    "id_usuario": 18,
     "nombre": "Fernando Silva",
     "telefono": "+505 8099-8888",
     "metodo_pago_preferido": "efectivo",
@@ -144,7 +144,7 @@
     "fecha_registro": "2023-12-20"
   },
   {
-    "id_usuario": "USR-0019",
+    "id_usuario": 19,
     "nombre": "Paola Baltodano",
     "telefono": "+505 8900-9999",
     "metodo_pago_preferido": "tarjeta",
@@ -152,7 +152,7 @@
     "fecha_registro": "2023-12-24"
   },
   {
-    "id_usuario": "USR-0020",
+    "id_usuario": 20,
     "nombre": "Rodrigo Incer",
     "telefono": "+505 8812-3456",
     "metodo_pago_preferido": "billetera_digital",

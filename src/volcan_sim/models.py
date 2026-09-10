@@ -9,9 +9,9 @@ class Finca(BaseModel):
     """Coffee farm in the highlands of Nicaragua."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_finca: str = Field(pattern=r"^FNC-\d{3}$")
+    id_finca: int = Field(ge=1)
     nombre_finca: str
-    id_productor: str = Field(pattern=r"^PRD-\d{3}$")
+    id_productor: int = Field(ge=1)
     nombre_productor: str
     region: str = Field(pattern=r"^(Jinotega|Matagalpa|Nueva Segovia - Dipilto|Madriz)$")
     municipio: str
@@ -25,7 +25,7 @@ class VariedadCafe(BaseModel):
     """Botanical coffee variety."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_variedad: str = Field(pattern=r"^VAR-\d{3}$")
+    id_variedad: int = Field(ge=1)
     nombre_variedad: str
     especie: str = "Coffea Arabica"
     perfil_sensorial_base: str
@@ -37,7 +37,7 @@ class Beneficio(BaseModel):
     """Coffee processing mill (wet or dry)."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_beneficio: str = Field(pattern=r"^BNF-\d{3}$")
+    id_beneficio: int = Field(ge=1)
     nombre_beneficio: str
     tipo_beneficio: str = Field(pattern=r"^(humedo|seco)$")
     municipio: str
@@ -51,7 +51,7 @@ class CuadrillaCorte(BaseModel):
     """Harvesting team."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_cuadrilla: str = Field(pattern=r"^CUA-\d{3}$")
+    id_cuadrilla: int = Field(ge=1)
     nombre_cuadrilla: str
     capacidad_recolectores: int = Field(ge=5, le=40)
     rendimiento_latas_dia: float = Field(ge=20.0, le=350.0)
@@ -63,10 +63,10 @@ class LoteAcopio(BaseModel):
     """Harvested coffee cherry lot."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_lote: str = Field(pattern=r"^LOT-2024-\d{5}$")
-    id_finca: str
-    id_variedad: str
-    id_cuadrilla: Optional[str] = None
+    id_lote: int = Field(ge=1)
+    id_finca: int = Field(ge=1)
+    id_variedad: int = Field(ge=1)
+    id_cuadrilla: Optional[int] = None
     fecha_corte: date
     peso_cereza_kg: float = Field(ge=50.0)
     humedad_porcentaje: float = Field(ge=40.0, le=68.0)
@@ -82,8 +82,8 @@ class ProcesamientoBeneficio(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id_proceso: int
-    id_lote: str
-    id_beneficio: str
+    id_lote: int = Field(ge=1)
+    id_beneficio: int = Field(ge=1)
     etapa: str = Field(pattern=r"^(despulpado|fermentacion|secado_patio|trillado|clasificacion)$")
     fecha_inicio: datetime
     fecha_fin: Optional[datetime] = None
@@ -97,8 +97,8 @@ class SubastaEspecial(BaseModel):
     """Specialty micro-lot for Cup of Excellence / Knapsack auction."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_subasta: str = Field(pattern=r"^SUB-\d{3}$")
-    id_lote: Optional[str] = None
+    id_subasta: int = Field(ge=1)
+    id_lote: Optional[int] = None
     nombre_lote_especial: str
     peso_quintales: float = Field(ge=5.0, le=50.0)
     costo_certificacion_usd: float = Field(ge=500.0, le=5000.0)
@@ -112,8 +112,8 @@ class EmbarqueExportacion(BaseModel):
     """Export container shipment leaving via Puerto Corinto."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_embarque: str = Field(pattern=r"^EXP-2024-\d{4}$")
-    id_lote: str
+    id_embarque: int = Field(ge=1)
+    id_lote: int = Field(ge=1)
     numero_contenedor: str
     puerto_salida: str = "Puerto Corinto, Nicaragua"
     pais_destino: str = Field(pattern=r"^(Alemania|Estados Unidos|Japón|Bélgica|Taiwán|Italia)$")

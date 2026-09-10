@@ -22,7 +22,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
 
 class ZonaOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_zona: str
+    id_zona: int
     nombre_zona: str
     latitud: float
     longitud: float
@@ -33,7 +33,7 @@ class ZonaOut(BaseModel):
 
 class RepartidorOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_repartidor: str
+    id_repartidor: int
     nombre: str
     tipo_vehiculo: str
     calificacion_promedio: float
@@ -43,15 +43,15 @@ class RepartidorOut(BaseModel):
 
 class CategoriaPlatilloOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_categoria: str
+    id_categoria: int
     nombre_categoria: str
     margen_contribucion_pct: float
 
 
 class PlatilloOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_platillo: str
-    id_categoria: str
+    id_platillo: int
+    id_categoria: int
     nombre_platillo: str
     precio_unitario: float
     costo_ingredientes: float
@@ -62,7 +62,7 @@ class PlatilloOut(BaseModel):
 
 class PromocionOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_promocion: str
+    id_promocion: int
     nombre_campana: str
     costo_campana: float
     retorno_esperado: float
@@ -81,9 +81,9 @@ class ClimaDiarioOut(BaseModel):
 
 class DetalleOrdenOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_detalle: str
-    id_orden: str
-    id_platillo: str
+    id_detalle: int
+    id_orden: int
+    id_platillo: int
     cantidad: int
     precio_unitario: float
     subtotal: float
@@ -91,10 +91,10 @@ class DetalleOrdenOut(BaseModel):
 
 class OrdenOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_orden: str
-    id_zona: str
-    id_repartidor: Optional[str] = None
-    id_promocion: Optional[str] = None
+    id_orden: int
+    id_zona: int
+    id_repartidor: Optional[int] = None
+    id_promocion: Optional[int] = None
     fecha_hora_creacion: datetime
     fecha_hora_entrega: Optional[datetime] = None
     metodo_pago: str
@@ -117,9 +117,9 @@ class OrdenDetailOut(OrdenOut):
 
 class FincaOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_finca: str
+    id_finca: int
     nombre_finca: str
-    id_productor: str
+    id_productor: int
     nombre_productor: str
     region: str
     municipio: str
@@ -131,7 +131,7 @@ class FincaOut(BaseModel):
 
 class VariedadCafeOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_variedad: str
+    id_variedad: int
     nombre_variedad: str
     especie: str
     perfil_sensorial_base: str
@@ -141,7 +141,7 @@ class VariedadCafeOut(BaseModel):
 
 class BeneficioOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_beneficio: str
+    id_beneficio: int
     nombre_beneficio: str
     tipo_beneficio: str
     municipio: str
@@ -153,7 +153,7 @@ class BeneficioOut(BaseModel):
 
 class CuadrillaCorteOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_cuadrilla: str
+    id_cuadrilla: int
     nombre_cuadrilla: str
     capacidad_recolectores: int
     rendimiento_latas_dia: float
@@ -175,10 +175,10 @@ class ClimaCafetaleroOut(BaseModel):
 
 class LoteAcopioOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_lote: str
-    id_finca: str
-    id_variedad: str
-    id_cuadrilla: Optional[str] = None
+    id_lote: int
+    id_finca: int
+    id_variedad: int
+    id_cuadrilla: Optional[int] = None
     fecha_corte: date
     peso_cereza_kg: float
     humedad_porcentaje: float
@@ -192,8 +192,8 @@ class LoteAcopioOut(BaseModel):
 class ProcesamientoBeneficioOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id_proceso: int
-    id_lote: str
-    id_beneficio: str
+    id_lote: int
+    id_beneficio: int
     etapa: str
     fecha_inicio: datetime
     fecha_fin: Optional[datetime] = None
@@ -205,8 +205,8 @@ class ProcesamientoBeneficioOut(BaseModel):
 
 class SubastaEspecialOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_subasta: str
-    id_lote: Optional[str] = None
+    id_subasta: int
+    id_lote: Optional[int] = None
     nombre_lote_especial: str
     peso_quintales: float
     costo_certificacion_usd: float
@@ -218,8 +218,8 @@ class SubastaEspecialOut(BaseModel):
 
 class EmbarqueExportacionOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_embarque: str
-    id_lote: str
+    id_embarque: int
+    id_lote: int
     numero_contenedor: str
     puerto_salida: str
     pais_destino: str
@@ -237,7 +237,7 @@ class EmbarqueExportacionOut(BaseModel):
 
 class ZonaUrbanaOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_zona: str
+    id_zona: int
     nombre_zona: str
     estrato_socioeconomico: str
     latitud: float
@@ -248,7 +248,7 @@ class ZonaUrbanaOut(BaseModel):
 
 class UsuarioOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_usuario: str
+    id_usuario: int
     nombre: str
     telefono: str
     metodo_pago_preferido: str
@@ -258,7 +258,7 @@ class UsuarioOut(BaseModel):
 
 class ConductorOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_conductor: str
+    id_conductor: int
     nombre: str
     tipo_servicio: str
     modelo_vehiculo: str
@@ -271,7 +271,7 @@ class ConductorOut(BaseModel):
 
 class CampanaIncentivoOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_campana: str
+    id_campana: int
     nombre_bono: str
     costo_presupuesto_nio: float
     incremento_horas_conexion: float
@@ -292,11 +292,11 @@ class ClimaCuadranteOut(BaseModel):
 
 class ViajeOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id_viaje: str
-    id_usuario: str
-    id_conductor: Optional[str] = None
-    id_zona_origen: str
-    id_zona_destino: str
+    id_viaje: int
+    id_usuario: int
+    id_conductor: Optional[int] = None
+    id_zona_origen: int
+    id_zona_destino: int
     fecha_hora_solicitud: datetime
     fecha_hora_inicio: Optional[datetime] = None
     fecha_hora_fin: Optional[datetime] = None
@@ -316,8 +316,8 @@ class ViajeOut(BaseModel):
 class TelemetriaConductorOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id_telemetria: int
-    id_conductor: str
-    id_zona: str
+    id_conductor: int
+    id_zona: int
     fecha_hora: datetime
     latitud: float
     longitud: float

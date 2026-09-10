@@ -44,21 +44,25 @@ logger = logging.getLogger(__name__)
 
 # Chi-Square Dependency Matrix: P(Category | Zone)
 # Guaranteed to produce p-value < 0.01 on contingency test
-# Categories order: CAT-FRT, CAT-QSL, CAT-HAM, CAT-BEB, CAT-POS
-ZONE_CATEGORY_PROBABILITIES: Dict[str, List[float]] = {
-    "ZON-01": [0.25, 0.20, 0.25, 0.18, 0.12], # Los Robles: Modern / Gastro mix
-    "ZON-02": [0.35, 0.25, 0.15, 0.15, 0.10], # Altamira: Traditional / Fritanga
-    "ZON-03": [0.20, 0.15, 0.35, 0.20, 0.10], # Villa Fontana: High burger/snack & beer
-    "ZON-04": [0.40, 0.20, 0.15, 0.12, 0.13], # Las Colinas: High premium fritanga & dessert
-    "ZON-05": [0.45, 0.25, 0.10, 0.12, 0.08], # Bello Horizonte: Deep traditional fritanga
-    "ZON-06": [0.30, 0.20, 0.22, 0.18, 0.10], # Bolonia: Balanced office & residential
-    "ZON-07": [0.38, 0.28, 0.12, 0.14, 0.08], # Linda Vista: Traditional & quesillos
-    "ZON-08": [0.38, 0.18, 0.18, 0.12, 0.14], # Santo Domingo: Premium family orders
-    "ZON-09": [0.32, 0.22, 0.20, 0.14, 0.12], # Carretera Sur: Weekend family feasts
-    "ZON-10": [0.42, 0.30, 0.10, 0.12, 0.06], # Ciudad Jardín: Street fritanga & quesillo
-    "ZON-11": [0.33, 0.22, 0.20, 0.15, 0.10], # Colonia Centroamérica: Central mix
-    "ZON-12": [0.40, 0.26, 0.12, 0.14, 0.08], # Rubenia: High fritanga & snacks
+# Categories order: 1 (CAT-FRT), 2 (CAT-QSL), 3 (CAT-HAM), 4 (CAT-BEB), 5 (CAT-POS)
+ZONE_CATEGORY_PROBABILITIES: Dict[int, List[float]] = {
+    1:  [0.25, 0.20, 0.25, 0.18, 0.12], # Los Robles: Modern / Gastro mix
+    2:  [0.35, 0.25, 0.15, 0.15, 0.10], # Altamira: Traditional / Fritanga
+    3:  [0.20, 0.15, 0.35, 0.20, 0.10], # Villa Fontana: High burger/snack & beer
+    4:  [0.40, 0.20, 0.15, 0.12, 0.13], # Las Colinas: High premium fritanga & dessert
+    5:  [0.45, 0.25, 0.10, 0.12, 0.08], # Bello Horizonte: Deep traditional fritanga
+    6:  [0.30, 0.20, 0.22, 0.18, 0.10], # Bolonia: Balanced office & residential
+    7:  [0.38, 0.28, 0.12, 0.14, 0.08], # Linda Vista: Traditional & quesillos
+    8:  [0.38, 0.18, 0.18, 0.12, 0.14], # Santo Domingo: Premium family orders
+    9:  [0.32, 0.22, 0.20, 0.14, 0.12], # Carretera Sur: Weekend family feasts
+    10: [0.42, 0.30, 0.10, 0.12, 0.06], # Ciudad Jardín: Street fritanga & quesillo
+    11: [0.33, 0.22, 0.20, 0.15, 0.10], # Colonia Centroamérica: Central mix
+    12: [0.40, 0.26, 0.12, 0.14, 0.08], # Rubenia: High fritanga & snacks
 }
+
+# Category IDs for drink and dessert pairings
+CAT_BEB = 4
+CAT_POS = 5
 
 # Hourly arrival weights for Non-Homogeneous Poisson Process (24 hours)
 # Peaking at lunch (12:00-14:00) and dinner (19:00-21:30)
@@ -123,7 +127,7 @@ class AntojitosSimulationEngine:
         self.active_repartidores = [r for r in self.repartidores if r.estado == "activo"]
 
         # Platillos grouped by category for fast sampling
-        self.platillos_by_cat: Dict[str, List[Platillo]] = {}
+        self.platillos_by_cat: Dict[int, List[Platillo]] = {}
         for p in self.platillos:
             self.platillos_by_cat.setdefault(p.id_categoria, []).append(p)
 
@@ -171,7 +175,7 @@ class AntojitosSimulationEngine:
         idx = int(np.random.choice(len(self.zonas), p=zone_weights))
         return self.zonas[idx]
 
-    def sample_category_for_zone(self, id_zona: str) -> str:
+    def sample_category_for_zone(self, id_zona: int) -> int:
         """Sample primary food category using the Chi-Square conditional transition matrix."""
         probs = ZONE_CATEGORY_PROBABILITIES.get(id_zona)
         if not probs:
@@ -235,7 +239,7 @@ class AntojitosSimulationEngine:
             daily_target = self.simulate_daily_demand(precip_mm, dow)
 
             for _ in range(daily_target):
-                order_id = f"ORD-2024-{order_num_counter:06d}"
+                order_id = order_num_counter
                 order_num_counter += 1
 
                 created_at = self.sample_order_time(curr_date)
@@ -253,12 +257,12 @@ class AntojitosSimulationEngine:
 
                 for _ in range(basket_size - 1):
                     roll = np.random.rand()
-                    if roll < 0.45 and "CAT-BEB" in self.platillos_by_cat:
+                    if roll < 0.45 and CAT_BEB in self.platillos_by_cat:
                         # Drink pairing (cacao, beer, fresco)
-                        selected_dishes.append(np.random.choice(self.platillos_by_cat["CAT-BEB"]))
-                    elif roll < 0.70 and "CAT-POS" in self.platillos_by_cat:
+                        selected_dishes.append(np.random.choice(self.platillos_by_cat[CAT_BEB]))
+                    elif roll < 0.70 and CAT_POS in self.platillos_by_cat:
                         # Dessert pairing (buñuelos, tres leches)
-                        selected_dishes.append(np.random.choice(self.platillos_by_cat["CAT-POS"]))
+                        selected_dishes.append(np.random.choice(self.platillos_by_cat[CAT_POS]))
                     else:
                         # Another dish in same primary category
                         selected_dishes.append(np.random.choice(primary_dishes))

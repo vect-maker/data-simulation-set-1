@@ -83,7 +83,7 @@ DROP TABLE IF EXISTS usuarios CASCADE;
 DROP TABLE IF EXISTS zonas_urbanas CASCADE;
 
 CREATE TABLE zonas_urbanas (
-    id_zona VARCHAR(10) PRIMARY KEY,
+    id_zona INT PRIMARY KEY,
     nombre_zona VARCHAR(100) NOT NULL,
     estrato_socioeconomico VARCHAR(20) NOT NULL CHECK (estrato_socioeconomico IN ('alto', 'medio', 'popular', 'comercial')),
     latitud DECIMAL(9,6) NOT NULL,
@@ -93,7 +93,7 @@ CREATE TABLE zonas_urbanas (
 );
 
 CREATE TABLE usuarios (
-    id_usuario VARCHAR(15) PRIMARY KEY,
+    id_usuario INT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     telefono VARCHAR(20) NOT NULL,
     metodo_pago_preferido VARCHAR(30) NOT NULL CHECK (metodo_pago_preferido IN ('efectivo', 'tarjeta', 'billetera_digital')),
@@ -102,7 +102,7 @@ CREATE TABLE usuarios (
 );
 
 CREATE TABLE conductores (
-    id_conductor VARCHAR(15) PRIMARY KEY,
+    id_conductor INT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     tipo_servicio VARCHAR(20) NOT NULL CHECK (tipo_servicio IN ('movigo_estandar', 'movigo_comfort', 'movigo_moto')),
     modelo_vehiculo VARCHAR(100) NOT NULL,
@@ -114,7 +114,7 @@ CREATE TABLE conductores (
 );
 
 CREATE TABLE campanas_incentivos (
-    id_campana VARCHAR(10) PRIMARY KEY,
+    id_campana INT PRIMARY KEY,
     nombre_bono VARCHAR(100) NOT NULL,
     costo_presupuesto_nio DECIMAL(10,2) NOT NULL,
     incremento_horas_conexion DECIMAL(10,2) NOT NULL,
@@ -133,11 +133,11 @@ CREATE TABLE clima_cuadrantes (
 );
 
 CREATE TABLE viajes (
-    id_viaje VARCHAR(25) PRIMARY KEY,
-    id_usuario VARCHAR(15) NOT NULL REFERENCES usuarios(id_usuario),
-    id_conductor VARCHAR(15) REFERENCES conductores(id_conductor),
-    id_zona_origen VARCHAR(10) NOT NULL REFERENCES zonas_urbanas(id_zona),
-    id_zona_destino VARCHAR(10) NOT NULL REFERENCES zonas_urbanas(id_zona),
+    id_viaje INT PRIMARY KEY,
+    id_usuario INT NOT NULL REFERENCES usuarios(id_usuario),
+    id_conductor INT REFERENCES conductores(id_conductor),
+    id_zona_origen INT NOT NULL REFERENCES zonas_urbanas(id_zona),
+    id_zona_destino INT NOT NULL REFERENCES zonas_urbanas(id_zona),
     fecha_hora_solicitud TIMESTAMP NOT NULL,
     fecha_hora_inicio TIMESTAMP,
     fecha_hora_fin TIMESTAMP,
@@ -155,9 +155,9 @@ CREATE TABLE viajes (
 );
 
 CREATE TABLE telemetria_conductores (
-    id_telemetria SERIAL PRIMARY KEY,
-    id_conductor VARCHAR(15) NOT NULL REFERENCES conductores(id_conductor),
-    id_zona VARCHAR(10) NOT NULL REFERENCES zonas_urbanas(id_zona),
+    id_telemetria INT PRIMARY KEY,
+    id_conductor INT NOT NULL REFERENCES conductores(id_conductor),
+    id_zona INT NOT NULL REFERENCES zonas_urbanas(id_zona),
     fecha_hora TIMESTAMP NOT NULL,
     latitud DECIMAL(9,6) NOT NULL,
     longitud DECIMAL(9,6) NOT NULL,
@@ -167,7 +167,7 @@ CREATE TABLE telemetria_conductores (
 
 CREATE TABLE auditoria_viajes (
     id_auditoria SERIAL PRIMARY KEY,
-    id_viaje VARCHAR(25) NOT NULL,
+    id_viaje INT NOT NULL,
     estado_anterior VARCHAR(25),
     estado_nuevo VARCHAR(25),
     fecha_cambio TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -56,7 +56,7 @@ LIMIT 1;
 -- B. Ejecutar el procedimiento almacenado (ejemplo con ID de proceso)
 DO $$
 DECLARE
-    v_id VARCHAR(15);
+    v_id INT;
 BEGIN
     SELECT id_proceso INTO v_id 
     FROM procesamiento_beneficio 

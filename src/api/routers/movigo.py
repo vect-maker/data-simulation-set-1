@@ -160,10 +160,10 @@ def get_clima_movigo(
 
 @router.get("/viajes", response_model=PaginatedResponse[ViajeOut], summary="Listar viajes en plataforma")
 def get_viajes(
-    id_zona_origen: Optional[str] = Query(None, description="Zona de partida"),
-    id_zona_destino: Optional[str] = Query(None, description="Zona de destino"),
-    id_conductor: Optional[str] = Query(None, description="Conductor asignado"),
-    id_usuario: Optional[str] = Query(None, description="Usuario pasajero"),
+    id_zona_origen: Optional[int] = Query(None, description="Zona de partida"),
+    id_zona_destino: Optional[int] = Query(None, description="Zona de destino"),
+    id_conductor: Optional[int] = Query(None, description="Conductor asignado"),
+    id_usuario: Optional[int] = Query(None, description="Usuario pasajero"),
     estado_viaje: Optional[str] = Query(None, description="completado, cancelado_usuario, cancelado_conductor, no_asignado"),
     metodo_pago: Optional[str] = Query(None, description="efectivo, tarjeta, billetera_digital"),
     sort: Optional[str] = Query(None, description="Ordenar por fecha_hora_solicitud, tarifa_final, duracion_minutos"),
@@ -199,15 +199,15 @@ def get_viajes(
 
 
 @router.get("/viajes/{id_viaje}", response_model=ViajeOut, summary="Obtener viaje por ID")
-def get_viaje_by_id(id_viaje: str):
+def get_viaje_by_id(id_viaje: int):
     """Consulta la información detallada de un viaje particular."""
     return fetch_single_resource(SCHEMA, "viajes", "id_viaje", id_viaje)
 
 
 @router.get("/telemetria", response_model=PaginatedResponse[TelemetriaConductorOut], summary="Listar registros de telemetría")
 def get_telemetria(
-    id_conductor: Optional[str] = Query(None, description="Filtrar por conductor"),
-    id_zona: Optional[str] = Query(None, description="Filtrar por zona"),
+    id_conductor: Optional[int] = Query(None, description="Filtrar por conductor"),
+    id_zona: Optional[int] = Query(None, description="Filtrar por zona"),
     estado_disponibilidad: Optional[str] = Query(None, description="disponible, ocupado, en_camino_recogida"),
     sort: Optional[str] = Query(None, description="Ordenar por fecha_hora o velocidad_kmh"),
     offset: int = Query(0, ge=0),

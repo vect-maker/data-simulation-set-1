@@ -78,15 +78,15 @@ def generate_movigo_bundle(seeds_dir: Path, dry_run: bool = False):
 
     prompt = """
     Genera el catálogo dimensional completo para MoviGo (app de movilidad urbana en Managua, Nicaragua):
-    1. zonas (exactamente 12): 'ZON-01' a 'ZON-12' clasificadas por estrato socioeconómico:
+    1. zonas (exactamente 12): id_zona enteros del 1 al 12 clasificadas por estrato socioeconómico:
        - alto: Villa Fontana, Las Colinas, Santo Domingo.
        - medio: Los Robles, Altamira, Bolonia, Bello Horizonte, Linda Vista.
        - comercial: Metrocentro / Eje Corporativo UCA.
        - popular: Ciudad Jardín, Mercado Oriental, Mercado Roberto Huembes.
        Coordenadas Managua (latitud 12.10-12.16, longitud -86.32 a -86.20).
-    2. conductores (exactamente 20): 'CND-001' a 'CND-020' con modelos populares en Nicaragua (Yaris, Grand i10, Dzire, Rio, Versa, CB125F), placas Managua 'M-123456', calificación 4.30-4.98.
-    3. usuarios (exactamente 20): 'USR-0001' a 'USR-0020' pasajeros frecuentes, teléfonos '+505 8xxx-xxxx', métodos de pago (efectivo, tarjeta, billetera_digital).
-    4. campanas (exactamente 12): 'CMP-001' a 'CMP-012' campañas de incentivos y bonos para optimización de mochila año 2024 (meta_viajes, hora_pico_lluvia, zona_alta_demanda).
+    2. conductores (exactamente 20): id_conductor enteros del 1 al 20 con modelos populares en Nicaragua (Yaris, Grand i10, Dzire, Rio, Versa, CB125F), placas Managua 'M-123456', calificación 4.30-4.98.
+    3. usuarios (exactamente 20): id_usuario enteros del 1 al 20 pasajeros frecuentes, teléfonos '+505 8xxx-xxxx', métodos de pago (efectivo, tarjeta, billetera_digital).
+    4. campanas (exactamente 12): id_campana enteros del 1 al 12 campañas de incentivos y bonos para optimización de mochila año 2024 (meta_viajes, hora_pico_lluvia, zona_alta_demanda).
     5. semantic_templates: motivos_cancelacion, motivos_cancelacion_conductor, motivos_cancelacion_usuario y comentarios_viaje con vernáculo urbano de Managua.
     """
 
@@ -113,25 +113,25 @@ def generate_movigo_granular(seeds_dir: Path, target: str = "all", dry_run: bool
 
     if target in ("all", "zonas"):
         console.print("[yellow]Generando Cuadrantes Urbanos de Managua (12)...[/yellow]")
-        prompt = "Genera 12 cuadrantes urbanos de Managua ('ZON-01' a 'ZON-12') con estrato socioeconómico."
+        prompt = "Genera 12 cuadrantes urbanos de Managua con id_zona enteros del 1 al 12 con estrato socioeconómico."
         data = generate_structured_data(client, prompt, ZonaUrbanaCatalog)
         save_json_file([z.model_dump() for z in data.zonas], seeds_dir / "zonas_urbanas.json", dry_run)
 
     if target in ("all", "conductores"):
         console.print("[yellow]Generando Conductores (20)...[/yellow]")
-        prompt = "Genera 20 conductores de MoviGo ('CND-001' a 'CND-020') con vehículos comunes en Nicaragua y placas M-XXXXXX."
+        prompt = "Genera 20 conductores de MoviGo con id_conductor enteros del 1 al 20 con vehículos comunes en Nicaragua y placas M-XXXXXX."
         data = generate_structured_data(client, prompt, ConductorCatalog)
         save_json_file([c.model_dump() for c in data.conductores], seeds_dir / "conductores.json", dry_run)
 
     if target in ("all", "usuarios"):
         console.print("[yellow]Generando Pasajeros Frecuentes (20)...[/yellow]")
-        prompt = "Genera 20 pasajeros ('USR-0001' a 'USR-0020') con formato telefónico +505 y métodos de pago."
+        prompt = "Genera 20 pasajeros con id_usuario enteros del 1 al 20 con formato telefónico +505 y métodos de pago."
         data = generate_structured_data(client, prompt, UsuarioCatalog)
         save_json_file([u.model_dump(mode="json") for u in data.usuarios], seeds_dir / "usuarios.json", dry_run)
 
     if target in ("all", "campanas"):
         console.print("[yellow]Generando Campañas de Incentivos Knapsack (12)...[/yellow]")
-        prompt = "Genera 12 campañas de incentivos ('CMP-001' a 'CMP-012') año 2024 para optimización de mochila."
+        prompt = "Genera 12 campañas de incentivos con id_campana enteros del 1 al 12 año 2024 para optimización de mochila."
         data = generate_structured_data(client, prompt, CampanaCatalog)
         save_json_file([c.model_dump(mode="json") for c in data.campanas], seeds_dir / "campanas_incentivos.json", dry_run)
 

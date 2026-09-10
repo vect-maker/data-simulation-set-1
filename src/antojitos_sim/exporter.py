@@ -86,7 +86,7 @@ DROP TABLE IF EXISTS repartidores CASCADE;
 DROP TABLE IF EXISTS zonas CASCADE;
 
 CREATE TABLE zonas (
-    id_zona VARCHAR(10) PRIMARY KEY,
+    id_zona INT PRIMARY KEY,
     nombre_zona VARCHAR(100) NOT NULL,
     latitud DECIMAL(9,6) NOT NULL,
     longitud DECIMAL(9,6) NOT NULL,
@@ -96,7 +96,7 @@ CREATE TABLE zonas (
 );
 
 CREATE TABLE repartidores (
-    id_repartidor VARCHAR(10) PRIMARY KEY,
+    id_repartidor INT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     tipo_vehiculo VARCHAR(20) NOT NULL CHECK (tipo_vehiculo IN ('moto', 'bicicleta', 'auto')),
     calificacion_promedio DECIMAL(3,2) NOT NULL,
@@ -105,14 +105,14 @@ CREATE TABLE repartidores (
 );
 
 CREATE TABLE categorias_platillo (
-    id_categoria VARCHAR(10) PRIMARY KEY,
+    id_categoria INT PRIMARY KEY,
     nombre_categoria VARCHAR(50) NOT NULL,
     margen_contribucion_pct DECIMAL(4,2) NOT NULL
 );
 
 CREATE TABLE platillos (
-    id_platillo VARCHAR(10) PRIMARY KEY,
-    id_categoria VARCHAR(10) NOT NULL REFERENCES categorias_platillo(id_categoria),
+    id_platillo INT PRIMARY KEY,
+    id_categoria INT NOT NULL REFERENCES categorias_platillo(id_categoria),
     nombre_platillo VARCHAR(100) NOT NULL,
     precio_unitario DECIMAL(8,2) NOT NULL CHECK (precio_unitario > 0),
     costo_ingredientes DECIMAL(8,2) NOT NULL CHECK (costo_ingredientes > 0),
@@ -122,7 +122,7 @@ CREATE TABLE platillos (
 );
 
 CREATE TABLE promociones (
-    id_promocion VARCHAR(10) PRIMARY KEY,
+    id_promocion INT PRIMARY KEY,
     nombre_campana VARCHAR(100) NOT NULL,
     costo_campana DECIMAL(10,2) NOT NULL,
     retorno_esperado DECIMAL(10,2) NOT NULL,
@@ -139,10 +139,10 @@ CREATE TABLE clima_diario (
 );
 
 CREATE TABLE ordenes (
-    id_orden VARCHAR(20) PRIMARY KEY,
-    id_zona VARCHAR(10) NOT NULL REFERENCES zonas(id_zona),
-    id_repartidor VARCHAR(10) REFERENCES repartidores(id_repartidor),
-    id_promocion VARCHAR(10) REFERENCES promociones(id_promocion),
+    id_orden INT PRIMARY KEY,
+    id_zona INT NOT NULL REFERENCES zonas(id_zona),
+    id_repartidor INT REFERENCES repartidores(id_repartidor),
+    id_promocion INT REFERENCES promociones(id_promocion),
     fecha_hora_creacion TIMESTAMP NOT NULL,
     fecha_hora_entrega TIMESTAMP,
     metodo_pago VARCHAR(20) NOT NULL CHECK (metodo_pago IN ('efectivo', 'tarjeta', 'billetera_digital')),
@@ -156,9 +156,9 @@ CREATE TABLE ordenes (
 );
 
 CREATE TABLE detalle_ordenes (
-    id_detalle VARCHAR(25) PRIMARY KEY,
-    id_orden VARCHAR(20) NOT NULL REFERENCES ordenes(id_orden) ON DELETE CASCADE,
-    id_platillo VARCHAR(10) NOT NULL REFERENCES platillos(id_platillo),
+    id_detalle INT PRIMARY KEY,
+    id_orden INT NOT NULL REFERENCES ordenes(id_orden) ON DELETE CASCADE,
+    id_platillo INT NOT NULL REFERENCES platillos(id_platillo),
     cantidad INT NOT NULL CHECK (cantidad > 0),
     precio_unitario DECIMAL(8,2) NOT NULL,
     subtotal DECIMAL(10,2) NOT NULL
@@ -167,7 +167,7 @@ CREATE TABLE detalle_ordenes (
 -- Tabla de Auditoria de Estados
 CREATE TABLE auditoria_ordenes (
     id_auditoria SERIAL PRIMARY KEY,
-    id_orden VARCHAR(20) NOT NULL,
+    id_orden INT NOT NULL,
     estado_anterior VARCHAR(20),
     estado_nuevo VARCHAR(20),
     fecha_cambio TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -209,7 +209,7 @@ FOR EACH ROW
 EXECUTE FUNCTION fn_trg_validar_cronologia_orden();
 
 -- Procedimiento / Funcion Almacenada: Calculo de Total de Orden
-CREATE OR REPLACE FUNCTION fn_calcular_total_orden(p_id_orden VARCHAR(20))
+CREATE OR REPLACE FUNCTION fn_calcular_total_orden(p_id_orden INT)
 RETURNS DECIMAL(10,2) AS $$
 DECLARE
     v_subtotal DECIMAL(10,2);

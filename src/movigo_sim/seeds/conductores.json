@@ -1,6 +1,6 @@
 [
   {
-    "id_conductor": "CND-001",
+    "id_conductor": 1,
     "nombre": "Carlos Mendoza",
     "tipo_servicio": "movigo_estandar",
     "modelo_vehiculo": "Toyota Yaris",
@@ -11,7 +11,7 @@
     "estado": "activo"
   },
   {
-    "id_conductor": "CND-002",
+    "id_conductor": 2,
     "nombre": "Juan Carlos Pérez",
     "tipo_servicio": "movigo_estandar",
     "modelo_vehiculo": "Hyundai Grand i10",
@@ -22,7 +22,7 @@
     "estado": "en_viaje"
   },
   {
-    "id_conductor": "CND-003",
+    "id_conductor": 3,
     "nombre": "Maria Elena Ruiz",
     "tipo_servicio": "movigo_comfort",
     "modelo_vehiculo": "Suzuki Dzire",
@@ -33,7 +33,7 @@
     "estado": "activo"
   },
   {
-    "id_conductor": "CND-004",
+    "id_conductor": 4,
     "nombre": "Alejandro Gutierrez",
     "tipo_servicio": "movigo_estandar",
     "modelo_vehiculo": "Kia Rio",
@@ -44,7 +44,7 @@
     "estado": "inactivo"
   },
   {
-    "id_conductor": "CND-005",
+    "id_conductor": 5,
     "nombre": "Roberto Sanchez",
     "tipo_servicio": "movigo_comfort",
     "modelo_vehiculo": "Nissan Versa",
@@ -55,7 +55,7 @@
     "estado": "activo"
   },
   {
-    "id_conductor": "CND-006",
+    "id_conductor": 6,
     "nombre": "Luis Fernando Gomez",
     "tipo_servicio": "movigo_moto",
     "modelo_vehiculo": "Honda CB125F",
@@ -66,7 +66,7 @@
     "estado": "activo"
   },
   {
-    "id_conductor": "CND-007",
+    "id_conductor": 7,
     "nombre": "Ana Patricia Morales",
     "tipo_servicio": "movigo_estandar",
     "modelo_vehiculo": "Toyota Yaris",
@@ -77,7 +77,7 @@
     "estado": "en_viaje"
   },
   {
-    "id_conductor": "CND-008",
+    "id_conductor": 8,
     "nombre": "Jose Miguel Rizo",
     "tipo_servicio": "movigo_moto",
     "modelo_vehiculo": "Honda CB125F",
@@ -88,7 +88,7 @@
     "estado": "desconectado"
   },
   {
-    "id_conductor": "CND-009",
+    "id_conductor": 9,
     "nombre": "Ernesto Jiron",
     "tipo_servicio": "movigo_estandar",
     "modelo_vehiculo": "Hyundai Grand i10",
@@ -99,7 +99,7 @@
     "estado": "activo"
   },
   {
-    "id_conductor": "CND-010",
+    "id_conductor": 10,
     "nombre": "Claudia Orozco",
     "tipo_servicio": "movigo_comfort",
     "modelo_vehiculo": "Nissan Versa",
@@ -110,7 +110,7 @@
     "estado": "activo"
   },
   {
-    "id_conductor": "CND-011",
+    "id_conductor": 11,
     "nombre": "Francisco Javier Lopez",
     "tipo_servicio": "movigo_estandar",
     "modelo_vehiculo": "Kia Rio",
@@ -121,7 +121,7 @@
     "estado": "inactivo"
   },
   {
-    "id_conductor": "CND-012",
+    "id_conductor": 12,
     "nombre": "Rosaura Vado",
     "tipo_servicio": "movigo_estandar",
     "modelo_vehiculo": "Suzuki Dzire",
@@ -132,7 +132,7 @@
     "estado": "en_viaje"
   },
   {
-    "id_conductor": "CND-013",
+    "id_conductor": 13,
     "nombre": "Marcos Antonio Tellez",
     "tipo_servicio": "movigo_moto",
     "modelo_vehiculo": "Honda CB125F",
@@ -143,7 +143,7 @@
     "estado": "activo"
   },
   {
-    "id_conductor": "CND-014",
+    "id_conductor": 14,
     "nombre": "Daniela Bermudez",
     "tipo_servicio": "movigo_comfort",
     "modelo_vehiculo": "Toyota Yaris",
@@ -154,7 +154,7 @@
     "estado": "activo"
   },
   {
-    "id_conductor": "CND-015",
+    "id_conductor": 15,
     "nombre": "Oscar Danilo Mairena",
     "tipo_servicio": "movigo_estandar",
     "modelo_vehiculo": "Hyundai Grand i10",
@@ -165,7 +165,7 @@
     "estado": "desconectado"
   },
   {
-    "id_conductor": "CND-016",
+    "id_conductor": 16,
     "nombre": "Karla Vanessa Urbina",
     "tipo_servicio": "movigo_estandar",
     "modelo_vehiculo": "Nissan Versa",
@@ -176,7 +176,7 @@
     "estado": "activo"
   },
   {
-    "id_conductor": "CND-017",
+    "id_conductor": 17,
     "nombre": "Mauricio Sequeira",
     "tipo_servicio": "movigo_moto",
     "modelo_vehiculo": "Honda CB125F",
@@ -187,7 +187,7 @@
     "estado": "en_viaje"
   },
   {
-    "id_conductor": "CND-018",
+    "id_conductor": 18,
     "nombre": "Brenda Lisseth Centeno",
     "tipo_servicio": "movigo_comfort",
     "modelo_vehiculo": "Suzuki Dzire",
@@ -198,7 +198,7 @@
     "estado": "activo"
   },
   {
-    "id_conductor": "CND-019",
+    "id_conductor": 19,
     "nombre": "Ramon Emilio Duarte",
     "tipo_servicio": "movigo_estandar",
     "modelo_vehiculo": "Kia Rio",
@@ -209,7 +209,7 @@
     "estado": "inactivo"
   },
   {
-    "id_conductor": "CND-020",
+    "id_conductor": 20,
     "nombre": "Tatiana Alejandra Pineda",
     "tipo_servicio": "movigo_estandar",
     "modelo_vehiculo": "Toyota Yaris",

@@ -1,6 +1,6 @@
 [
   {
-    "id_repartidor": "REP-001",
+    "id_repartidor": 1,
     "nombre": "Carlos Alberto Martínez",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.85,
@@ -8,7 +8,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-002",
+    "id_repartidor": 2,
     "nombre": "José Luis Gutiérrez",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.72,
@@ -16,7 +16,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-003",
+    "id_repartidor": 3,
     "nombre": "María Auxiliadora Rivas",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.9,
@@ -24,7 +24,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-004",
+    "id_repartidor": 4,
     "nombre": "Francisco Javier López",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.65,
@@ -32,7 +32,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-005",
+    "id_repartidor": 5,
     "nombre": "Alejandro José Duarte",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.8,
@@ -40,7 +40,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-006",
+    "id_repartidor": 6,
     "nombre": "Juan Carlos Pérez",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.55,
@@ -48,7 +48,7 @@
     "estado": "descanso"
   },
   {
-    "id_repartidor": "REP-007",
+    "id_repartidor": 7,
     "nombre": "Erick Antonio Fonseca",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.88,
@@ -56,7 +56,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-008",
+    "id_repartidor": 8,
     "nombre": "Bryan Stiven Morales",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.45,
@@ -64,7 +64,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-009",
+    "id_repartidor": 9,
     "nombre": "Denis Orlando Castro",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.75,
@@ -72,7 +72,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-010",
+    "id_repartidor": 10,
     "nombre": "Kevin Josué Espinoza",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.6,
@@ -80,7 +80,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-011",
+    "id_repartidor": 11,
     "nombre": "Mauricio Javier Alemán",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.82,
@@ -88,7 +88,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-012",
+    "id_repartidor": 12,
     "nombre": "Oscar Danilo Flores",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.5,
@@ -96,7 +96,7 @@
     "estado": "inactivo"
   },
   {
-    "id_repartidor": "REP-013",
+    "id_repartidor": 13,
     "nombre": "Roberto Carlos Suazo",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.92,
@@ -104,7 +104,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-014",
+    "id_repartidor": 14,
     "nombre": "William Antonio Silva",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.7,
@@ -112,7 +112,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-015",
+    "id_repartidor": 15,
     "nombre": "Ronald José Gómez",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.68,
@@ -120,7 +120,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-016",
+    "id_repartidor": 16,
     "nombre": "Douglas Alexander Mena",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.78,
@@ -128,7 +128,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-017",
+    "id_repartidor": 17,
     "nombre": "Norman Jassir Ruiz",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.83,
@@ -136,7 +136,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-018",
+    "id_repartidor": 18,
     "nombre": "Jairo Antonio Orozco",
     "tipo_vehiculo": "moto",
     "calificacion_promedio": 4.58,
@@ -144,7 +144,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-019",
+    "id_repartidor": 19,
     "nombre": "Daniela Sofía Moncada",
     "tipo_vehiculo": "bicicleta",
     "calificacion_promedio": 4.95,
@@ -152,7 +152,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-020",
+    "id_repartidor": 20,
     "nombre": "Gabriel Enrique Vargas",
     "tipo_vehiculo": "bicicleta",
     "calificacion_promedio": 4.62,
@@ -160,7 +160,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-021",
+    "id_repartidor": 21,
     "nombre": "Ana Gabriela Centeno",
     "tipo_vehiculo": "bicicleta",
     "calificacion_promedio": 4.89,
@@ -168,7 +168,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-022",
+    "id_repartidor": 22,
     "nombre": "Luis Fernando Chavarría",
     "tipo_vehiculo": "bicicleta",
     "calificacion_promedio": 4.71,
@@ -176,7 +176,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-023",
+    "id_repartidor": 23,
     "nombre": "Marvin Antonio Palacios",
     "tipo_vehiculo": "auto",
     "calificacion_promedio": 4.77,
@@ -184,7 +184,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-024",
+    "id_repartidor": 24,
     "nombre": "Claudia Patricia Urbina",
     "tipo_vehiculo": "auto",
     "calificacion_promedio": 4.86,
@@ -192,7 +192,7 @@
     "estado": "activo"
   },
   {
-    "id_repartidor": "REP-025",
+    "id_repartidor": 25,
     "nombre": "Gerardo Rafael Solís",
     "tipo_vehiculo": "auto",
     "calificacion_promedio": 4.64,

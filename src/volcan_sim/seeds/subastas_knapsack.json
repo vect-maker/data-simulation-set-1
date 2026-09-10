@@ -1,7 +1,7 @@
 [
   {
-    "id_subasta": "SUB-001",
-    "id_lote": "LOT-101",
+    "id_subasta": 1,
+    "id_lote": 101,
     "nombre_lote_especial": "Knapsack Geisha Especial 2024",
     "peso_quintales": 12.5,
     "costo_certificacion_usd": 1200.0,
@@ -11,8 +11,8 @@
     "estado_subasta": "adjudicada"
   },
   {
-    "id_subasta": "SUB-002",
-    "id_lote": "LOT-102",
+    "id_subasta": 2,
+    "id_lote": 102,
     "nombre_lote_especial": "Knapsack Pacamara Honey",
     "peso_quintales": 18.0,
     "costo_certificacion_usd": 950.0,
@@ -22,8 +22,8 @@
     "estado_subasta": "adjudicada"
   },
   {
-    "id_subasta": "SUB-003",
-    "id_lote": "LOT-103",
+    "id_subasta": 3,
+    "id_lote": 103,
     "nombre_lote_especial": "Knapsack Bourbon Natural",
     "peso_quintales": 25.0,
     "costo_certificacion_usd": 800.0,
@@ -33,8 +33,8 @@
     "estado_subasta": "adjudicada"
   },
   {
-    "id_subasta": "SUB-004",
-    "id_lote": "LOT-104",
+    "id_subasta": 4,
+    "id_lote": 104,
     "nombre_lote_especial": "Knapsack Maragogipe Grand",
     "peso_quintales": 10.0,
     "costo_certificacion_usd": 1100.0,
@@ -44,8 +44,8 @@
     "estado_subasta": "programada"
   },
   {
-    "id_subasta": "SUB-005",
-    "id_lote": "LOT-105",
+    "id_subasta": 5,
+    "id_lote": 105,
     "nombre_lote_especial": "Knapsack Caturra Anaeróbico",
     "peso_quintales": 30.0,
     "costo_certificacion_usd": 750.0,
@@ -55,8 +55,8 @@
     "estado_subasta": "programada"
   },
   {
-    "id_subasta": "SUB-006",
-    "id_lote": "LOT-106",
+    "id_subasta": 6,
+    "id_lote": 106,
     "nombre_lote_especial": "Knapsack Catuaí Rojo Reserve",
     "peso_quintales": 22.5,
     "costo_certificacion_usd": 650.0,
@@ -66,8 +66,8 @@
     "estado_subasta": "adjudicada"
   },
   {
-    "id_subasta": "SUB-007",
-    "id_lote": "LOT-107",
+    "id_subasta": 7,
+    "id_lote": 107,
     "nombre_lote_especial": "Knapsack Catuaí Amarillo Edición",
     "peso_quintales": 15.0,
     "costo_certificacion_usd": 700.0,
@@ -77,8 +77,8 @@
     "estado_subasta": "programada"
   },
   {
-    "id_subasta": "SUB-008",
-    "id_lote": "LOT-108",
+    "id_subasta": 8,
+    "id_lote": 108,
     "nombre_lote_especial": "Knapsack Dipilto High Peak",
     "peso_quintales": 14.0,
     "costo_certificacion_usd": 1300.0,
@@ -88,8 +88,8 @@
     "estado_subasta": "adjudicada"
   },
   {
-    "id_subasta": "SUB-009",
-    "id_lote": "LOT-109",
+    "id_subasta": 9,
+    "id_lote": 109,
     "nombre_lote_especial": "Knapsack Selva Negra Selection",
     "peso_quintales": 20.0,
     "costo_certificacion_usd": 850.0,
@@ -99,8 +99,8 @@
     "estado_subasta": "programada"
   },
   {
-    "id_subasta": "SUB-010",
-    "id_lote": "LOT-110",
+    "id_subasta": 10,
+    "id_lote": 110,
     "nombre_lote_especial": "Knapsack Pantasma Mountain",
     "peso_quintales": 28.0,
     "costo_certificacion_usd": 600.0,
@@ -110,8 +110,8 @@
     "estado_subasta": "adjudicada"
   },
   {
-    "id_subasta": "SUB-011",
-    "id_lote": "LOT-111",
+    "id_subasta": 11,
+    "id_lote": 111,
     "nombre_lote_especial": "Knapsack Madriz Microlote",
     "peso_quintales": 16.5,
     "costo_certificacion_usd": 720.0,
@@ -121,8 +121,8 @@
     "estado_subasta": "desierta"
   },
   {
-    "id_subasta": "SUB-012",
-    "id_lote": "LOT-112",
+    "id_subasta": 12,
+    "id_lote": 112,
     "nombre_lote_especial": "Knapsack Volcán Masterpiece",
     "peso_quintales": 11.0,
     "costo_certificacion_usd": 1500.0,

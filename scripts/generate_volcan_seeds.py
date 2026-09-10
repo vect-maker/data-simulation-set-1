@@ -85,15 +85,15 @@ def generate_volcan_bundle(seeds_dir: Path, dry_run: bool = False):
 
     prompt = """
     Genera el catálogo dimensional completo para Cooperativa El Volcán (café de especialidad en Nicaragua):
-    1. fincas (exactamente 30): 'FNC-001' a 'FNC-030' en terruños tradicionales:
+    1. fincas (exactamente 30): id_finca enteros del 1 al 30, id_productor enteros del 1 al 30 en terruños tradicionales:
        - Jinotega (12 fincas): Pantasma, El Cuá, Datanlí, Yalí. Altitud 1150-1450 msnm.
        - Matagalpa (8 fincas): Selva Negra, Yasica Sur, San Ramón. Altitud 980-1350 msnm.
        - Nueva Segovia - Dipilto (6 fincas): Dipilto, Mozonte, Jalapa. Altitud 1350-1680 msnm.
        - Madriz (4 fincas): San Juan del Río Coco, Telpaneca. Altitud 1050-1280 msnm.
-    2. variedades (exactamente 7): 'VAR-001' a 'VAR-007' arábicas tradicionales (Geisha, Pacamara, Bourbon, Maragogipe, Caturra, Catuaí Rojo, Catuaí Amarillo).
-    3. beneficios (exactamente 4): 'BNF-001' a 'BNF-004' (Húmedo El Volcán Pantasma, Húmedo Cordillera de Dipilto, Húmedo Selva Negra, y Beneficio Seco Central Sébaco).
-    4. cuadrillas (exactamente 12): 'CUA-001' a 'CUA-012' cuadrillas tradicionales de 12-35 cortadores.
-    5. subastas (exactamente 12): 'SUB-001' a 'SUB-012' micro-lotes para subasta internacional Knapsack año 2024, puntajes 87.5-92.5 SCAA.
+    2. variedades (exactamente 7): id_variedad enteros del 1 al 7 arábicas tradicionales (Geisha, Pacamara, Bourbon, Maragogipe, Caturra, Catuaí Rojo, Catuaí Amarillo).
+    3. beneficios (exactamente 5): id_beneficio enteros del 1 al 5 (1: Húmedo El Volcán Pantasma, 2: Húmedo Selva Negra, 3: Húmedo Cordillera de Dipilto, 4: Húmedo Somoto Río Coco, 5: Beneficio Seco Central Sébaco).
+    4. cuadrillas (exactamente 12): id_cuadrilla enteros del 1 al 12 cuadrillas tradicionales de 12-35 cortadores.
+    5. subastas (exactamente 12): id_subasta enteros del 1 al 12 micro-lotes para subasta internacional Knapsack año 2024, puntajes 87.5-92.5 SCAA (id_lote en null).
     6. tasting_notes: descriptores sensoriales SCAA (notas_catacion_altas 88+, notas_catacion_medias 85-87.9, notas_estandar 80-84.9, defectos_proceso, observaciones_proceso).
     """
 
@@ -121,31 +121,31 @@ def generate_volcan_granular(seeds_dir: Path, target: str = "all", dry_run: bool
 
     if target in ("all", "fincas"):
         console.print("[yellow]Generando Fincas Cafetaleras (30)...[/yellow]")
-        prompt = "Genera exactamente 30 fincas cafetaleras de Nicaragua ('FNC-001' a 'FNC-030') en Jinotega, Matagalpa, Nueva Segovia (Dipilto) y Madriz."
+        prompt = "Genera exactamente 30 fincas cafetaleras de Nicaragua con id_finca enteros del 1 al 30 e id_productor enteros del 1 al 30 en Jinotega, Matagalpa, Nueva Segovia (Dipilto) y Madriz."
         data = generate_structured_data(client, prompt, FincaCatalog)
         save_json_file([f.model_dump() for f in data.fincas], seeds_dir / "fincas_nicaragua.json", dry_run)
 
     if target in ("all", "variedades"):
         console.print("[yellow]Generando Variedades de Café (7)...[/yellow]")
-        prompt = "Genera 7 variedades botánicas ('VAR-001' a 'VAR-007': Geisha, Pacamara, Bourbon, Maragogipe, Caturra, Catuaí Rojo, Catuaí Amarillo)."
+        prompt = "Genera 7 variedades botánicas con id_variedad enteros del 1 al 7: Geisha, Pacamara, Bourbon, Maragogipe, Caturra, Catuaí Rojo, Catuaí Amarillo."
         data = generate_structured_data(client, prompt, VariedadCatalog)
         save_json_file([v.model_dump() for v in data.variedades], seeds_dir / "variedades_cafe.json", dry_run)
 
     if target in ("all", "beneficios"):
-        console.print("[yellow]Generando Beneficios de Café (4)...[/yellow]")
-        prompt = "Genera 4 beneficios de café ('BNF-001' a 'BNF-004': Pantasma, Dipilto, Selva Negra, y Beneficio Seco Central Sébaco)."
+        console.print("[yellow]Generando Beneficios de Café (5)...[/yellow]")
+        prompt = "Genera 5 beneficios de café con id_beneficio enteros del 1 al 5: Pantasma, Selva Negra, Dipilto, Somoto Río Coco, y Beneficio Seco Central Sébaco."
         data = generate_structured_data(client, prompt, BeneficioCatalog)
         save_json_file([b.model_dump() for b in data.beneficios], seeds_dir / "beneficios.json", dry_run)
 
     if target in ("all", "cuadrillas"):
         console.print("[yellow]Generando Cuadrillas de Corte (12)...[/yellow]")
-        prompt = "Genera 12 cuadrillas de cortadores ('CUA-001' a 'CUA-012') con 12-35 jornaleros."
+        prompt = "Genera 12 cuadrillas de cortadores con id_cuadrilla enteros del 1 al 12 con 12-35 jornaleros."
         data = generate_structured_data(client, prompt, CuadrillaCatalog)
         save_json_file([c.model_dump() for c in data.cuadrillas], seeds_dir / "cuadrillas.json", dry_run)
 
     if target in ("all", "subastas"):
         console.print("[yellow]Generando Micro-lotes para Subasta Knapsack (12)...[/yellow]")
-        prompt = "Genera 12 micro-lotes para subasta internacional ('SUB-001' a 'SUB-012') año 2024."
+        prompt = "Genera 12 micro-lotes para subasta internacional con id_subasta enteros del 1 al 12 año 2024."
         data = generate_structured_data(client, prompt, SubastaCatalog)
         save_json_file([s.model_dump(mode="json") for s in data.subastas], seeds_dir / "subastas_knapsack.json", dry_run)
 

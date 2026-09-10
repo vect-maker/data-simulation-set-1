@@ -1,6 +1,6 @@
 [
   {
-    "id_zona": "ZON-01",
+    "id_zona": 1,
     "nombre_zona": "Villa Fontana",
     "estrato_socioeconomico": "alto",
     "latitud": 12.115,
@@ -9,7 +9,7 @@
     "tarifa_base_bajada_bandera": 70.0
   },
   {
-    "id_zona": "ZON-02",
+    "id_zona": 2,
     "nombre_zona": "Las Colinas",
     "estrato_socioeconomico": "alto",
     "latitud": 12.105,
@@ -18,7 +18,7 @@
     "tarifa_base_bajada_bandera": 75.0
   },
   {
-    "id_zona": "ZON-03",
+    "id_zona": 3,
     "nombre_zona": "Santo Domingo",
     "estrato_socioeconomico": "alto",
     "latitud": 12.1,
@@ -27,7 +27,7 @@
     "tarifa_base_bajada_bandera": 80.0
   },
   {
-    "id_zona": "ZON-04",
+    "id_zona": 4,
     "nombre_zona": "Los Robles",
     "estrato_socioeconomico": "medio",
     "latitud": 12.128,
@@ -36,7 +36,7 @@
     "tarifa_base_bajada_bandera": 55.0
   },
   {
-    "id_zona": "ZON-05",
+    "id_zona": 5,
     "nombre_zona": "Altamira",
     "estrato_socioeconomico": "medio",
     "latitud": 12.133,
@@ -45,7 +45,7 @@
     "tarifa_base_bajada_bandera": 50.0
   },
   {
-    "id_zona": "ZON-06",
+    "id_zona": 6,
     "nombre_zona": "Bolonia",
     "estrato_socioeconomico": "medio",
     "latitud": 12.145,
@@ -54,7 +54,7 @@
     "tarifa_base_bajada_bandera": 55.0
   },
   {
-    "id_zona": "ZON-07",
+    "id_zona": 7,
     "nombre_zona": "Bello Horizonte",
     "estrato_socioeconomico": "medio",
     "latitud": 12.138,
@@ -63,7 +63,7 @@
     "tarifa_base_bajada_bandera": 48.0
   },
   {
-    "id_zona": "ZON-08",
+    "id_zona": 8,
     "nombre_zona": "Linda Vista",
     "estrato_socioeconomico": "medio",
     "latitud": 12.155,
@@ -72,7 +72,7 @@
     "tarifa_base_bajada_bandera": 50.0
   },
   {
-    "id_zona": "ZON-09",
+    "id_zona": 9,
     "nombre_zona": "Metrocentro / Eje Corporativo UCA",
     "estrato_socioeconomico": "comercial",
     "latitud": 12.12,
@@ -81,7 +81,7 @@
     "tarifa_base_bajada_bandera": 60.0
   },
   {
-    "id_zona": "ZON-10",
+    "id_zona": 10,
     "nombre_zona": "Ciudad Jardín",
     "estrato_socioeconomico": "popular",
     "latitud": 12.14,
@@ -90,7 +90,7 @@
     "tarifa_base_bajada_bandera": 40.0
   },
   {
-    "id_zona": "ZON-11",
+    "id_zona": 11,
     "nombre_zona": "Mercado Oriental",
     "estrato_socioeconomico": "popular",
     "latitud": 12.135,
@@ -99,7 +99,7 @@
     "tarifa_base_bajada_bandera": 35.0
   },
   {
-    "id_zona": "ZON-12",
+    "id_zona": 12,
     "nombre_zona": "Mercado Roberto Huembes",
     "estrato_socioeconomico": "popular",
     "latitud": 12.125,

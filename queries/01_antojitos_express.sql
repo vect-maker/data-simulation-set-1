@@ -77,7 +77,7 @@ INSERT INTO ordenes (
     id_orden, id_zona, id_repartidor, fecha_hora_creacion, fecha_hora_entrega,
     metodo_pago, estado_orden, total_orden, costo_envio, propina
 ) VALUES (
-    'ORD-TEST-FAIL', 'ZON-01', 'REP-001', 
+    999999, 1, 1, 
     '2024-06-15 14:00:00', '2024-06-15 13:00:00', -- Fecha de entrega anterior a creación!
     'efectivo', 'entregada', 250.00, 45.00, 10.00
 );

@@ -9,7 +9,7 @@ class Zona(BaseModel):
     """Delivery zone in Managua."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_zona: str = Field(pattern=r"^ZON-\d{2}$")
+    id_zona: int = Field(ge=1)
     nombre_zona: str
     latitud: float = Field(ge=12.00, le=12.30)
     longitud: float = Field(ge=-86.45, le=-86.10)
@@ -22,7 +22,7 @@ class Repartidor(BaseModel):
     """Delivery driver."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_repartidor: str = Field(pattern=r"^REP-\d{3}$")
+    id_repartidor: int = Field(ge=1)
     nombre: str
     tipo_vehiculo: str = Field(pattern=r"^(moto|bicicleta|auto)$")
     calificacion_promedio: float = Field(ge=1.0, le=5.0)
@@ -34,7 +34,7 @@ class CategoriaPlatillo(BaseModel):
     """Dish category."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_categoria: str = Field(pattern=r"^CAT-(FRT|QSL|HAM|BEB|POS)$")
+    id_categoria: int = Field(ge=1)
     nombre_categoria: str
     margen_contribucion_pct: float = Field(ge=0.10, le=0.85)
 
@@ -43,8 +43,8 @@ class Platillo(BaseModel):
     """Menu dish with kitchen constraints."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_platillo: str = Field(pattern=r"^PLT-\d{3}$")
-    id_categoria: str = Field(pattern=r"^CAT-(FRT|QSL|HAM|BEB|POS)$")
+    id_platillo: int = Field(ge=1)
+    id_categoria: int = Field(ge=1)
     nombre_platillo: str
     precio_unitario: float = Field(ge=50.0, le=500.0)
     costo_ingredientes: float = Field(ge=15.0, le=250.0)
@@ -57,7 +57,7 @@ class Promocion(BaseModel):
     """Promotional campaign for Knapsack modeling."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_promocion: str = Field(pattern=r"^PRM-\d{3}$")
+    id_promocion: int = Field(ge=1)
     nombre_campana: str
     costo_campana: float = Field(ge=1000.0, le=20000.0)
     retorno_esperado: float = Field(ge=2000.0, le=60000.0)
@@ -80,10 +80,10 @@ class Orden(BaseModel):
     """Order transaction header."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_orden: str = Field(pattern=r"^ORD-2024-\d{6}$")
-    id_zona: str
-    id_repartidor: Optional[str] = None
-    id_promocion: Optional[str] = None
+    id_orden: int = Field(ge=1)
+    id_zona: int = Field(ge=1)
+    id_repartidor: Optional[int] = None
+    id_promocion: Optional[int] = None
     fecha_hora_creacion: datetime
     fecha_hora_entrega: Optional[datetime] = None
     metodo_pago: str = Field(pattern=r"^(efectivo|tarjeta|billetera_digital)$")
@@ -100,9 +100,9 @@ class DetalleOrden(BaseModel):
     """Order line item detail."""
     model_config = ConfigDict(from_attributes=True)
 
-    id_detalle: int
-    id_orden: str
-    id_platillo: str
+    id_detalle: int = Field(ge=1)
+    id_orden: int = Field(ge=1)
+    id_platillo: int = Field(ge=1)
     cantidad: int = Field(ge=1)
     precio_unitario: float = Field(ge=0.0)
     subtotal: float = Field(ge=0.0)

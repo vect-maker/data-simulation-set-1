@@ -1,6 +1,6 @@
 [
   {
-    "id_beneficio": "BNF-001",
+    "id_beneficio": 1,
     "nombre_beneficio": "Húmedo El Volcán Pantasma",
     "tipo_beneficio": "humedo",
     "municipio": "Pantasma",
@@ -10,7 +10,7 @@
     "costo_procesamiento_qq": 28.5
   },
   {
-    "id_beneficio": "BNF-002",
+    "id_beneficio": 2,
     "nombre_beneficio": "Húmedo Selva Negra",
     "tipo_beneficio": "humedo",
     "municipio": "Selva Negra",
@@ -20,7 +20,7 @@
     "costo_procesamiento_qq": 26.0
   },
   {
-    "id_beneficio": "BNF-003",
+    "id_beneficio": 3,
     "nombre_beneficio": "Húmedo Cordillera de Dipilto",
     "tipo_beneficio": "humedo",
     "municipio": "Dipilto",
@@ -30,7 +30,7 @@
     "costo_procesamiento_qq": 32.0
   },
   {
-    "id_beneficio": "BNF-004",
+    "id_beneficio": 4,
     "nombre_beneficio": "Húmedo Somoto Río Coco",
     "tipo_beneficio": "humedo",
     "municipio": "San Juan de Río Coco",
@@ -40,7 +40,7 @@
     "costo_procesamiento_qq": 30.0
   },
   {
-    "id_beneficio": "BNF-005",
+    "id_beneficio": 5,
     "nombre_beneficio": "Beneficio Seco Central Sébaco",
     "tipo_beneficio": "seco",
     "municipio": "Sébaco",

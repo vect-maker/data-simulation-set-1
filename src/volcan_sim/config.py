@@ -46,13 +46,13 @@ SCAA_NOISE_STD = 1.05
 
 # Variety bonus points on cup quality
 VARIETY_CUP_BONUS = {
-    "VAR-001": 4.50, # Geisha (Ultra Specialty 88-92)
-    "VAR-002": 3.80, # Pacamara (Exotic floral/sweet 86-90)
-    "VAR-003": 2.20, # Bourbon (Sweet caramel/citrus 84-87)
-    "VAR-004": 1.40, # Maragogipe (Grano elefante 83-86)
-    "VAR-005": 0.80, # Caturra (Solid high altitude 82-85)
-    "VAR-006": 0.50, # Catuaí Rojo (Classic balanced 81-84)
-    "VAR-007": 0.60, # Catuaí Amarillo (Bright fruity 82-85)
+    1: 4.50, # Geisha (Ultra Specialty 88-92)
+    2: 3.80, # Pacamara (Exotic floral/sweet 86-90)
+    3: 2.20, # Bourbon (Sweet caramel/citrus 84-87)
+    4: 1.40, # Maragogipe (Grano elefante 83-86)
+    5: 0.80, # Caturra (Solid high altitude 82-85)
+    6: 0.50, # Catuaí Rojo (Classic balanced 81-84)
+    7: 0.60, # Catuaí Amarillo (Bright fruity 82-85)
 }
 
 # Milling conversion rates (Nicaragua coffee standards)

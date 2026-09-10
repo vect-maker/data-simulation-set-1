@@ -160,8 +160,8 @@ def get_clima_volcan(
 def get_lotes(
     fecha_desde: Optional[date] = Query(None, description="Fecha mínima de corte"),
     fecha_hasta: Optional[date] = Query(None, description="Fecha máxima de corte"),
-    id_finca: Optional[str] = Query(None, description="Filtrar por finca de origen"),
-    id_variedad: Optional[str] = Query(None, description="Filtrar por variedad"),
+    id_finca: Optional[int] = Query(None, description="Filtrar por finca de origen"),
+    id_variedad: Optional[int] = Query(None, description="Filtrar por variedad"),
     certificacion: Optional[str] = Query(None, description="Convencional, Fairtrade, Orgánico, Rainforest Alliance, SHG"),
     estado_lote: Optional[str] = Query(None, description="recolectado, en_beneficio_humedo, en_secado, listo_exportacion, descartado"),
     scaa_min: Optional[float] = Query(None, description="Puntaje de catación SCAA mínimo"),
@@ -200,15 +200,15 @@ def get_lotes(
 
 
 @router.get("/lotes/{id_lote}", response_model=LoteAcopioOut, summary="Obtener lote de café por ID")
-def get_lote_by_id(id_lote: str):
+def get_lote_by_id(id_lote: int):
     """Consulta la ficha técnica completa de un lote específico."""
     return fetch_single_resource(SCHEMA, "lotes_acopio", "id_lote", id_lote)
 
 
 @router.get("/procesamiento", response_model=PaginatedResponse[ProcesamientoBeneficioOut], summary="Procesamiento en beneficios")
 def get_procesamiento(
-    id_lote: Optional[str] = Query(None, description="Filtrar por lote"),
-    id_beneficio: Optional[str] = Query(None, description="Filtrar por beneficio"),
+    id_lote: Optional[int] = Query(None, description="Filtrar por lote"),
+    id_beneficio: Optional[int] = Query(None, description="Filtrar por beneficio"),
     etapa: Optional[str] = Query(None, description="despulpado, fermentacion, secado_patio, trillado, clasificacion"),
     sort: Optional[str] = Query(None, description="Ordenar por fecha_inicio o merma_porcentaje"),
     offset: int = Query(0, ge=0),

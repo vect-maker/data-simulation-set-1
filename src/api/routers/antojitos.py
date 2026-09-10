@@ -89,7 +89,7 @@ def get_categorias(
 
 @router.get("/platillos", response_model=PaginatedResponse[PlatilloOut], summary="Listar menú de platillos")
 def get_platillos(
-    id_categoria: Optional[str] = Query(None, description="Filtrar por ID de categoría"),
+    id_categoria: Optional[int] = Query(None, description="Filtrar por ID de categoría"),
     requiere_horno: Optional[bool] = Query(None, description="Filtrar por requerimiento de horno"),
     activo: Optional[bool] = Query(None, description="Filtrar platillos activos"),
     sort: Optional[str] = Query(None, description="Ordenar por precio_unitario o -precio_unitario"),
@@ -168,8 +168,8 @@ def get_clima(
 
 @router.get("/ordenes", response_model=PaginatedResponse[OrdenOut], summary="Listar órdenes de delivery")
 def get_ordenes(
-    id_zona: Optional[str] = Query(None, description="Filtrar por ID de zona"),
-    id_repartidor: Optional[str] = Query(None, description="Filtrar por repartidor asignado"),
+    id_zona: Optional[int] = Query(None, description="Filtrar por ID de zona"),
+    id_repartidor: Optional[int] = Query(None, description="Filtrar por repartidor asignado"),
     metodo_pago: Optional[str] = Query(None, description="efectivo, tarjeta, billetera_digital"),
     estado_orden: Optional[str] = Query(None, description="entregada, cancelada, en_camino, preparando"),
     total_min: Optional[float] = Query(None, description="Total mínimo de la orden"),
@@ -204,7 +204,7 @@ def get_ordenes(
 
 
 @router.get("/ordenes/{id_orden}", response_model=OrdenDetailOut, summary="Obtener orden por ID con sus platillos")
-def get_orden_by_id(id_orden: str):
+def get_orden_by_id(id_orden: int):
     """Consulta una orden específica e incluye los ítems y platillos asociados."""
     orden = fetch_single_resource(SCHEMA, "ordenes", "id_orden", id_orden)
     items_sql = f"SELECT * FROM {SCHEMA}.detalle_ordenes WHERE id_orden = %s ORDER BY id_detalle ASC;"
@@ -215,8 +215,8 @@ def get_orden_by_id(id_orden: str):
 
 @router.get("/detalles", response_model=PaginatedResponse[DetalleOrdenOut], summary="Listar detalles de órdenes")
 def get_detalles_orden(
-    id_orden: Optional[str] = Query(None, description="Filtrar por orden específica"),
-    id_platillo: Optional[str] = Query(None, description="Filtrar por platillo específico"),
+    id_orden: Optional[int] = Query(None, description="Filtrar por orden específica"),
+    id_platillo: Optional[int] = Query(None, description="Filtrar por platillo específico"),
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
 ):

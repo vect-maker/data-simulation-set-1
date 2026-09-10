@@ -5,7 +5,7 @@
 // ==========================================
 
 Table zonas_urbanas {
-  id_zona varchar(10) [pk]
+  id_zona int [pk]
   nombre_zona varchar(100) [not null]
   estrato_socioeconomico varchar(20) [not null, note: 'alto, medio, popular, comercial']
   latitud decimal(9,6) [not null]
@@ -15,7 +15,7 @@ Table zonas_urbanas {
 }
 
 Table usuarios {
-  id_usuario varchar(15) [pk]
+  id_usuario int [pk]
   nombre varchar(100) [not null]
   telefono varchar(20) [not null]
   metodo_pago_preferido varchar(30) [not null, note: 'efectivo, tarjeta, billetera_digital']
@@ -24,7 +24,7 @@ Table usuarios {
 }
 
 Table conductores {
-  id_conductor varchar(15) [pk]
+  id_conductor int [pk]
   nombre varchar(100) [not null]
   tipo_servicio varchar(20) [not null, note: 'movigo_estandar, movigo_comfort, movigo_moto']
   modelo_vehiculo varchar(100) [not null]
@@ -36,11 +36,11 @@ Table conductores {
 }
 
 Table viajes {
-  id_viaje varchar(20) [pk]
-  id_usuario varchar(15) [not null, ref: > usuarios.id_usuario]
-  id_conductor varchar(15) [ref: > conductores.id_conductor]
-  id_zona_origen varchar(10) [not null, ref: > zonas_urbanas.id_zona]
-  id_zona_destino varchar(10) [not null, ref: > zonas_urbanas.id_zona]
+  id_viaje int [pk]
+  id_usuario int [not null, ref: > usuarios.id_usuario]
+  id_conductor int [ref: > conductores.id_conductor]
+  id_zona_origen int [not null, ref: > zonas_urbanas.id_zona]
+  id_zona_destino int [not null, ref: > zonas_urbanas.id_zona]
   fecha_hora_solicitud timestamp [not null]
   fecha_hora_inicio timestamp
   fecha_hora_fin timestamp
@@ -58,9 +58,9 @@ Table viajes {
 }
 
 Table telemetria_conductores {
-  id_telemetria bigserial [pk]
-  id_conductor varchar(15) [not null, ref: > conductores.id_conductor]
-  id_zona varchar(10) [not null, ref: > zonas_urbanas.id_zona]
+  id_telemetria int [pk]
+  id_conductor int [not null, ref: > conductores.id_conductor]
+  id_zona int [not null, ref: > zonas_urbanas.id_zona]
   fecha_hora timestamp [not null]
   latitud decimal(9,6) [not null]
   longitud decimal(9,6) [not null]
@@ -69,7 +69,7 @@ Table telemetria_conductores {
 }
 
 Table campanas_incentivos {
-  id_campana varchar(10) [pk]
+  id_campana int [pk]
   nombre_bono varchar(100) [not null]
   costo_presupuesto_nio decimal(10,2) [not null, note: 'Costo del bono (peso en Mochila)']
   incremento_horas_conexion decimal(10,2) [not null, note: 'Retorno operativo a maximizar']

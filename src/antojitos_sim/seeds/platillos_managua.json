@@ -1,7 +1,7 @@
 [
   {
-    "id_platillo": "PLT-001",
-    "id_categoria": "CAT-FRT",
+    "id_platillo": 1,
+    "id_categoria": 1,
     "nombre_platillo": "Carne asada con gallopinto ytajadas",
     "precio_unitario": 220.0,
     "costo_ingredientes": 85.0,
@@ -10,8 +10,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-002",
-    "id_categoria": "CAT-FRT",
+    "id_platillo": 2,
+    "id_categoria": 1,
     "nombre_platillo": "Chancho con yuca tradicional",
     "precio_unitario": 190.0,
     "costo_ingredientes": 70.0,
@@ -20,8 +20,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-003",
-    "id_categoria": "CAT-FRT",
+    "id_platillo": 3,
+    "id_categoria": 1,
     "nombre_platillo": "Vigorón de chicharrón crujiente",
     "precio_unitario": 160.0,
     "costo_ingredientes": 55.0,
@@ -30,8 +30,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-004",
-    "id_categoria": "CAT-FRT",
+    "id_platillo": 4,
+    "id_categoria": 1,
     "nombre_platillo": "Nacatamal navideño dominical",
     "precio_unitario": 140.0,
     "costo_ingredientes": 50.0,
@@ -40,8 +40,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-005",
-    "id_categoria": "CAT-FRT",
+    "id_platillo": 5,
+    "id_categoria": 1,
     "nombre_platillo": "Indio viejo nicaragüense",
     "precio_unitario": 210.0,
     "costo_ingredientes": 80.0,
@@ -50,8 +50,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-006",
-    "id_categoria": "CAT-FRT",
+    "id_platillo": 6,
+    "id_categoria": 1,
     "nombre_platillo": "Sopa de res con gallopinto",
     "precio_unitario": 240.0,
     "costo_ingredientes": 95.0,
@@ -60,8 +60,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-007",
-    "id_categoria": "CAT-FRT",
+    "id_platillo": 7,
+    "id_categoria": 1,
     "nombre_platillo": "Baho mixto de res y cerdo",
     "precio_unitario": 260.0,
     "costo_ingredientes": 100.0,
@@ -70,8 +70,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-008",
-    "id_categoria": "CAT-FRT",
+    "id_platillo": 8,
+    "id_categoria": 1,
     "nombre_platillo": "Gallo pinto con queso frito y maduro",
     "precio_unitario": 130.0,
     "costo_ingredientes": 40.0,
@@ -80,8 +80,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-009",
-    "id_categoria": "CAT-QSL",
+    "id_platillo": 9,
+    "id_categoria": 2,
     "nombre_platillo": "Quesillo corbata con cebolla encurtida",
     "precio_unitario": 80.0,
     "costo_ingredientes": 25.0,
@@ -90,8 +90,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-010",
-    "id_categoria": "CAT-QSL",
+    "id_platillo": 10,
+    "id_categoria": 2,
     "nombre_platillo": "Quesillo triturado en bolsa familiar",
     "precio_unitario": 150.0,
     "costo_ingredientes": 50.0,
@@ -100,8 +100,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-011",
-    "id_categoria": "CAT-QSL",
+    "id_platillo": 11,
+    "id_categoria": 2,
     "nombre_platillo": "Quesillo especial con crema extra",
     "precio_unitario": 95.0,
     "costo_ingredientes": 30.0,
@@ -110,8 +110,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-012",
-    "id_categoria": "CAT-QSL",
+    "id_platillo": 12,
+    "id_categoria": 2,
     "nombre_platillo": "Quesillo picante con chile congo",
     "precio_unitario": 85.0,
     "costo_ingredientes": 28.0,
@@ -120,8 +120,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-013",
-    "id_categoria": "CAT-HAM",
+    "id_platillo": 13,
+    "id_categoria": 3,
     "nombre_platillo": "Hamburguesa Nica con maduro y queso",
     "precio_unitario": 230.0,
     "costo_ingredientes": 90.0,
@@ -130,8 +130,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-014",
-    "id_categoria": "CAT-HAM",
+    "id_platillo": 14,
+    "id_categoria": 3,
     "nombre_platillo": "Hamburguesa doble carne con tocino",
     "precio_unitario": 290.0,
     "costo_ingredientes": 120.0,
@@ -140,8 +140,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-015",
-    "id_categoria": "CAT-HAM",
+    "id_platillo": 15,
+    "id_categoria": 3,
     "nombre_platillo": "Hamburguesa artesanal de pollo crispy",
     "precio_unitario": 210.0,
     "costo_ingredientes": 80.0,
@@ -150,8 +150,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-016",
-    "id_categoria": "CAT-HAM",
+    "id_platillo": 16,
+    "id_categoria": 3,
     "nombre_platillo": "Hamburguesa con cebolla caramelizada",
     "precio_unitario": 250.0,
     "costo_ingredientes": 95.0,
@@ -160,8 +160,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-017",
-    "id_categoria": "CAT-HAM",
+    "id_platillo": 17,
+    "id_categoria": 3,
     "nombre_platillo": "Hamburguesa vegetariana de frijoles negros",
     "precio_unitario": 190.0,
     "costo_ingredientes": 65.0,
@@ -170,8 +170,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-018",
-    "id_categoria": "CAT-BEB",
+    "id_platillo": 18,
+    "id_categoria": 4,
     "nombre_platillo": "Cacao tradicional batido en leche",
     "precio_unitario": 65.0,
     "costo_ingredientes": 20.0,
@@ -180,8 +180,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-019",
-    "id_categoria": "CAT-BEB",
+    "id_platillo": 19,
+    "id_categoria": 4,
     "nombre_platillo": "Chicha de maíz fermentada",
     "precio_unitario": 60.0,
     "costo_ingredientes": 18.0,
@@ -190,8 +190,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-020",
-    "id_categoria": "CAT-BEB",
+    "id_platillo": 20,
+    "id_categoria": 4,
     "nombre_platillo": "Cebada fría con canela",
     "precio_unitario": 55.0,
     "costo_ingredientes": 16.0,
@@ -200,8 +200,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-021",
-    "id_categoria": "CAT-BEB",
+    "id_platillo": 21,
+    "id_categoria": 4,
     "nombre_platillo": "Pinolillo helado en botella",
     "precio_unitario": 60.0,
     "costo_ingredientes": 17.0,
@@ -210,8 +210,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-022",
-    "id_categoria": "CAT-BEB",
+    "id_platillo": 22,
+    "id_categoria": 4,
     "nombre_platillo": "Cerveza Toña helada 355ml",
     "precio_unitario": 75.0,
     "costo_ingredientes": 35.0,
@@ -220,8 +220,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-023",
-    "id_categoria": "CAT-BEB",
+    "id_platillo": 23,
+    "id_categoria": 4,
     "nombre_platillo": "Fresco de pitahaya natural",
     "precio_unitario": 70.0,
     "costo_ingredientes": 25.0,
@@ -230,8 +230,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-024",
-    "id_categoria": "CAT-BEB",
+    "id_platillo": 24,
+    "id_categoria": 4,
     "nombre_platillo": "Fresco de grama con limón",
     "precio_unitario": 50.0,
     "costo_ingredientes": 15.0,
@@ -240,8 +240,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-025",
-    "id_categoria": "CAT-BEB",
+    "id_platillo": 25,
+    "id_categoria": 4,
     "nombre_platillo": "Jugo de maracuyá concentrado",
     "precio_unitario": 60.0,
     "costo_ingredientes": 20.0,
@@ -250,8 +250,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-026",
-    "id_categoria": "CAT-POS",
+    "id_platillo": 26,
+    "id_categoria": 5,
     "nombre_platillo": "Pío V de leche con ron",
     "precio_unitario": 110.0,
     "costo_ingredientes": 40.0,
@@ -260,8 +260,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-027",
-    "id_categoria": "CAT-POS",
+    "id_platillo": 27,
+    "id_categoria": 5,
     "nombre_platillo": "Tres leches esponjoso",
     "precio_unitario": 100.0,
     "costo_ingredientes": 35.0,
@@ -270,8 +270,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-028",
-    "id_categoria": "CAT-POS",
+    "id_platillo": 28,
+    "id_categoria": 5,
     "nombre_platillo": "Cajeta de leche de vaca artesanal",
     "precio_unitario": 75.0,
     "costo_ingredientes": 25.0,
@@ -280,8 +280,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-029",
-    "id_categoria": "CAT-POS",
+    "id_platillo": 29,
+    "id_categoria": 5,
     "nombre_platillo": "Atol de elote tierno con canela",
     "precio_unitario": 80.0,
     "costo_ingredientes": 28.0,
@@ -290,8 +290,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-030",
-    "id_categoria": "CAT-POS",
+    "id_platillo": 30,
+    "id_categoria": 5,
     "nombre_platillo": "Ayote en miel con dulce de panela",
     "precio_unitario": 85.0,
     "costo_ingredientes": 30.0,
@@ -300,8 +300,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-031",
-    "id_categoria": "CAT-POS",
+    "id_platillo": 31,
+    "id_categoria": 5,
     "nombre_platillo": "Arroz con leche tradicional",
     "precio_unitario": 70.0,
     "costo_ingredientes": 22.0,
@@ -310,8 +310,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-032",
-    "id_categoria": "CAT-FRT",
+    "id_platillo": 32,
+    "id_categoria": 1,
     "nombre_platillo": "Lomillo asado con chimichurri nica",
     "precio_unitario": 280.0,
     "costo_ingredientes": 110.0,
@@ -320,8 +320,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-033",
-    "id_categoria": "CAT-FRT",
+    "id_platillo": 33,
+    "id_categoria": 1,
     "nombre_platillo": "Costilla de cerdo ahumada",
     "precio_unitario": 270.0,
     "costo_ingredientes": 105.0,
@@ -330,8 +330,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-034",
-    "id_categoria": "CAT-HAM",
+    "id_platillo": 34,
+    "id_categoria": 3,
     "nombre_platillo": "Hamburguesa con queso fundido y jalapeño",
     "precio_unitario": 240.0,
     "costo_ingredientes": 90.0,
@@ -340,8 +340,8 @@
     "activo": true
   },
   {
-    "id_platillo": "PLT-035",
-    "id_categoria": "CAT-QSL",
+    "id_platillo": 35,
+    "id_categoria": 2,
     "nombre_platillo": "Quesillo familiar XL para compartir",
     "precio_unitario": 250.0,
     "costo_ingredientes": 90.0,

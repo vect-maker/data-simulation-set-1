@@ -1,6 +1,6 @@
 [
   {
-    "id_variedad": "VAR-001",
+    "id_variedad": 1,
     "nombre_variedad": "Geisha",
     "especie": "Arabica",
     "perfil_sensorial_base": "Floral, jazmín, bergamota, melocotón",
@@ -8,7 +8,7 @@
     "rendimiento_promedio_qq_mz": 12.5
   },
   {
-    "id_variedad": "VAR-002",
+    "id_variedad": 2,
     "nombre_variedad": "Pacamara",
     "especie": "Arabica",
     "perfil_sensorial_base": "Chocolate amargo, especias, frutas tropicales, cuerpo cremoso",
@@ -16,7 +16,7 @@
     "rendimiento_promedio_qq_mz": 18.0
   },
   {
-    "id_variedad": "VAR-003",
+    "id_variedad": 3,
     "nombre_variedad": "Bourbon",
     "especie": "Arabica",
     "perfil_sensorial_base": "Caramelo, chocolate con leche, manzana roja, acidez málica",
@@ -24,7 +24,7 @@
     "rendimiento_promedio_qq_mz": 22.0
   },
   {
-    "id_variedad": "VAR-004",
+    "id_variedad": 4,
     "nombre_variedad": "Maragogipe",
     "especie": "Arabica",
     "perfil_sensorial_base": "Floral sutil, toronja, vainilla, cuerpo sedoso",
@@ -32,7 +32,7 @@
     "rendimiento_promedio_qq_mz": 10.5
   },
   {
-    "id_variedad": "VAR-005",
+    "id_variedad": 5,
     "nombre_variedad": "Caturra",
     "especie": "Arabica",
     "perfil_sensorial_base": "Cítrico, mandarina, panela, cuerpo medio",
@@ -40,7 +40,7 @@
     "rendimiento_promedio_qq_mz": 30.0
   },
   {
-    "id_variedad": "VAR-006",
+    "id_variedad": 6,
     "nombre_variedad": "Catuaí Rojo",
     "especie": "Arabica",
     "perfil_sensorial_base": "Frutos rojos, chocolate, acidez brillante, cuerpo balanceado",
@@ -48,7 +48,7 @@
     "rendimiento_promedio_qq_mz": 32.5
   },
   {
-    "id_variedad": "VAR-007",
+    "id_variedad": 7,
     "nombre_variedad": "Catuaí Amarillo",
     "especie": "Arabica",
     "perfil_sensorial_base": "Miel, frutos amarillos, durazno, acidez cítrica",

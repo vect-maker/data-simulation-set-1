@@ -90,9 +90,9 @@ DROP TABLE IF EXISTS variedades_cafe CASCADE;
 DROP TABLE IF EXISTS fincas CASCADE;
 
 CREATE TABLE fincas (
-    id_finca VARCHAR(10) PRIMARY KEY,
+    id_finca INT PRIMARY KEY,
     nombre_finca VARCHAR(100) NOT NULL,
-    id_productor VARCHAR(10) NOT NULL,
+    id_productor INT NOT NULL,
     nombre_productor VARCHAR(100) NOT NULL,
     region VARCHAR(50) NOT NULL CHECK (region IN ('Jinotega', 'Matagalpa', 'Nueva Segovia - Dipilto', 'Madriz')),
     municipio VARCHAR(50) NOT NULL,
@@ -103,7 +103,7 @@ CREATE TABLE fincas (
 );
 
 CREATE TABLE variedades_cafe (
-    id_variedad VARCHAR(10) PRIMARY KEY,
+    id_variedad INT PRIMARY KEY,
     nombre_variedad VARCHAR(50) NOT NULL,
     especie VARCHAR(30) NOT NULL DEFAULT 'Coffea Arabica',
     perfil_sensorial_base VARCHAR(100) NOT NULL,
@@ -112,7 +112,7 @@ CREATE TABLE variedades_cafe (
 );
 
 CREATE TABLE beneficios (
-    id_beneficio VARCHAR(10) PRIMARY KEY,
+    id_beneficio INT PRIMARY KEY,
     nombre_beneficio VARCHAR(100) NOT NULL,
     tipo_beneficio VARCHAR(20) NOT NULL CHECK (tipo_beneficio IN ('humedo', 'seco')),
     municipio VARCHAR(50) NOT NULL,
@@ -123,7 +123,7 @@ CREATE TABLE beneficios (
 );
 
 CREATE TABLE cuadrillas_corte (
-    id_cuadrilla VARCHAR(10) PRIMARY KEY,
+    id_cuadrilla INT PRIMARY KEY,
     nombre_cuadrilla VARCHAR(100) NOT NULL,
     capacidad_recolectores INT NOT NULL,
     rendimiento_latas_dia DECIMAL(8,2) NOT NULL,
@@ -143,10 +143,10 @@ CREATE TABLE clima_zonas_cafetaleras (
 );
 
 CREATE TABLE lotes_acopio (
-    id_lote VARCHAR(20) PRIMARY KEY,
-    id_finca VARCHAR(10) NOT NULL REFERENCES fincas(id_finca),
-    id_variedad VARCHAR(10) NOT NULL REFERENCES variedades_cafe(id_variedad),
-    id_cuadrilla VARCHAR(10) REFERENCES cuadrillas_corte(id_cuadrilla),
+    id_lote INT PRIMARY KEY,
+    id_finca INT NOT NULL REFERENCES fincas(id_finca),
+    id_variedad INT NOT NULL REFERENCES variedades_cafe(id_variedad),
+    id_cuadrilla INT REFERENCES cuadrillas_corte(id_cuadrilla),
     fecha_corte DATE NOT NULL,
     peso_cereza_kg DECIMAL(10,2) NOT NULL CHECK (peso_cereza_kg > 0),
     humedad_porcentaje DECIMAL(5,2) NOT NULL,
@@ -159,7 +159,7 @@ CREATE TABLE lotes_acopio (
 
 CREATE TABLE auditoria_lotes (
     id_auditoria SERIAL PRIMARY KEY,
-    id_lote VARCHAR(20) NOT NULL,
+    id_lote INT NOT NULL,
     estado_anterior VARCHAR(30),
     estado_nuevo VARCHAR(30),
     fecha_cambio TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -168,8 +168,8 @@ CREATE TABLE auditoria_lotes (
 
 CREATE TABLE procesamiento_beneficio (
     id_proceso INT PRIMARY KEY,
-    id_lote VARCHAR(20) NOT NULL REFERENCES lotes_acopio(id_lote),
-    id_beneficio VARCHAR(10) NOT NULL REFERENCES beneficios(id_beneficio),
+    id_lote INT NOT NULL REFERENCES lotes_acopio(id_lote),
+    id_beneficio INT NOT NULL REFERENCES beneficios(id_beneficio),
     etapa VARCHAR(30) NOT NULL CHECK (etapa IN ('despulpado', 'fermentacion', 'secado_patio', 'trillado', 'clasificacion')),
     fecha_inicio TIMESTAMP NOT NULL,
     fecha_fin TIMESTAMP,
@@ -180,8 +180,8 @@ CREATE TABLE procesamiento_beneficio (
 );
 
 CREATE TABLE subastas_especiales (
-    id_subasta VARCHAR(10) PRIMARY KEY,
-    id_lote VARCHAR(20) REFERENCES lotes_acopio(id_lote),
+    id_subasta INT PRIMARY KEY,
+    id_lote INT REFERENCES lotes_acopio(id_lote),
     nombre_lote_especial VARCHAR(100) NOT NULL,
     peso_quintales DECIMAL(6,2) NOT NULL,
     costo_certificacion_usd DECIMAL(8,2) NOT NULL,
@@ -192,8 +192,8 @@ CREATE TABLE subastas_especiales (
 );
 
 CREATE TABLE embarques_exportacion (
-    id_embarque VARCHAR(20) PRIMARY KEY,
-    id_lote VARCHAR(20) NOT NULL REFERENCES lotes_acopio(id_lote),
+    id_embarque INT PRIMARY KEY,
+    id_lote INT NOT NULL REFERENCES lotes_acopio(id_lote),
     numero_contenedor VARCHAR(20) NOT NULL,
     puerto_salida VARCHAR(100) NOT NULL,
     pais_destino VARCHAR(50) NOT NULL,

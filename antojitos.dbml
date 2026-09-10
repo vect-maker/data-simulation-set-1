@@ -4,7 +4,7 @@
 // ==========================================
 
 Table zonas {
-  id_zona varchar(10) [pk]
+  id_zona int [pk]
   nombre_zona varchar(100) [not null]
   latitud decimal(9,6) [not null]
   longitud decimal(9,6) [not null]
@@ -14,7 +14,7 @@ Table zonas {
 }
 
 Table repartidores {
-  id_repartidor varchar(10) [pk]
+  id_repartidor int [pk]
   nombre varchar(100) [not null]
   tipo_vehiculo varchar(20) [not null, note: 'moto, bicicleta, auto']
   calificacion_promedio decimal(3,2) [not null]
@@ -23,14 +23,14 @@ Table repartidores {
 }
 
 Table categorias_platillo {
-  id_categoria varchar(10) [pk]
+  id_categoria int [pk]
   nombre_categoria varchar(50) [not null, note: 'Tacos, Hamburguesas, Bebidas, Postres, etc.']
   margen_contribucion_pct decimal(4,2) [not null]
 }
 
 Table platillos {
-  id_platillo varchar(10) [pk]
-  id_categoria varchar(10) [not null, ref: > categorias_platillo.id_categoria]
+  id_platillo int [pk]
+  id_categoria int [not null, ref: > categorias_platillo.id_categoria]
   nombre_platillo varchar(100) [not null]
   precio_unitario decimal(8,2) [not null]
   costo_ingredientes decimal(8,2) [not null]
@@ -40,7 +40,7 @@ Table platillos {
 }
 
 Table promociones {
-  id_promocion varchar(10) [pk]
+  id_promocion int [pk]
   nombre_campana varchar(100) [not null]
   costo_campana decimal(10,2) [not null]
   retorno_esperado decimal(10,2) [not null]
@@ -50,10 +50,10 @@ Table promociones {
 }
 
 Table ordenes {
-  id_orden varchar(20) [pk]
-  id_zona varchar(10) [not null, ref: > zonas.id_zona]
-  id_repartidor varchar(10) [ref: > repartidores.id_repartidor]
-  id_promocion varchar(10) [ref: > promociones.id_promocion]
+  id_orden int [pk]
+  id_zona int [not null, ref: > zonas.id_zona]
+  id_repartidor int [ref: > repartidores.id_repartidor]
+  id_promocion int [ref: > promociones.id_promocion]
   fecha_hora_creacion timestamp [not null]
   fecha_hora_entrega timestamp
   metodo_pago varchar(30) [not null, note: 'efectivo, tarjeta, billetera_digital']
@@ -67,9 +67,9 @@ Table ordenes {
 }
 
 Table detalle_ordenes {
-  id_detalle bigserial [pk]
-  id_orden varchar(20) [not null, ref: > ordenes.id_orden]
-  id_platillo varchar(10) [not null, ref: > platillos.id_platillo]
+  id_detalle int [pk]
+  id_orden int [not null, ref: > ordenes.id_orden]
+  id_platillo int [not null, ref: > platillos.id_platillo]
   cantidad int [not null]
   precio_unitario decimal(8,2) [not null]
   subtotal decimal(10,2) [not null]

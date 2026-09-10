@@ -1,8 +1,8 @@
 [
   {
-    "id_finca": "FNC-001",
+    "id_finca": 1,
     "nombre_finca": "Finca Santa Maura",
-    "id_productor": "PRD-001",
+    "id_productor": 1,
     "nombre_productor": "Don Ernesto Rizo",
     "region": "Jinotega",
     "municipio": "Pantasma",
@@ -12,9 +12,9 @@
     "area_manzanas": 15.5
   },
   {
-    "id_finca": "FNC-002",
+    "id_finca": 2,
     "nombre_finca": "Finca El Paraíso",
-    "id_productor": "PRD-002",
+    "id_productor": 2,
     "nombre_productor": "Doña Carmen López",
     "region": "Jinotega",
     "municipio": "El Cuá",
@@ -24,9 +24,9 @@
     "area_manzanas": 22.0
   },
   {
-    "id_finca": "FNC-003",
+    "id_finca": 3,
     "nombre_finca": "Finca Datanlí Verde",
-    "id_productor": "PRD-003",
+    "id_productor": 3,
     "nombre_productor": "Juan Carlos Mendoza",
     "region": "Jinotega",
     "municipio": "Datanlí",
@@ -36,9 +36,9 @@
     "area_manzanas": 18.3
   },
   {
-    "id_finca": "FNC-004",
+    "id_finca": 4,
     "nombre_finca": "Finca San Rafael",
-    "id_productor": "PRD-004",
+    "id_productor": 4,
     "nombre_productor": "Mario Gutiérrez",
     "region": "Jinotega",
     "municipio": "Yalí",
@@ -48,9 +48,9 @@
     "area_manzanas": 12.0
   },
   {
-    "id_finca": "FNC-005",
+    "id_finca": 5,
     "nombre_finca": "Finca La Providencia",
-    "id_productor": "PRD-005",
+    "id_productor": 5,
     "nombre_productor": "Sofía Montenegro",
     "region": "Jinotega",
     "municipio": "Pantasma",
@@ -60,9 +60,9 @@
     "area_manzanas": 25.4
   },
   {
-    "id_finca": "FNC-006",
+    "id_finca": 6,
     "nombre_finca": "Finca Las Brumas",
-    "id_productor": "PRD-006",
+    "id_productor": 6,
     "nombre_productor": "Esteban Blandón",
     "region": "Jinotega",
     "municipio": "El Cuá",
@@ -72,9 +72,9 @@
     "area_manzanas": 14.8
   },
   {
-    "id_finca": "FNC-007",
+    "id_finca": 7,
     "nombre_finca": "Finca El Porvenir",
-    "id_productor": "PRD-007",
+    "id_productor": 7,
     "nombre_productor": "Rosaura Castro",
     "region": "Jinotega",
     "municipio": "Datanlí",
@@ -84,9 +84,9 @@
     "area_manzanas": 30.1
   },
   {
-    "id_finca": "FNC-008",
+    "id_finca": 8,
     "nombre_finca": "Finca La Esmeralda",
-    "id_productor": "PRD-008",
+    "id_productor": 8,
     "nombre_productor": "Pedro Joaquín Chamorro",
     "region": "Jinotega",
     "municipio": "Yalí",
@@ -96,9 +96,9 @@
     "area_manzanas": 19.2
   },
   {
-    "id_finca": "FNC-009",
+    "id_finca": 9,
     "nombre_finca": "Finca Los Pinos",
-    "id_productor": "PRD-009",
+    "id_productor": 9,
     "nombre_productor": "Marcos Urrutia",
     "region": "Jinotega",
     "municipio": "Pantasma",
@@ -108,9 +108,9 @@
     "area_manzanas": 11.5
   },
   {
-    "id_finca": "FNC-010",
+    "id_finca": 10,
     "nombre_finca": "Finca Santa Rosa",
-    "id_productor": "PRD-010",
+    "id_productor": 10,
     "nombre_productor": "Lucía Pineda",
     "region": "Jinotega",
     "municipio": "El Cuá",
@@ -120,9 +120,9 @@
     "area_manzanas": 16.7
   },
   {
-    "id_finca": "FNC-011",
+    "id_finca": 11,
     "nombre_finca": "Finca El Retiro",
-    "id_productor": "PRD-011",
+    "id_productor": 11,
     "nombre_productor": "Humberto Ortega",
     "region": "Jinotega",
     "municipio": "Datanlí",
@@ -132,9 +132,9 @@
     "area_manzanas": 21.0
   },
   {
-    "id_finca": "FNC-012",
+    "id_finca": 12,
     "nombre_finca": "Finca Bella Vista",
-    "id_productor": "PRD-012",
+    "id_productor": 12,
     "nombre_productor": "Ana María Peralta",
     "region": "Jinotega",
     "municipio": "Yalí",
@@ -144,9 +144,9 @@
     "area_manzanas": 13.4
   },
   {
-    "id_finca": "FNC-013",
+    "id_finca": 13,
     "nombre_finca": "Finca Selva Oscura",
-    "id_productor": "PRD-013",
+    "id_productor": 13,
     "nombre_productor": "Mauricio Solórzano",
     "region": "Matagalpa",
     "municipio": "Selva Negra",
@@ -156,9 +156,9 @@
     "area_manzanas": 45.0
   },
   {
-    "id_finca": "FNC-014",
+    "id_finca": 14,
     "nombre_finca": "Finca Yasica Alta",
-    "id_productor": "PRD-014",
+    "id_productor": 14,
     "nombre_productor": "Esperanza Reyes",
     "region": "Matagalpa",
     "municipio": "Yasica Sur",
@@ -168,9 +168,9 @@
     "area_manzanas": 28.0
   },
   {
-    "id_finca": "FNC-015",
+    "id_finca": 15,
     "nombre_finca": "Finca San Ramón de las Flores",
-    "id_productor": "PRD-015",
+    "id_productor": 15,
     "nombre_productor": "Gonzalo Tijerino",
     "region": "Matagalpa",
     "municipio": "San Ramón",
@@ -180,9 +180,9 @@
     "area_manzanas": 17.5
   },
   {
-    "id_finca": "FNC-016",
+    "id_finca": 16,
     "nombre_finca": "Finca La Cumbre",
-    "id_productor": "PRD-016",
+    "id_productor": 16,
     "nombre_productor": "Blanca Estela Aráuz",
     "region": "Matagalpa",
     "municipio": "Selva Negra",
@@ -192,9 +192,9 @@
     "area_manzanas": 33.2
   },
   {
-    "id_finca": "FNC-017",
+    "id_finca": 17,
     "nombre_finca": "Finca El Roble",
-    "id_productor": "PRD-017",
+    "id_productor": 17,
     "nombre_productor": "Fermín Zeledón",
     "region": "Matagalpa",
     "municipio": "Yasica Sur",
@@ -204,9 +204,9 @@
     "area_manzanas": 20.1
   },
   {
-    "id_finca": "FNC-018",
+    "id_finca": 18,
     "nombre_finca": "Finca Monte Fresco",
-    "id_productor": "PRD-018",
+    "id_productor": 18,
     "nombre_productor": "Yolanda Hurtado",
     "region": "Matagalpa",
     "municipio": "San Ramón",
@@ -216,9 +216,9 @@
     "area_manzanas": 15.0
   },
   {
-    "id_finca": "FNC-019",
+    "id_finca": 19,
     "nombre_finca": "Finca Las Delicias",
-    "id_productor": "PRD-019",
+    "id_productor": 19,
     "nombre_productor": "Adán Centeno",
     "region": "Matagalpa",
     "municipio": "Selva Negra",
@@ -228,9 +228,9 @@
     "area_manzanas": 24.6
   },
   {
-    "id_finca": "FNC-020",
+    "id_finca": 20,
     "nombre_finca": "Finca Miramontes",
-    "id_productor": "PRD-020",
+    "id_productor": 20,
     "nombre_productor": "Claudia Munguía",
     "region": "Matagalpa",
     "municipio": "San Ramón",
@@ -240,9 +240,9 @@
     "area_manzanas": 18.9
   },
   {
-    "id_finca": "FNC-021",
+    "id_finca": 21,
     "nombre_finca": "Finca El Ciprés",
-    "id_productor": "PRD-021",
+    "id_productor": 21,
     "nombre_productor": "Rigoberto Cabezas",
     "region": "Nueva Segovia - Dipilto",
     "municipio": "Dipilto",
@@ -252,9 +252,9 @@
     "area_manzanas": 14.2
   },
   {
-    "id_finca": "FNC-022",
+    "id_finca": 22,
     "nombre_finca": "Finca San José de las Manos",
-    "id_productor": "PRD-022",
+    "id_productor": 22,
     "nombre_productor": "Martha Ligia Padilla",
     "region": "Nueva Segovia - Dipilto",
     "municipio": "Mozonte",
@@ -264,9 +264,9 @@
     "area_manzanas": 19.8
   },
   {
-    "id_finca": "FNC-023",
+    "id_finca": 23,
     "nombre_finca": "Finca La Laguna",
-    "id_productor": "PRD-023",
+    "id_productor": 23,
     "nombre_productor": "Salvador Meza",
     "region": "Nueva Segovia - Dipilto",
     "municipio": "Jalapa",
@@ -276,9 +276,9 @@
     "area_manzanas": 31.0
   },
   {
-    "id_finca": "FNC-024",
+    "id_finca": 24,
     "nombre_finca": "Finca Altamira",
-    "id_productor": "PRD-024",
+    "id_productor": 24,
     "nombre_productor": "Dora María Téllez",
     "region": "Nueva Segovia - Dipilto",
     "municipio": "Dipilto",
@@ -288,9 +288,9 @@
     "area_manzanas": 10.5
   },
   {
-    "id_finca": "FNC-025",
+    "id_finca": 25,
     "nombre_finca": "Finca Los Ocotes",
-    "id_productor": "PRD-025",
+    "id_productor": 25,
     "nombre_productor": "Ezequiel Gadea",
     "region": "Nueva Segovia - Dipilto",
     "municipio": "Mozonte",
@@ -300,9 +300,9 @@
     "area_manzanas": 16.4
   },
   {
-    "id_finca": "FNC-026",
+    "id_finca": 26,
     "nombre_finca": "Finca Nueva Esperanza",
-    "id_productor": "PRD-026",
+    "id_productor": 26,
     "nombre_productor": "Julieta Castellón",
     "region": "Nueva Segovia - Dipilto",
     "municipio": "Jalapa",
@@ -312,9 +312,9 @@
     "area_manzanas": 22.7
   },
   {
-    "id_finca": "FNC-027",
+    "id_finca": 27,
     "nombre_finca": "Finca Las Flores de Macuelizo",
-    "id_productor": "PRD-027",
+    "id_productor": 27,
     "nombre_productor": "Wilfredo Valenzuela",
     "region": "Madriz",
     "municipio": "San Juan del Río Coco",
@@ -324,9 +324,9 @@
     "area_manzanas": 15.0
   },
   {
-    "id_finca": "FNC-028",
+    "id_finca": 28,
     "nombre_finca": "Finca El Naranjo",
-    "id_productor": "PRD-028",
+    "id_productor": 28,
     "nombre_productor": "Reyna Isabel Flores",
     "region": "Madriz",
     "municipio": "Telpaneca",
@@ -336,9 +336,9 @@
     "area_manzanas": 18.2
   },
   {
-    "id_finca": "FNC-029",
+    "id_finca": 29,
     "nombre_finca": "Finca Somoto Alto",
-    "id_productor": "PRD-029",
+    "id_productor": 29,
     "nombre_productor": "Teodoro Martínez",
     "region": "Madriz",
     "municipio": "San Juan del Río Coco",
@@ -348,9 +348,9 @@
     "area_manzanas": 12.8
   },
   {
-    "id_finca": "FNC-030",
+    "id_finca": 30,
     "nombre_finca": "Finca Madriz Central",
-    "id_productor": "PRD-030",
+    "id_productor": 30,
     "nombre_productor": "Flor de María Alemán",
     "region": "Madriz",
     "municipio": "Telpaneca",

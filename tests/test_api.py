@@ -100,7 +100,7 @@ class TestAPIService(unittest.TestCase):
         """Test pagination wrapper and filtering with mocked database."""
         mock_count.return_value = 1
         mock_all.return_value = [{
-            "id_zona": "Z01",
+            "id_zona": 1,
             "nombre_zona": "Zona Central",
             "latitud": 12.1364,
             "longitud": -86.2514,
@@ -116,7 +116,7 @@ class TestAPIService(unittest.TestCase):
         self.assertEqual(data["total"], 1)
         self.assertEqual(data["offset"], 0)
         self.assertEqual(data["limit"], 10)
-        self.assertEqual(data["items"][0]["id_zona"], "Z01")
+        self.assertEqual(data["items"][0]["id_zona"], 1)
 
     @patch("src.api.routers.antojitos.fetch_all")
     @patch("src.api.routers.antojitos.fetch_single_resource")
@@ -124,9 +124,9 @@ class TestAPIService(unittest.TestCase):
         """Test GET /antojitos/ordenes/{id_orden} returns order with nested items."""
         import datetime
         mock_fetch_single.return_value = {
-            "id_orden": "ORD-001",
-            "id_zona": "Z01",
-            "id_repartidor": "REP-01",
+            "id_orden": 1,
+            "id_zona": 1,
+            "id_repartidor": 1,
             "id_promocion": None,
             "fecha_hora_creacion": datetime.datetime(2024, 1, 15, 12, 30, 0),
             "fecha_hora_entrega": datetime.datetime(2024, 1, 15, 13, 0, 0),
@@ -140,37 +140,42 @@ class TestAPIService(unittest.TestCase):
             "motivo_cancelacion": None,
         }
         mock_fetch_items.return_value = [{
-            "id_detalle": "DET-001",
-            "id_orden": "ORD-001",
-            "id_platillo": "PLT-01",
+            "id_detalle": 1,
+            "id_orden": 1,
+            "id_platillo": 1,
             "cantidad": 2,
             "precio_unitario": 145.0,
             "subtotal": 290.0,
         }]
 
-        response = self.client.get("/antojitos/ordenes/ORD-001")
+        response = self.client.get("/antojitos/ordenes/1")
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data["id_orden"], "ORD-001")
+        self.assertEqual(data["id_orden"], 1)
         self.assertEqual(len(data["items"]), 1)
-        self.assertEqual(data["items"][0]["id_platillo"], "PLT-01")
+        self.assertEqual(data["items"][0]["id_platillo"], 1)
 
     @patch("src.api.utils.fetch_one", return_value=None)
     def test_not_found_handling(self, mock_fetch_one):
         """Test GET /{case}/{resource}/{id} returns 404 when item does not exist."""
-        response = self.client.get("/volcan/lotes/NONEXISTENT-LOT")
+        response = self.client.get("/volcan/lotes/999999")
         self.assertEqual(response.status_code, 404)
         self.assertIn("not found", response.json()["detail"].lower())
+
+    def test_invalid_id_type_handling(self):
+        """Test GET /{case}/{resource}/{id} returns 422 when id is not an integer."""
+        response = self.client.get("/volcan/lotes/NONEXISTENT-LOT")
+        self.assertEqual(response.status_code, 422)
 
     @patch("src.api.utils.fetch_one")
     def test_single_item_lookup_volcan(self, mock_fetch_one):
         """Test GET /volcan/lotes/{id_lote} returns lot details."""
         import datetime
         mock_fetch_one.return_value = {
-            "id_lote": "LOT-2024-00001",
-            "id_finca": "FNC-001",
-            "id_variedad": "VAR-001",
-            "id_cuadrilla": "CUA-001",
+            "id_lote": 1,
+            "id_finca": 1,
+            "id_variedad": 1,
+            "id_cuadrilla": 1,
             "fecha_corte": datetime.date(2024, 2, 10),
             "peso_cereza_kg": 1500.0,
             "humedad_porcentaje": 55.0,
@@ -180,20 +185,20 @@ class TestAPIService(unittest.TestCase):
             "costo_recoleccion_nio": 3200.0,
             "estado_lote": "recolectado",
         }
-        response = self.client.get("/volcan/lotes/LOT-2024-00001")
+        response = self.client.get("/volcan/lotes/1")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["id_lote"], "LOT-2024-00001")
+        self.assertEqual(response.json()["id_lote"], 1)
 
     @patch("src.api.utils.fetch_one")
     def test_single_item_lookup_movigo(self, mock_fetch_one):
         """Test GET /movigo/viajes/{id_viaje} returns trip details."""
         import datetime
         mock_fetch_one.return_value = {
-            "id_viaje": "VIJ-2024-000001",
-            "id_usuario": "USR-0001",
-            "id_conductor": "CND-001",
-            "id_zona_origen": "ZON-01",
-            "id_zona_destino": "ZON-02",
+            "id_viaje": 1,
+            "id_usuario": 1,
+            "id_conductor": 1,
+            "id_zona_origen": 1,
+            "id_zona_destino": 2,
             "fecha_hora_solicitud": datetime.datetime(2024, 3, 5, 8, 15, 0),
             "fecha_hora_inicio": datetime.datetime(2024, 3, 5, 8, 20, 0),
             "fecha_hora_fin": datetime.datetime(2024, 3, 5, 8, 45, 0),
@@ -209,9 +214,9 @@ class TestAPIService(unittest.TestCase):
             "propina": 15.0,
             "motivo_cancelacion": None,
         }
-        response = self.client.get("/movigo/viajes/VIJ-2024-000001")
+        response = self.client.get("/movigo/viajes/1")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["id_viaje"], "VIJ-2024-000001")
+        self.assertEqual(response.json()["id_viaje"], 1)
 
 
 if __name__ == "__main__":

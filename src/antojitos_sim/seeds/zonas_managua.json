@@ -1,6 +1,6 @@
 [
   {
-    "id_zona": "ZON-01",
+    "id_zona": 1,
     "nombre_zona": "Los Robles",
     "latitud": 12.122,
     "longitud": -86.271,
@@ -9,7 +9,7 @@
     "tarifa_envio_base": 50.0
   },
   {
-    "id_zona": "ZON-02",
+    "id_zona": 2,
     "nombre_zona": "Altamira",
     "latitud": 12.131,
     "longitud": -86.262,
@@ -18,7 +18,7 @@
     "tarifa_envio_base": 60.0
   },
   {
-    "id_zona": "ZON-03",
+    "id_zona": 3,
     "nombre_zona": "Villa Fontana",
     "latitud": 12.105,
     "longitud": -86.275,
@@ -27,7 +27,7 @@
     "tarifa_envio_base": 80.0
   },
   {
-    "id_zona": "ZON-04",
+    "id_zona": 4,
     "nombre_zona": "Las Colinas",
     "latitud": 12.101,
     "longitud": -86.255,
@@ -36,7 +36,7 @@
     "tarifa_envio_base": 100.0
   },
   {
-    "id_zona": "ZON-05",
+    "id_zona": 5,
     "nombre_zona": "Bello Horizonte",
     "latitud": 12.145,
     "longitud": -86.23,
@@ -45,7 +45,7 @@
     "tarifa_envio_base": 90.0
   },
   {
-    "id_zona": "ZON-06",
+    "id_zona": 6,
     "nombre_zona": "Bolonia",
     "latitud": 12.138,
     "longitud": -86.285,
@@ -54,7 +54,7 @@
     "tarifa_envio_base": 70.0
   },
   {
-    "id_zona": "ZON-07",
+    "id_zona": 7,
     "nombre_zona": "Linda Vista",
     "latitud": 12.155,
     "longitud": -86.305,
@@ -63,7 +63,7 @@
     "tarifa_envio_base": 120.0
   },
   {
-    "id_zona": "ZON-08",
+    "id_zona": 8,
     "nombre_zona": "Santo Domingo",
     "latitud": 12.11,
     "longitud": -86.24,
@@ -72,7 +72,7 @@
     "tarifa_envio_base": 130.0
   },
   {
-    "id_zona": "ZON-09",
+    "id_zona": 9,
     "nombre_zona": "Carretera Sur",
     "latitud": 12.115,
     "longitud": -86.315,
@@ -81,7 +81,7 @@
     "tarifa_envio_base": 150.0
   },
   {
-    "id_zona": "ZON-10",
+    "id_zona": 10,
     "nombre_zona": "Ciudad Jardín",
     "latitud": 12.148,
     "longitud": -86.25,
@@ -90,7 +90,7 @@
     "tarifa_envio_base": 75.0
   },
   {
-    "id_zona": "ZON-11",
+    "id_zona": 11,
     "nombre_zona": "Centroamérica",
     "latitud": 12.128,
     "longitud": -86.25,
@@ -99,7 +99,7 @@
     "tarifa_envio_base": 70.0
   },
   {
-    "id_zona": "ZON-12",
+    "id_zona": 12,
     "nombre_zona": "Rubenia",
     "latitud": 12.138,
     "longitud": -86.242,

@@ -225,6 +225,22 @@ test: test-unit
     @echo "\n=== Verifying generated summary reports ==="
     {{ DATA_SIM }} inspect --case all
     @echo "\n✓ All 3 simulation pipelines verified successfully!"
+# Reset all generated artifacts, caches, and database volumes
+reset-all:
     @just clean
+    @if docker compose ps -q postgres 2>/dev/null | grep -q .; then \
+        just db-reset; \
+    fi
+    @echo "✓ Full reset completed: artifacts, caches, and database storage wiped."
 
-
+# End-to-end workflow: clean, regenerate data, inspect, and load into PostgreSQL
+pipeline days="":
+    @just clean
+    @just generate-all {{ days }}
+    @just inspect-all
+    @if docker compose ps -q postgres 2>/dev/null | grep -q . || pg_isready -h localhost -p 5432 >/dev/null 2>&1; then \
+        just load-all; \
+    else \
+        echo "ℹ PostgreSQL is not running. Start it with 'just db-up' and run 'just load-all' to populate DB."; \
+    fi
+    @echo "\n✓ End-to-end pipeline completed! Expose API with 'just api-run' (local) or 'just api-up' (docker)."
