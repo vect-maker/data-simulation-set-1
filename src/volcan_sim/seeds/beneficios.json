@@ -1,0 +1,52 @@
+[
+  {
+    "id_beneficio": "BNF-001",
+    "nombre_beneficio": "Beneficio Húmedo Cooperativa Datanlí",
+    "tipo_beneficio": "humedo",
+    "municipio": "Jinotega",
+    "latitud": 13.098000,
+    "longitud": -86.008000,
+    "capacidad_quintales_dia": 1200.00,
+    "costo_procesamiento_qq": 42.00
+  },
+  {
+    "id_beneficio": "BNF-002",
+    "nombre_beneficio": "Beneficio Húmedo El Volcán Selva Negra",
+    "tipo_beneficio": "humedo",
+    "municipio": "Matagalpa",
+    "latitud": 12.985000,
+    "longitud": -85.915000,
+    "capacidad_quintales_dia": 1500.00,
+    "costo_procesamiento_qq": 45.00
+  },
+  {
+    "id_beneficio": "BNF-003",
+    "nombre_beneficio": "Beneficio Húmedo Ecológico Dipilto",
+    "tipo_beneficio": "humedo",
+    "municipio": "Dipilto",
+    "latitud": 13.715000,
+    "longitud": -86.508000,
+    "capacidad_quintales_dia": 800.00,
+    "costo_procesamiento_qq": 55.00
+  },
+  {
+    "id_beneficio": "BNF-004",
+    "nombre_beneficio": "Beneficio Húmedo San Juan de Río Coco",
+    "tipo_beneficio": "humedo",
+    "municipio": "San Juan del Río Coco",
+    "latitud": 13.542000,
+    "longitud": -86.168000,
+    "capacidad_quintales_dia": 950.00,
+    "costo_procesamiento_qq": 40.00
+  },
+  {
+    "id_beneficio": "BNF-005",
+    "nombre_beneficio": "Beneficio Seco Central Sébaco (Exportación)",
+    "tipo_beneficio": "seco",
+    "municipio": "Sébaco",
+    "latitud": 12.853000,
+    "longitud": -86.096000,
+    "capacidad_quintales_dia": 2800.00,
+    "costo_procesamiento_qq": 78.00
+  }
+]

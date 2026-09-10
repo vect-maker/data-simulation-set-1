@@ -1,0 +1,110 @@
+[
+  {
+    "id_promocion": "PRM-001",
+    "nombre_campana": "Festival de la Fritanga de Verano",
+    "costo_campana": 4500.00,
+    "retorno_esperado": 13500.00,
+    "descuento_pct": 0.15,
+    "fecha_inicio": "2024-01-15",
+    "fecha_fin": "2024-02-15"
+  },
+  {
+    "id_promocion": "PRM-002",
+    "nombre_campana": "Combo Amor y Cacao (San Valentín)",
+    "costo_campana": 3200.00,
+    "retorno_esperado": 8900.00,
+    "descuento_pct": 0.12,
+    "fecha_inicio": "2024-02-10",
+    "fecha_fin": "2024-02-20"
+  },
+  {
+    "id_promocion": "PRM-003",
+    "nombre_campana": "Promo Verano Playero y Toña Fría",
+    "costo_campana": 8000.00,
+    "retorno_esperado": 21000.00,
+    "descuento_pct": 0.20,
+    "fecha_inicio": "2024-03-20",
+    "fecha_fin": "2024-04-05"
+  },
+  {
+    "id_promocion": "PRM-004",
+    "nombre_campana": "Nacatamal Fest para el Día de las Madres",
+    "costo_campana": 6000.00,
+    "retorno_esperado": 18500.00,
+    "descuento_pct": 0.15,
+    "fecha_inicio": "2024-05-25",
+    "fecha_fin": "2024-06-02"
+  },
+  {
+    "id_promocion": "PRM-005",
+    "nombre_campana": "Aguacero Delivery: Refuerzo Días de Lluvia",
+    "costo_campana": 11000.00,
+    "retorno_esperado": 31000.00,
+    "descuento_pct": 0.18,
+    "fecha_inicio": "2024-06-15",
+    "fecha_fin": "2024-07-31"
+  },
+  {
+    "id_promocion": "PRM-006",
+    "nombre_campana": "Fiestas Patronales de Santo Domingo",
+    "costo_campana": 9500.00,
+    "retorno_esperado": 27000.00,
+    "descuento_pct": 0.25,
+    "fecha_inicio": "2024-08-01",
+    "fecha_fin": "2024-08-10"
+  },
+  {
+    "id_promocion": "PRM-007",
+    "nombre_campana": "Orgullo Patrio: Combo Asado Criollo",
+    "costo_campana": 5500.00,
+    "retorno_esperado": 14200.00,
+    "descuento_pct": 0.15,
+    "fecha_inicio": "2024-09-10",
+    "fecha_fin": "2024-09-20"
+  },
+  {
+    "id_promocion": "PRM-008",
+    "nombre_campana": "Super Combo Oficinas Villa Fontana & Robles",
+    "costo_campana": 3800.00,
+    "retorno_esperado": 7600.00,
+    "descuento_pct": 0.10,
+    "fecha_inicio": "2024-10-01",
+    "fecha_fin": "2024-10-31"
+  },
+  {
+    "id_promocion": "PRM-009",
+    "nombre_campana": "Viernes Negro de Fritanga Express",
+    "costo_campana": 7200.00,
+    "retorno_esperado": 23500.00,
+    "descuento_pct": 0.30,
+    "fecha_inicio": "2024-11-20",
+    "fecha_fin": "2024-11-30"
+  },
+  {
+    "id_promocion": "PRM-010",
+    "nombre_campana": "Purísima y Dulces Tradicionales (Buñuelos)",
+    "costo_campana": 5000.00,
+    "retorno_esperado": 16000.00,
+    "descuento_pct": 0.15,
+    "fecha_inicio": "2024-12-01",
+    "fecha_fin": "2024-12-10"
+  },
+  {
+    "id_promocion": "PRM-011",
+    "nombre_campana": "Cenas Navideñas Antojitos Express",
+    "costo_campana": 12500.00,
+    "retorno_esperado": 38000.00,
+    "descuento_pct": 0.20,
+    "fecha_inicio": "2024-12-15",
+    "fecha_fin": "2024-12-31"
+  },
+  {
+    "id_promocion": "PRM-012",
+    "nombre_campana": "Campaña Billetera Digital Banpro/BAC Cash",
+    "costo_campana": 4200.00,
+    "retorno_esperado": 9200.00,
+    "descuento_pct": 0.10,
+    "fecha_inicio": "2024-05-01",
+    "fecha_fin": "2024-05-31"
+  }
+]

@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=65.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "data-simulation"
+version = "0.1.0"
+description = "Synthetic Data Simulation Suite for Nicaragua Capstones (Antojitos Express, Cooperativa El Volcán, MoviGo)"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Proyecto Integrador Data Team" }
+]
+dependencies = [
+    "numpy>=1.26.0",
+    "pandas>=2.1.0",
+    "pydantic>=2.5.0",
+    "requests>=2.31.0",
+    "python-dotenv>=1.0.0",
+    "dlt[postgres]>=1.0.0",
+    "psycopg2-binary>=2.9.9",
+    "scipy>=1.12.0",
+    "google-genai>=2.0.0",
+    "rich>=13.0.0"
+]
+
+[project.scripts]
+antojitos-sim = "antojitos_sim.cli:main"
+volcan-sim = "volcan_sim.cli:main"
+movigo-sim = "movigo_sim.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

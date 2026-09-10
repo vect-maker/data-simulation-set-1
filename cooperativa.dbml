@@ -1,0 +1,114 @@
+// ==========================================
+// CASO 2: Cooperativa El Volcán (Café de Exportación)
+// UBICACIÓN: Zonas Cafetaleras de Nicaragua (Jinotega, Matagalpa, Nueva Segovia, Madriz)
+// PUERTO DE EXPORTACIÓN: Puerto Corinto, Nicaragua
+// ESQUEMA: OLTP / Raw Data Source
+// ==========================================
+
+Table fincas {
+  id_finca varchar(10) [pk]
+  nombre_finca varchar(100) [not null]
+  id_productor varchar(10) [not null]
+  nombre_productor varchar(100) [not null]
+  region varchar(50) [not null, note: 'Jinotega, Matagalpa, Nueva Segovia - Dipilto, Madriz']
+  municipio varchar(50) [not null]
+  latitud decimal(9,6) [not null]
+  longitud decimal(9,6) [not null]
+  altitud_msnm int [not null, note: '1000 a 1650 msnm']
+  area_manzanas decimal(6,2) [not null]
+}
+
+Table variedades_cafe {
+  id_variedad varchar(10) [pk]
+  nombre_variedad varchar(50) [not null, note: 'Geisha, Pacamara, Bourbon, Caturra, Maragogipe, Catuaí']
+  especie varchar(30) [not null, default: 'Coffea Arabica']
+  perfil_sensorial_base varchar(100) [not null]
+  resistencia_roya varchar(20) [not null, note: 'alta, media, susceptible']
+  rendimiento_promedio_qq_mz decimal(5,2) [not null]
+}
+
+Table beneficios {
+  id_beneficio varchar(10) [pk]
+  nombre_beneficio varchar(100) [not null]
+  tipo_beneficio varchar(20) [not null, note: 'humedo, seco']
+  municipio varchar(50) [not null]
+  latitud decimal(9,6) [not null]
+  longitud decimal(9,6) [not null]
+  capacidad_quintales_dia decimal(10,2) [not null]
+  costo_procesamiento_qq decimal(8,2) [not null]
+}
+
+Table cuadrillas_corte {
+  id_cuadrilla varchar(10) [pk]
+  nombre_cuadrilla varchar(100) [not null]
+  capacidad_recolectores int [not null]
+  rendimiento_latas_dia decimal(8,2) [not null]
+  costo_jornal_dia decimal(8,2) [not null]
+  estado varchar(20) [not null, note: 'activa, descanso, asignada']
+}
+
+Table lotes_acopio {
+  id_lote varchar(20) [pk]
+  id_finca varchar(10) [not null, ref: > fincas.id_finca]
+  id_variedad varchar(10) [not null, ref: > variedades_cafe.id_variedad]
+  id_cuadrilla varchar(10) [ref: > cuadrillas_corte.id_cuadrilla]
+  fecha_corte date [not null]
+  peso_cereza_kg decimal(10,2) [not null]
+  humedad_porcentaje decimal(4,2) [not null]
+  puntaje_catacion_scaa decimal(4,2) [not null, note: '80.00 a 92.50 puntos']
+  certificacion varchar(50) [not null, note: 'Convencional, Fairtrade, Orgánico, Rainforest Alliance, SHG']
+  notas_catacion text
+  costo_recoleccion_nio decimal(10,2) [not null]
+  estado_lote varchar(25) [not null, note: 'recolectado, en_beneficio_humedo, en_secado, listo_exportacion, descartado']
+}
+
+Table procesamiento_beneficio {
+  id_proceso bigserial [pk]
+  id_lote varchar(20) [not null, ref: > lotes_acopio.id_lote]
+  id_beneficio varchar(10) [not null, ref: > beneficios.id_beneficio]
+  etapa varchar(30) [not null, note: 'despulpado, fermentacion, secado_patio, trillado, clasificacion']
+  fecha_inicio timestamp [not null]
+  fecha_fin timestamp
+  temperatura_fermentacion_c decimal(4,2)
+  merma_porcentaje decimal(4,2) [not null]
+  peso_salida_kg decimal(10,2) [not null]
+  observaciones_proceso text
+}
+
+Table subastas_especiales {
+  id_subasta varchar(10) [pk]
+  id_lote varchar(20) [not null, ref: > lotes_acopio.id_lote]
+  nombre_lote_especial varchar(100) [not null]
+  peso_quintales decimal(8,2) [not null, note: 'Peso en quintales (recurso en problema de la Mochila)']
+  costo_certificacion_usd decimal(10,2) [not null, note: 'Costo de entrada/auditoría']
+  retorno_esperado_usd decimal(10,2) [not null, note: 'Valor a maximizar']
+  puntaje_taza decimal(4,2) [not null]
+  fecha_subasta date [not null]
+  estado_subasta varchar(20) [not null, note: 'programada, adjudicada, desierta']
+}
+
+Table embarques_exportacion {
+  id_embarque varchar(20) [pk]
+  id_lote varchar(20) [not null, ref: > lotes_acopio.id_lote]
+  numero_contenedor varchar(20) [not null]
+  puerto_salida varchar(50) [not null, default: 'Puerto Corinto, Nicaragua']
+  pais_destino varchar(50) [not null, note: 'Alemania, Estados Unidos, Japón, Bélgica, Taiwán, Italia']
+  cliente_comprador varchar(100) [not null]
+  fecha_embarque date [not null]
+  peso_oro_quintales decimal(8,2) [not null]
+  precio_quintal_usd decimal(8,2) [not null]
+  flete_transporte_usd decimal(8,2) [not null]
+  total_usd decimal(12,2) [not null]
+}
+
+// Ingesta externa vía API (DataOps)
+Table clima_zonas_cafetaleras {
+  fecha date [pk]
+  region varchar(50) [not null, default: 'Jinotega']
+  precipitacion_mm decimal(5,2) [not null]
+  temperatura_media_c decimal(4,2) [not null]
+  temperatura_min_c decimal(4,2) [not null]
+  temperatura_max_c decimal(4,2) [not null]
+  humedad_relativa_pct decimal(4,2) [not null]
+  condicion_clima varchar(30) [not null, note: 'soleado, nublado, llovizna, temporal']
+}

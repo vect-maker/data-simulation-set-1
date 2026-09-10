@@ -1,0 +1,58 @@
+[
+  {
+    "id_variedad": "VAR-001",
+    "nombre_variedad": "Geisha",
+    "especie": "Coffea Arabica",
+    "perfil_sensorial_base": "Aroma intenso a jazmín, flor de azahar, bergamota y té negro con acidez málica brillante",
+    "resistencia_roya": "susceptible",
+    "rendimiento_promedio_qq_mz": 12.50
+  },
+  {
+    "id_variedad": "VAR-002",
+    "nombre_variedad": "Pacamara",
+    "especie": "Coffea Arabica",
+    "perfil_sensorial_base": "Frutas tropicales maduras, durazno, chocolate amargo con cuerpo cremoso y posgusto prolongado",
+    "resistencia_roya": "susceptible",
+    "rendimiento_promedio_qq_mz": 16.00
+  },
+  {
+    "id_variedad": "VAR-003",
+    "nombre_variedad": "Bourbon",
+    "especie": "Coffea Arabica",
+    "perfil_sensorial_base": "Dulzura acaramelada, miel virgen, manzana roja y notas sutiles de avellana tostada",
+    "resistencia_roya": "susceptible",
+    "rendimiento_promedio_qq_mz": 22.00
+  },
+  {
+    "id_variedad": "VAR-004",
+    "nombre_variedad": "Maragogipe",
+    "especie": "Coffea Arabica",
+    "perfil_sensorial_base": "Grano elefante con notas a cacao puro, cedro fino, caña de azúcar y cuerpo sedoso",
+    "resistencia_roya": "susceptible",
+    "rendimiento_promedio_qq_mz": 14.00
+  },
+  {
+    "id_variedad": "VAR-005",
+    "nombre_variedad": "Caturra",
+    "especie": "Coffea Arabica",
+    "perfil_sensorial_base": "Acidez cítrica viva, naranja dulce, chocolate con leche y balance limpio en taza",
+    "resistencia_roya": "susceptible",
+    "rendimiento_promedio_qq_mz": 28.50
+  },
+  {
+    "id_variedad": "VAR-006",
+    "nombre_variedad": "Catuaí Rojo",
+    "especie": "Coffea Arabica",
+    "perfil_sensorial_base": "Notas dulces a panela, almendra, ciruela pasa con acidez media balanceada",
+    "resistencia_roya": "media",
+    "rendimiento_promedio_qq_mz": 32.00
+  },
+  {
+    "id_variedad": "VAR-007",
+    "nombre_variedad": "Catuaí Amarillo",
+    "especie": "Coffea Arabica",
+    "perfil_sensorial_base": "Fruta de hueso, melocotón dulce, flores blancas y sensación suave en boca",
+    "resistencia_roya": "media",
+    "rendimiento_promedio_qq_mz": 30.00
+  }
+]

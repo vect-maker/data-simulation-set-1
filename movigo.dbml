@@ -1,0 +1,89 @@
+// ==========================================
+// CASO 3: MoviGo (Transporte por Aplicación)
+// UBICACIÓN: Área Urbana de Managua, Nicaragua
+// ESQUEMA: OLTP / Raw Data Source
+// ==========================================
+
+Table zonas_urbanas {
+  id_zona varchar(10) [pk]
+  nombre_zona varchar(100) [not null]
+  estrato_socioeconomico varchar(20) [not null, note: 'alto, medio, popular, comercial']
+  latitud decimal(9,6) [not null]
+  longitud decimal(9,6) [not null]
+  radio_cobertura_km decimal(4,2) [not null]
+  tarifa_base_bajada_bandera decimal(8,2) [not null]
+}
+
+Table usuarios {
+  id_usuario varchar(15) [pk]
+  nombre varchar(100) [not null]
+  telefono varchar(20) [not null]
+  metodo_pago_preferido varchar(30) [not null, note: 'efectivo, tarjeta, billetera_digital']
+  calificacion_promedio decimal(3,2) [not null]
+  fecha_registro date [not null]
+}
+
+Table conductores {
+  id_conductor varchar(15) [pk]
+  nombre varchar(100) [not null]
+  tipo_servicio varchar(20) [not null, note: 'movigo_estandar, movigo_comfort, movigo_moto']
+  modelo_vehiculo varchar(100) [not null]
+  anio_vehiculo int [not null]
+  placa varchar(20) [not null]
+  calificacion_promedio decimal(3,2) [not null]
+  tasa_aceptacion_pct decimal(4,2) [not null]
+  estado varchar(20) [not null, note: 'activo, inactivo, en_viaje, desconectado']
+}
+
+Table viajes {
+  id_viaje varchar(20) [pk]
+  id_usuario varchar(15) [not null, ref: > usuarios.id_usuario]
+  id_conductor varchar(15) [ref: > conductores.id_conductor]
+  id_zona_origen varchar(10) [not null, ref: > zonas_urbanas.id_zona]
+  id_zona_destino varchar(10) [not null, ref: > zonas_urbanas.id_zona]
+  fecha_hora_solicitud timestamp [not null]
+  fecha_hora_inicio timestamp
+  fecha_hora_fin timestamp
+  distancia_km decimal(6,2) [not null]
+  duracion_minutos decimal(6,2) [not null]
+  tarifa_base decimal(8,2) [not null]
+  multiplicador_dinamico decimal(4,2) [not null, note: '1.0 a 2.8x segun lluvia y hora pico']
+  tarifa_final decimal(8,2) [not null]
+  metodo_pago varchar(30) [not null, note: 'efectivo, tarjeta, billetera_digital']
+  estado_viaje varchar(25) [not null, note: 'completado, cancelado_usuario, cancelado_conductor, no_asignado']
+  calificacion_usuario decimal(2,1)
+  calificacion_conductor decimal(2,1)
+  propina decimal(8,2) [default: 0.0]
+  motivo_cancelacion text
+}
+
+Table telemetria_conductores {
+  id_telemetria bigserial [pk]
+  id_conductor varchar(15) [not null, ref: > conductores.id_conductor]
+  id_zona varchar(10) [not null, ref: > zonas_urbanas.id_zona]
+  fecha_hora timestamp [not null]
+  latitud decimal(9,6) [not null]
+  longitud decimal(9,6) [not null]
+  velocidad_kmh decimal(5,2) [not null]
+  estado_disponibilidad varchar(25) [not null, note: 'disponible, ocupado, en_camino_recogida']
+}
+
+Table campanas_incentivos {
+  id_campana varchar(10) [pk]
+  nombre_bono varchar(100) [not null]
+  costo_presupuesto_nio decimal(10,2) [not null, note: 'Costo del bono (peso en Mochila)']
+  incremento_horas_conexion decimal(10,2) [not null, note: 'Retorno operativo a maximizar']
+  tipo_incentivo varchar(30) [not null, note: 'meta_viajes, hora_pico_lluvia, zona_alta_demanda']
+  fecha_inicio date [not null]
+  fecha_fin date [not null]
+  estado varchar(20) [not null, note: 'activa, finalizada']
+}
+
+// Ingesta externa vía API (DataOps)
+Table clima_cuadrantes {
+  fecha date [pk]
+  precipitacion_mm decimal(5,2) [not null]
+  temperatura_c decimal(4,2) [not null]
+  indice_congestion decimal(4,2) [not null, note: '1.00 fluido a 3.50 colapso por aguacero']
+  condicion_cielo varchar(30) [not null, note: 'despejado, lluvia_ligera, tormenta, nublado']
+}

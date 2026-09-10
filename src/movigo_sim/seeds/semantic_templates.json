@@ -1,0 +1,12 @@
+{
+  "motivos_cancelacion": [
+    "Usuario canceló: tiempo de espera estimado superó los 15 minutos.",
+    "Usuario canceló: multiplicador dinámico excesivo por aguacero.",
+    "Conductor canceló: paso anegado por corriente de agua en calle secundaria.",
+    "Conductor canceló: pasajero no salió al portón tras llamada y espera reglamentaria.",
+    "Conductor canceló: congestionamiento severo en la rotonda impidió acceso.",
+    "Usuario canceló: solicitó vehículo por equivocación en la dirección.",
+    "Conductor canceló: pinchazo de neumático en trayecto hacia el punto de recogida.",
+    "Usuario canceló: encontró taxi alternativo de inmediato."
+  ]
+}

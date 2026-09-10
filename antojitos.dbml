@@ -1,0 +1,84 @@
+// ==========================================
+// CASO: Antojitos Express (Cocina Fantasma / Delivery)
+// ESQUEMA: OLTP / Raw Data Source
+// ==========================================
+
+Table zonas {
+  id_zona varchar(10) [pk]
+  nombre_zona varchar(100) [not null]
+  latitud decimal(9,6) [not null]
+  longitud decimal(9,6) [not null]
+  distancia_km decimal(5,2) [not null]
+  tiempo_base_minutos int [not null]
+  tarifa_envio_base decimal(8,2) [not null]
+}
+
+Table repartidores {
+  id_repartidor varchar(10) [pk]
+  nombre varchar(100) [not null]
+  tipo_vehiculo varchar(20) [not null, note: 'moto, bicicleta, auto']
+  calificacion_promedio decimal(3,2) [not null]
+  capacidad_maxima_ordenes int [not null]
+  estado varchar(20) [not null, note: 'activo, inactivo, descanso']
+}
+
+Table categorias_platillo {
+  id_categoria varchar(10) [pk]
+  nombre_categoria varchar(50) [not null, note: 'Tacos, Hamburguesas, Bebidas, Postres, etc.']
+  margen_contribucion_pct decimal(4,2) [not null]
+}
+
+Table platillos {
+  id_platillo varchar(10) [pk]
+  id_categoria varchar(10) [not null, ref: > categorias_platillo.id_categoria]
+  nombre_platillo varchar(100) [not null]
+  precio_unitario decimal(8,2) [not null]
+  costo_ingredientes decimal(8,2) [not null]
+  tiempo_preparacion_minutos decimal(5,2) [not null]
+  requiere_horno boolean [not null, default: false]
+  activo boolean [not null, default: true]
+}
+
+Table promociones {
+  id_promocion varchar(10) [pk]
+  nombre_campana varchar(100) [not null]
+  costo_campana decimal(10,2) [not null]
+  retorno_esperado decimal(10,2) [not null]
+  descuento_pct decimal(4,2) [not null]
+  fecha_inicio date [not null]
+  fecha_fin date [not null]
+}
+
+Table ordenes {
+  id_orden varchar(20) [pk]
+  id_zona varchar(10) [not null, ref: > zonas.id_zona]
+  id_repartidor varchar(10) [ref: > repartidores.id_repartidor]
+  id_promocion varchar(10) [ref: > promociones.id_promocion]
+  fecha_hora_creacion timestamp [not null]
+  fecha_hora_entrega timestamp
+  metodo_pago varchar(30) [not null, note: 'efectivo, tarjeta, billetera_digital']
+  estado_orden varchar(20) [not null, note: 'entregada, cancelada, en_camino, preparando']
+  total_orden decimal(10,2) [not null]
+  costo_envio decimal(8,2) [not null]
+  propina decimal(8,2) [default: 0.0]
+  notas_entrega text
+  comentario_cliente text
+  motivo_cancelacion text
+}
+
+Table detalle_ordenes {
+  id_detalle bigserial [pk]
+  id_orden varchar(20) [not null, ref: > ordenes.id_orden]
+  id_platillo varchar(10) [not null, ref: > platillos.id_platillo]
+  cantidad int [not null]
+  precio_unitario decimal(8,2) [not null]
+  subtotal decimal(10,2) [not null]
+}
+
+// Ingesta externa vía API (DataOps)
+Table clima_diario {
+  fecha date [pk]
+  precipitacion_mm decimal(5,2) [not null]
+  temperatura_c decimal(4,2) [not null]
+  condicion_cielo varchar(30) [not null, note: 'despejado, lluvia_ligera, tormenta, nublado']
+}

@@ -1,0 +1,122 @@
+[
+  {
+    "id_subasta": "SUB-001",
+    "nombre_lote_especial": "Micro-lote Geisha Lavado Finca Buenos Aires (Dipilto)",
+    "peso_quintales": 12.0,
+    "costo_certificacion_usd": 1500.00,
+    "retorno_esperado_usd": 14500.00,
+    "puntaje_taza": 91.80,
+    "fecha_subasta": "2024-05-18",
+    "estado_subasta": "adjudicada"
+  },
+  {
+    "id_subasta": "SUB-002",
+    "nombre_lote_especial": "Micro-lote Pacamara Natural Finca La Providencia",
+    "peso_quintales": 18.5,
+    "costo_certificacion_usd": 1800.00,
+    "retorno_esperado_usd": 16800.00,
+    "puntaje_taza": 90.50,
+    "fecha_subasta": "2024-05-18",
+    "estado_subasta": "adjudicada"
+  },
+  {
+    "id_subasta": "SUB-003",
+    "nombre_lote_especial": "Lote Especial Bourbon Miel Finca Selva Negra",
+    "peso_quintales": 28.0,
+    "costo_certificacion_usd": 2400.00,
+    "retorno_esperado_usd": 18200.00,
+    "puntaje_taza": 88.20,
+    "fecha_subasta": "2024-06-02",
+    "estado_subasta": "adjudicada"
+  },
+  {
+    "id_subasta": "SUB-004",
+    "nombre_lote_especial": "Maragogipe Gigante Finca Las Nubes Datanlí",
+    "peso_quintales": 15.0,
+    "costo_certificacion_usd": 1400.00,
+    "retorno_esperado_usd": 11500.00,
+    "puntaje_taza": 88.00,
+    "fecha_subasta": "2024-06-02",
+    "estado_subasta": "adjudicada"
+  },
+  {
+    "id_subasta": "SUB-005",
+    "nombre_lote_especial": "Geisha Maceración Carbónica Finca Los Pinos",
+    "peso_quintales": 9.5,
+    "costo_certificacion_usd": 2100.00,
+    "retorno_esperado_usd": 19500.00,
+    "puntaje_taza": 92.40,
+    "fecha_subasta": "2024-06-15",
+    "estado_subasta": "adjudicada"
+  },
+  {
+    "id_subasta": "SUB-006",
+    "nombre_lote_especial": "Pacamara Honey Anaeróbico Finca El Suspiro",
+    "peso_quintales": 14.0,
+    "costo_certificacion_usd": 1600.00,
+    "retorno_esperado_usd": 13900.00,
+    "puntaje_taza": 89.60,
+    "fecha_subasta": "2024-06-15",
+    "estado_subasta": "adjudicada"
+  },
+  {
+    "id_subasta": "SUB-007",
+    "nombre_lote_especial": "Catuaí Amarillo Fermentación Prolongada San Ramón",
+    "peso_quintales": 22.0,
+    "costo_certificacion_usd": 1700.00,
+    "retorno_esperado_usd": 12800.00,
+    "puntaje_taza": 87.50,
+    "fecha_subasta": "2024-07-05",
+    "estado_subasta": "adjudicada"
+  },
+  {
+    "id_subasta": "SUB-008",
+    "nombre_lote_especial": "Bourbon Rosado Finca La Hammonia",
+    "peso_quintales": 11.0,
+    "costo_certificacion_usd": 1300.00,
+    "retorno_esperado_usd": 10500.00,
+    "puntaje_taza": 88.80,
+    "fecha_subasta": "2024-07-05",
+    "estado_subasta": "adjudicada"
+  },
+  {
+    "id_subasta": "SUB-009",
+    "nombre_lote_especial": "Caturra de Altura Finca Peña Blanca",
+    "peso_quintales": 32.0,
+    "costo_certificacion_usd": 2200.00,
+    "retorno_esperado_usd": 15400.00,
+    "puntaje_taza": 87.00,
+    "fecha_subasta": "2024-07-20",
+    "estado_subasta": "adjudicada"
+  },
+  {
+    "id_subasta": "SUB-010",
+    "nombre_lote_especial": "Pacamara Lavado Clásico Finca Mirador",
+    "peso_quintales": 16.0,
+    "costo_certificacion_usd": 1750.00,
+    "retorno_esperado_usd": 14200.00,
+    "puntaje_taza": 89.80,
+    "fecha_subasta": "2024-07-20",
+    "estado_subasta": "adjudicada"
+  },
+  {
+    "id_subasta": "SUB-011",
+    "nombre_lote_especial": "Geisha Selección Especial San Rafael del Norte",
+    "peso_quintales": 8.0,
+    "costo_certificacion_usd": 1900.00,
+    "retorno_esperado_usd": 18000.00,
+    "puntaje_taza": 91.20,
+    "fecha_subasta": "2024-08-10",
+    "estado_subasta": "adjudicada"
+  },
+  {
+    "id_subasta": "SUB-012",
+    "nombre_lote_especial": "Maragogipe Miel Finca Santa Rosa Río Coco",
+    "peso_quintales": 20.0,
+    "costo_certificacion_usd": 1550.00,
+    "retorno_esperado_usd": 12200.00,
+    "puntaje_taza": 87.80,
+    "fecha_subasta": "2024-08-10",
+    "estado_subasta": "adjudicada"
+  }
+]
