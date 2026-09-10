@@ -21,7 +21,9 @@ dependencies = [
     "psycopg2-binary>=2.9.9",
     "scipy>=1.12.0",
     "google-genai>=2.0.0",
-    "rich>=13.0.0"
+    "rich>=13.0.0",
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.28.0"
 ]
 
 [project.scripts]

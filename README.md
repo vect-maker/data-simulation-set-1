@@ -118,6 +118,9 @@ Modelos prescriptivos aplicados al negocio:
 | `just load-all` | Carga esquemas, triggers, procedimientos, CSVs y vistas materializadas en PostgreSQL |
 | `just db-up` / `just db-down` | Levanta o apaga el contenedor de PostgreSQL 18 Alpine |
 | `just db-psql` | Abre una sesión interactiva `psql` dentro de la base de datos |
+| `just api-up` / `just api-down` | Levanta o apaga todos los servicios (PostgreSQL + FastAPI API en puerto 8000) |
+| `just api-logs` | Visualiza los logs en tiempo real del contenedor FastAPI |
+| `just api-run` | Inicia la API localmente con Uvicorn y recarga en caliente para desarrollo |
 | `just clean` | Limpia artefactos generados, cachés temporales y archivos `.pyc` |
 
 ---
@@ -141,7 +144,29 @@ movigo-sim generate --days 30 && movigo-sim inspect
 
 ---
 
-## 4. Estructura de Salida en `artifacts/`
+## 4. API REST para Estudiantes (`FastAPI` & Docker Compose)
+
+El repositorio incluye un servicio web REST en FastAPI (`src/api`) conectado directamente a PostgreSQL para que los estudiantes puedan consumir, filtrar y paginar los datos simulados:
+
+* **Documentación Interactiva:** Swagger UI en [`http://localhost:8000/docs`](http://localhost:8000/docs) y ReDoc en [`http://localhost:8000/redoc`](http://localhost:8000/redoc).
+* **Seguridad y Acceso:** Acceso público sin autenticación, con CORS completamente abierto (`*`) para consumo directo desde navegadores, Jupyter Notebooks, Google Colab o scripts en Python/R.
+* **Paginación Estándar:** Formato envelope `{"items": [...], "count": N, "total": M, "offset": X, "limit": Y}` con parámetros `?limit=50&offset=0` y ordenamiento `?sort=campo` o `?sort=-campo`.
+* **Rutas por Caso:**
+  * **Caso 1 (Antojitos Express):** `/antojitos/zonas`, `/antojitos/repartidores`, `/antojitos/categorias`, `/antojitos/platillos`, `/antojitos/promociones`, `/antojitos/clima`, `/antojitos/ordenes`, `/antojitos/ordenes/{id_orden}`, `/antojitos/detalles`.
+  * **Caso 2 (Cooperativa El Volcán):** `/volcan/fincas`, `/volcan/variedades`, `/volcan/beneficios`, `/volcan/cuadrillas`, `/volcan/clima`, `/volcan/lotes`, `/volcan/lotes/{id_lote}`, `/volcan/procesamiento`, `/volcan/subastas`, `/volcan/embarques`.
+  * **Caso 3 (MoviGo):** `/movigo/zonas`, `/movigo/usuarios`, `/movigo/conductores`, `/movigo/campanas`, `/movigo/clima`, `/movigo/viajes`, `/movigo/viajes/{id_viaje}`, `/movigo/telemetria`.
+
+```bash
+# Iniciar servicios completos en Docker Compose (Postgres + FastAPI):
+just api-up
+
+# Verificar estado de salud y conexión a la base de datos:
+curl http://localhost:8000/health
+```
+
+---
+
+## 5. Estructura de Salida en `artifacts/`
 
 Toda la simulación genera de manera transparente sus archivos de salida directamente en el directorio `artifacts/`:
 
@@ -179,7 +204,7 @@ artifacts/
 
 ---
 
-## 5. Documentación y Consultas de Inicio
+## 6. Documentación y Consultas de Inicio
 
 * **Guía Docente y Estudiante:** [`docs/GUIA_DOCENTE_Y_ESTUDIANTE.md`](docs/GUIA_DOCENTE_Y_ESTUDIANTE.md) (Rúbricas, lineamientos por asignatura, preguntas de investigación y entregables).
 * **Guías de Casos de Negocio:**
@@ -193,10 +218,11 @@ artifacts/
 
 ---
 
-## 6. Estructura del Repositorio
+## 7. Estructura del Repositorio
 
 ```text
-├── compose.yml                      # PostgreSQL 18 Alpine con volumen montado
+├── Dockerfile                       # Contenedor de la API REST FastAPI
+├── compose.yml                      # PostgreSQL 18 Alpine + FastAPI API
 ├── justfile                         # Automatización centralizada
 ├── pyproject.toml                   # Configuración del paquete y CLIs
 ├── antojitos.dbml                   # Esquema DBML Caso 1 (Antojitos Express)
@@ -210,6 +236,12 @@ artifacts/
 │   ├── common.py                    # Utilidades de generación semántica
 │   └── generate_all_seeds.py        # Generador de catálogos con Gemini API
 ├── src/
+│   ├── api/                         # Servicio REST FastAPI público para estudiantes
+│   │   ├── main.py                  # Entrypoint de FastAPI y configuración CORS
+│   │   ├── database.py              # Pool de conexiones PostgreSQL
+│   │   ├── schemas.py               # Modelos Pydantic y sobres de paginación
+│   │   ├── utils.py                 # Query builder seguro, ordenamiento y filtros
+│   │   └── routers/                 # Routers por caso (/antojitos, /volcan, /movigo)
 │   ├── data_sim/                    # Núcleo unificado y compartido
 │   │   ├── cli.py                   # CLI unificada 'data-sim'
 │   │   └── core/                    # Módulos matemáticos, estadísticos y base

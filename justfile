@@ -132,16 +132,36 @@ inspect-all:
 
 # Start PostgreSQL service via Docker Compose
 db-up:
-    docker compose up -d
+    docker compose up -d postgres
 
 # Stop PostgreSQL service
 db-down:
-    docker compose down
+    docker compose stop postgres
 
 # Reset PostgreSQL service and delete stored volume
 db-reset:
     docker compose down -v
-    docker compose up -d
+    docker compose up -d postgres
+
+# Start all services (PostgreSQL + FastAPI API) via Docker Compose
+api-up:
+    docker compose up -d --build
+
+# Stop all services (PostgreSQL + FastAPI API)
+api-down:
+    docker compose down
+
+# Stream logs for the FastAPI API container
+api-logs:
+    docker compose logs -f api
+
+# Restart FastAPI API container
+api-restart:
+    docker compose restart api
+
+# Run FastAPI API locally for development without Docker
+api-run:
+    {{ VENV_BIN }}uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
 
 # Open interactive PostgreSQL shell (psql)
 db-psql:
