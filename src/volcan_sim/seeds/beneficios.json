@@ -11,16 +11,6 @@
   },
   {
     "id_beneficio": "BNF-002",
-    "nombre_beneficio": "Húmedo Cordillera de Dipilto",
-    "tipo_beneficio": "humedo",
-    "municipio": "Dipilto",
-    "latitud": 13.79,
-    "longitud": -86.5,
-    "capacidad_quintales_dia": 950.0,
-    "costo_procesamiento_qq": 32.0
-  },
-  {
-    "id_beneficio": "BNF-003",
     "nombre_beneficio": "Húmedo Selva Negra",
     "tipo_beneficio": "humedo",
     "municipio": "Selva Negra",
@@ -30,7 +20,27 @@
     "costo_procesamiento_qq": 26.0
   },
   {
+    "id_beneficio": "BNF-003",
+    "nombre_beneficio": "Húmedo Cordillera de Dipilto",
+    "tipo_beneficio": "humedo",
+    "municipio": "Dipilto",
+    "latitud": 13.79,
+    "longitud": -86.5,
+    "capacidad_quintales_dia": 950.0,
+    "costo_procesamiento_qq": 32.0
+  },
+  {
     "id_beneficio": "BNF-004",
+    "nombre_beneficio": "Húmedo Somoto Río Coco",
+    "tipo_beneficio": "humedo",
+    "municipio": "San Juan de Río Coco",
+    "latitud": 13.54,
+    "longitud": -86.16,
+    "capacidad_quintales_dia": 800.0,
+    "costo_procesamiento_qq": 30.0
+  },
+  {
+    "id_beneficio": "BNF-005",
     "nombre_beneficio": "Beneficio Seco Central Sébaco",
     "tipo_beneficio": "seco",
     "municipio": "Sébaco",

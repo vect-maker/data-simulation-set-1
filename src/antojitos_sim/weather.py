@@ -141,7 +141,7 @@ def parse_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
         "fecha": pd.to_datetime(daily["time"]).date,
         "precipitacion_mm": [float(p) if p is not None else 0.0 for p in daily["precipitation_sum"]],
         "temperatura_c": [float(t) if t is not None else 28.0 for t in daily["temperature_2m_mean"]],
-        "weather_code": [int(c) if c is not None else 0 for c in daily["weather_code"]]
+        "weather_code": [int(c) if c is not None else 0 for c in (daily.get("weather_code") or daily.get("weathercode", []))]
     })
 
     df["condicion_cielo"] = [

@@ -1,9 +1,16 @@
-"""Exporter module: generates CSV artifacts, PostgreSQL DDL, and data SQL dumps."""
+"""Exporter module: generates CSV artifacts, PostgreSQL DDL, and data SQL dumps.
+
+Includes academic database objects required by curriculum:
+- Auditing tables and trigger functions (trg_auditoria_ordenes, trg_validar_cronologia)
+- Stored functions (fn_calcular_total_orden)
+- Analytical materialized views (mv_resumen_diario_ventas)
+- Security roles (rol_ingesta_dataops, rol_analista_datos, rol_auditor_bi)
+"""
 
 import json
 import logging
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import pandas as pd
 from scipy.stats import chi2_contingency
 
@@ -25,6 +32,11 @@ from antojitos_sim.models import (
     ClimaDiario,
     Orden,
     DetalleOrden,
+)
+from antojitos_sim.analytics import (
+    compute_estadistica_ii_models,
+    compute_metodos_numericos_models,
+    compute_optimizacion_models,
 )
 
 logger = logging.getLogger(__name__)
@@ -67,7 +79,7 @@ def export_to_csv(
 
 
 def generate_postgresql_ddl() -> str:
-    """Generate PostgreSQL DDL matching the updated DBML schema."""
+    """Generate PostgreSQL DDL matching the relational & analytical curriculum."""
     return """-- =========================================================
 -- ESQUEMA OLTP / RAW STAGING: Antojitos Express (Managua, Nicaragua)
 -- =========================================================
@@ -77,6 +89,7 @@ SET search_path TO raw_staging, public;
 
 DROP TABLE IF EXISTS detalle_ordenes CASCADE;
 DROP TABLE IF EXISTS ordenes CASCADE;
+DROP TABLE IF EXISTS auditoria_ordenes CASCADE;
 DROP TABLE IF EXISTS clima_diario CASCADE;
 DROP TABLE IF EXISTS promociones CASCADE;
 DROP TABLE IF EXISTS platillos CASCADE;
@@ -163,7 +176,77 @@ CREATE TABLE detalle_ordenes (
     subtotal DECIMAL(10,2) NOT NULL
 );
 
--- Indices for analytical queries
+-- =========================================================
+-- OBJETOS DE BASE DE DATOS (Tema 3 y 5: Bases de Datos Relacionales)
+-- =========================================================
+
+-- 1. Tabla de Auditoria de Estados
+CREATE TABLE auditoria_ordenes (
+    id_auditoria BIGSERIAL PRIMARY KEY,
+    id_orden VARCHAR(20) NOT NULL,
+    estado_anterior VARCHAR(20),
+    estado_nuevo VARCHAR(20) NOT NULL,
+    fecha_cambio TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usuario_db VARCHAR(50) NOT NULL DEFAULT CURRENT_USER
+);
+
+-- 2. Trigger de Auditoria de Ordenes (AFTER UPDATE)
+CREATE OR REPLACE FUNCTION fn_auditar_cambio_orden()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.estado_orden IS DISTINCT FROM NEW.estado_orden THEN
+        INSERT INTO raw_staging.auditoria_ordenes (id_orden, estado_anterior, estado_nuevo, fecha_cambio, usuario_db)
+        VALUES (NEW.id_orden, OLD.estado_orden, NEW.estado_orden, CURRENT_TIMESTAMP, CURRENT_USER);
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_auditar_ordenes
+AFTER UPDATE ON ordenes
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditar_cambio_orden();
+
+-- 3. Trigger de Validacion Cronologica (BEFORE INSERT OR UPDATE)
+CREATE OR REPLACE FUNCTION fn_validar_cronologia_orden()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.fecha_hora_entrega IS NOT NULL AND NEW.fecha_hora_entrega < NEW.fecha_hora_creacion THEN
+        RAISE EXCEPTION 'Regla de negocio violada: fecha_hora_entrega (%) no puede ser anterior a fecha_hora_creacion (%)',
+            NEW.fecha_hora_entrega, NEW.fecha_hora_creacion;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_validar_cronologia_orden
+BEFORE INSERT OR UPDATE ON ordenes
+FOR EACH ROW
+EXECUTE FUNCTION fn_validar_cronologia_orden();
+
+-- 4. Funcion SQL para Liquidacion y Calculo de Totales con IVA de Nicaragua (15%)
+CREATE OR REPLACE FUNCTION fn_calcular_total_orden(p_id_orden VARCHAR)
+RETURNS DECIMAL(10,2) AS $$
+DECLARE
+    v_subtotal DECIMAL(10,2) := 0.0;
+    v_envio DECIMAL(8,2) := 0.0;
+    v_propina DECIMAL(8,2) := 0.0;
+    v_total DECIMAL(10,2) := 0.0;
+BEGIN
+    SELECT COALESCE(SUM(subtotal), 0.0) INTO v_subtotal
+    FROM raw_staging.detalle_ordenes
+    WHERE id_orden = p_id_orden;
+
+    SELECT costo_envio, propina INTO v_envio, v_propina
+    FROM raw_staging.ordenes
+    WHERE id_orden = p_id_orden;
+
+    v_total := v_subtotal + COALESCE(v_envio, 0.0) + COALESCE(v_propina, 0.0);
+    RETURN v_total;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Indices analiticos para optimizacion fisica
 CREATE INDEX idx_ordenes_fecha ON ordenes(fecha_hora_creacion);
 CREATE INDEX idx_ordenes_zona ON ordenes(id_zona);
 CREATE INDEX idx_ordenes_repartidor ON ordenes(id_repartidor);
@@ -172,13 +255,57 @@ CREATE INDEX idx_detalle_ordenes_platillo ON detalle_ordenes(id_platillo);
 """
 
 
+def generate_post_load_objects_ddl() -> str:
+    """Generate materialized views and security roles to be executed after data COPY."""
+    return """
+-- =========================================================
+-- VISTAS MATERIALIZADAS Y ROLES (Ejecutado post-carga de datos)
+-- =========================================================
+
+-- Vista Materializada Analitica de Resumen Diario
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_resumen_diario_ventas AS
+SELECT 
+    DATE(o.fecha_hora_creacion) AS fecha,
+    o.id_zona,
+    z.nombre_zona,
+    COUNT(o.id_orden) AS total_pedidos,
+    SUM(o.total_orden) AS ingreso_bruto_nio,
+    AVG(EXTRACT(EPOCH FROM (o.fecha_hora_entrega - o.fecha_hora_creacion))/60.0) AS tiempo_promedio_entrega_min
+FROM ordenes o
+JOIN zonas z ON o.id_zona = z.id_zona
+WHERE o.estado_orden = 'entregada'
+GROUP BY DATE(o.fecha_hora_creacion), o.id_zona, z.nombre_zona
+WITH DATA;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_resumen_fecha_zona 
+ON mv_resumen_diario_ventas(fecha, id_zona);
+
+-- Configuracion de Roles y Seguridad (Principio de Menor Privilegio)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rol_ingesta_dataops') THEN
+        CREATE ROLE rol_ingesta_dataops;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rol_analista_datos') THEN
+        CREATE ROLE rol_analista_datos;
+    END IF;
+END $$;
+
+GRANT USAGE ON SCHEMA raw_staging TO rol_ingesta_dataops, rol_analista_datos;
+GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA raw_staging TO rol_ingesta_dataops;
+GRANT SELECT ON ALL TABLES IN SCHEMA raw_staging TO rol_analista_datos;
+GRANT SELECT ON mv_resumen_diario_ventas TO rol_analista_datos;
+"""
+
+
 def export_to_sql_dump(
     csv_paths: Dict[str, Path],
     output_file: Path = SQL_ARTIFACTS_DIR / "schema_and_data.sql",
 ) -> Path:
-    """Generate consolidated SQL file with DDL and COPY statements."""
+    """Generate consolidated SQL file with DDL, COPY statements, and analytical objects."""
     output_file.parent.mkdir(parents=True, exist_ok=True)
     ddl = generate_postgresql_ddl()
+    post_ddl = generate_post_load_objects_ddl()
 
     copy_order = [
         "zonas",
@@ -204,6 +331,8 @@ def export_to_sql_dump(
                     f"\\copy raw_staging.{table} FROM '{csv_p.name}' WITH (FORMAT csv, HEADER true);\n"
                 )
 
+        sql_f.write(post_ddl)
+
     logger.info(f"Generated SQL schema and load instructions at {output_file}")
     return output_file
 
@@ -214,12 +343,15 @@ def compute_simulation_summary(
     clima: List[ClimaDiario],
     platillos: List[Platillo],
     zonas: List[Zona],
+    repartidores: Optional[List[Repartidor]] = None,
 ) -> Dict[str, Any]:
-    """Compute mathematical & statistical properties of the generated dataset."""
+    """Compute mathematical & statistical properties across the 5 pillars."""
     df_orders = pd.DataFrame([o.model_dump() for o in ordenes])
     df_details = pd.DataFrame([d.model_dump() for d in detalles])
     df_clima = pd.DataFrame([c.model_dump() for c in clima])
     df_platillos = pd.DataFrame([p.model_dump() for p in platillos])
+    df_zonas = pd.DataFrame([z.model_dump() for z in zonas])
+    df_repartidores = pd.DataFrame([r.model_dump() for r in repartidores]) if repartidores else pd.DataFrame()
 
     total_revenue = float(df_orders["total_orden"].sum())
     total_orders = len(df_orders)
@@ -231,22 +363,23 @@ def compute_simulation_summary(
     df_orders["fecha"] = pd.to_datetime(df_orders["fecha_hora_creacion"]).dt.date
     daily_order_counts = df_orders.groupby("fecha").size().reset_index(name="num_orders")
     merged_weather = pd.merge(df_clima, daily_order_counts, on="fecha", how="left").fillna(0)
-
-    # Correlation between precipitation and daily order volume
     corr = float(merged_weather["precipitacion_mm"].corr(merged_weather["num_orders"]))
 
     # Chi-Square test between Zone and Dish Category
-    # Join detail -> dish -> category, join detail -> order -> zone
     merged_items = df_details.merge(
         df_platillos[["id_platillo", "id_categoria"]], on="id_platillo", how="left"
     ).merge(
         df_orders[["id_orden", "id_zona"]], on="id_orden", how="left"
     )
-
     contingency_table = pd.crosstab(merged_items["id_zona"], merged_items["id_categoria"])
-
-    # Chi-Square computation using scipy
     chi2_stat, p_val, dof, _ = chi2_contingency(contingency_table)
+
+    # Formal Pillar Evaluations
+    estadistica_results = compute_estadistica_ii_models(
+        df_orders, df_clima, df_details, df_platillos, df_zonas, df_repartidores
+    )
+    numericos_results = compute_metodos_numericos_models(df_orders)
+    optimizacion_results = compute_optimizacion_models()
 
     summary = {
         "city": CITY_NAME,
@@ -269,6 +402,9 @@ def compute_simulation_summary(
             "p_value": float(p_val),
             "guarantee_p_less_than_0_01": bool(p_val < 0.01),
         },
+        "estadistica_ii": estadistica_results,
+        "metodos_numericos": numericos_results,
+        "optimizacion": optimizacion_results,
     }
 
     summary_path = ARTIFACTS_DIR / "simulation_summary.json"
@@ -276,5 +412,5 @@ def compute_simulation_summary(
     with open(summary_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2)
 
-    logger.info(f"Wrote summary verification report to {summary_path}")
+    logger.info(f"Wrote comprehensive summary verification report to {summary_path}")
     return summary

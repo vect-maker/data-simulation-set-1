@@ -1,233 +1,208 @@
 # Motores de Simulación de Datos Sintéticos (Proyecto Integrador - Nicaragua)
 
-Repositorio de generación y simulación de datos transaccionales realistas para el **Proyecto Integrador: De los Datos a la Decisión**, ambientado en el mercado de **Nicaragua** y cubriendo las 5 asignaturas de la columna vertebral analítica:
-1. **Bases de Datos Analíticas:** Fundación OLTP normalizada con integridad referencial, staging y marts.
-2. **Shell Scripting (DataOps):** Ingesta automatizada de variables *driver* externas vía APIs públicas (`ingesta.sh`).
-3. **Estadística II:** Relaciones de demanda, verificación de supuestos lineales y pruebas de independencia Ji-Cuadrado ($p < 0.01$).
-4. **Métodos Numéricos:** Ajuste de curvas (splines/polinomios), diferenciación (tasas de cambio/elasticidad), integración y raíces.
-5. **Optimización:** Modelos de transporte, asignación (Húngaro), ruteo (TSP), optimización lineal (Simplex) y programación entera (Mochila).
+Repositorio de generación y simulación de datos transaccionales realistas para el **Proyecto Integrador: De los Datos a la Decisión**, ambientado en el contexto socioeconómico y productivo de **Nicaragua**. El proyecto cubre de manera rigurosa las **6 asignaturas de la columna vertebral académica**:
+
+1. **Bases de Datos Relacionales:** Modelado relacional normalizado (3NF), claves foráneas con integridad referencial, restricciones `CHECK`, funciones PL/pgSQL, procedimientos almacenados (`sp`), tablas de auditoría y triggers (`AFTER UPDATE`, `BEFORE INSERT`).
+2. **Diseño y Uso de Bases de Datos Analíticas:** Esquemas staging (`raw_staging`), vistas materializadas analíticas con refresco e índices únicos para reporting, control de acceso basado en roles (`rol_ingesta_dataops`, `rol_analista_datos`) y optimización de consultas.
+3. **Programación en Scripting (DataOps):** Pipeline de automatización en Bash POSIX con manejo robusto de errores (`set -euo pipefail`), descarga de APIs con `curl`, reintentos exponenciales, procesamiento de datos con `jq`, `awk` y `sed`, monitor de telemetría de sistema con `trap`, orquestador interactivo y empaquetado seguro con sumas de verificación SHA-256.
+4. **Estadística II:** Regresión lineal simple y múltiple con tabla ANOVA completa (SCA, SCE, SCT, $F$, $p$-valor, $R^2$), verificación de supuestos de Gauss-Markov (normalidad de Shapiro-Wilk, homocedasticidad de Breusch-Pagan, autocorrelación de Durbin-Watson), 3 pruebas formales de hipótesis ($t$-Student, $z$-proporciones, ANOVA de un factor) y pruebas de independencia Ji-Cuadrado ($\chi^2$).
+5. **Métodos Numéricos:** Búsqueda de raíces de ecuaciones no lineales (Bisección y Newton-Raphson), cálculo numérico de derivadas y elasticidad-precio de la demanda mediante diferencias finitas centradas, e integración numérica (Regla de Simpson 1/3 y regla Trapezoidal).
+6. **Optimización:** Programación lineal continua (Simplex), modelos de redes y transporte (Método de Aproximación de Vogel - VAM), asignación óptima de recursos (Algoritmo Húngaro), caminos más cortos (Dijkstra sobre grafos urbanos), programación entera (Problema de la Mochila 0/1) y gestión de proyectos (Método de la Ruta Crítica - CPM/PERT).
 
 ---
 
-## Casos Implementados
+## Casos de Estudio Implementados
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ CASO 1: Antojitos Express (Cocina Fantasma / Delivery en Managua)           │
 │  - Driver: Precipitación diaria en Managua (Open-Meteo)                     │
 │  - Ji-Cuadrado: Categoría de platillo vs. Zona urbana de Managua            │
-│  - Optimización: TSP multientrega, Húngaro couriers, Simplex capacidad     │
+│  - Estadística: Regresión Lluvia vs. Órdenes, Supuestos Gauss-Markov        │
+│  - Métodos Numéricos: Raíces (Equilibrio de cocina), Elasticidad de precios │
+│  - Optimización: Asignación Húngara couriers, Simplex insumos de cocina     │
+│  - Base de Datos: Triggers de auditoría y validación cronológica, MV ventas │
 │  - CLI: antojitos-sim                                                       │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ CASO 2: Cooperativa El Volcán (Café de Exportación de Altura)               │
-│  - Driver: Clima agropecuario Jinotega (Open-Meteo) y cotización futures    │
-│  - Ji-Cuadrado: Variedad botánica vs. Región de origen (Dipilto/Jinotega...)│
-│  - Regresión: Altitud de finca vs. Calidad de taza SCAA (80-92.5 pts)       │
-│  - Optimización: Red Fincas -> Beneficios -> Puerto Corinto, Mochila Taza   │
+│  - Driver: Clima agropecuario Jinotega (Open-Meteo) y cotización mercado C  │
+│  - Ji-Cuadrado: Variedad botánica vs. Región cafetalera                     │
+│  - Estadística: Regresión Altitud vs. SCAA, 3 Pruebas de Hipótesis          │
+│  - Métodos Numéricos: Cinética de secado M(t)=M0*e^(-kt), Newton-Raphson    │
+│  - Optimización: Modelo Vogel (Fincas->Beneficios->Corinto), Mochila, CPM   │
+│  - Base de Datos: SP cierre beneficio, Trigger auditoría, MV exportaciones  │
 │  - CLI: volcan-sim                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ CASO 3: MoviGo (Transporte por Aplicación - Managua)                        │
+│  - Driver: Precipitación y congestión vial en Managua (Open-Meteo)          │
+│  - Ji-Cuadrado: Método de pago vs. Estrato socioeconómico de origen         │
+│  - Estadística: Regresión Lluvia vs. Viajes, ANOVA duración por estrato     │
+│  - Métodos Numéricos: Multiplicador de equilibrio oferta/demanda (Bisección)│
+│  - Optimización: Algoritmo Húngaro conductores, Dijkstra rutas críticas     │
+│  - Base de Datos: Trigger auditoría estados, Función liquidación, MV KPIs   │
+│  - CLI: movigo-sim                                                          │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 1. Caso 1: Antojitos Express (Cocina Fantasma - Managua)
+## 1. Alineación Curricular Detallada
 
-* **Esquema:** [`antojitos.dbml`](file:///var/home/ocelot/Repositories/data-simulation/antojitos.dbml)
-* **Ubicación:** Managua, Nicaragua (Cocina en Los Robles/Altamira).
-* **Zonas:** 12 cuadrantes (Los Robles, Altamira, Villa Fontana, Las Colinas, Bello Horizonte, Bolonia, Linda Vista, Santo Domingo, Carretera Sur, Ciudad Jardín, Centroamérica, Rubenia).
-* **Platillos:** Más de 35 platillos auténticos (Fritanga y asados, quesillos en hoja de chaguite, nacatamales, cacao con leche, cervezas Toña/Victoria).
-* **Métricas 2024:** 56,888 órdenes, 123,241 ítems, C$ 22.3M en ventas brutas, $r = 0.9037$ con lluvia, $\chi^2 = 4,304.24$ ($p < 0.01$).
+### A. Bases de Datos Relacionales & Analíticas
+Cada caso genera un esquema DDL completo (`schema_and_data.sql`) cargable directamente en PostgreSQL:
+* **Integridad y Restricciones:** Claves primarias sintéticas o compuestas, claves foráneas con restricciones de integridad y cláusulas `CHECK` en columnas de estado.
+* **Auditoría con Triggers:**
+  * `trg_auditar_ordenes` / `trg_auditar_lotes` / `trg_auditar_viajes`: Capturan de forma transparente cualquier cambio de estado del registro, insertando fecha exacta, usuario de base de datos (`CURRENT_USER`) y valores anterior/nuevo en tablas de auditoría independientes.
+  * `trg_validar_cronologia_orden`: Trigger de negocio `BEFORE INSERT OR UPDATE` que impide inconsistencias temporales (e.g. hora de entrega previa a la creación).
+* **Lógica Almacenada (PL/pgSQL):**
+  * `fn_calcular_total_orden(p_id_orden)`: Calcula el total neto consolidando ítems, promociones, envío y propina.
+  * `sp_cerrar_etapa_beneficio(p_id_proceso, p_merma, p_peso_salida)`: Procedimiento almacenado transaccional para actualizar rendimientos de secado/trillado.
+  * `fn_liquidar_tarifa_viaje(p_base, p_dist, p_dur, p_mult)`: Función determinista de liquidación de viajes.
+* **Vistas Materializadas e Índices:**
+  * `mv_resumen_diario_ventas`, `mv_resumen_exportacion_pais`, `mv_kpis_movilidad_horaria`.
+  * Índices únicos sobre las claves lógicas de agregación y B-tree sobre claves foráneas y fechas para optimización del plan de ejecución (`EXPLAIN ANALYZE`).
+* **Seguridad y Roles (RBAC):**
+  * Creación y asignación de permisos mínimos para `rol_ingesta_dataops` (escritura en staging) y `rol_analista_datos` (lectura analítica y acceso a vistas materializadas).
 
-### Comandos de Ejecución
-```bash
-# Vía just (Recomendado)
-just generate-antojitos
-just inspect-antojitos
-just mock-antojitos
+### B. Programación en Scripting (DataOps en Linux)
+Pipeline modular ubicado en `scripts/` compatible con POSIX Bash:
+* `scripts/ingesta.sh`: Descarga datos meteorológicos en tiempo real desde la API Archive de Open-Meteo con reintentos exponenciales, validación JSON y extracción de métricas con `jq`, `awk` y `sed`.
+* `scripts/orquestador.sh`: Menú interactivo en terminal ANSI para ejecutar pasos pre-vuelo, generación, pruebas y carga sin fricción.
+* `scripts/monitor.sh`: Daemon de monitoreo de telemetría de CPU, memoria, almacenamiento y estado de contenedores Docker con captura de señales POSIX (`trap`).
+* `scripts/exportar_resultados.sh`: Empaquetado versionado `.tar.gz` de artefactos CSV y SQL con manifiesto de firmas de integridad SHA-256 (`sha256sum`).
 
-# Vía CLI directa
-antojitos-sim generate
-antojitos-sim inspect
-antojitos-sim mock-api --port 8000
-```
+### C. Estadística II
+Módulos `analytics.py` en cada motor que calculan métricas rigurosas expuestas tanto en formato Rich (consola) como en JSON:
+* **Tabla ANOVA de Regresión:** Sumas de cuadrados (Regresión, Residual, Total), grados de libertad, cuadrados medios, estadístico $F$, $p$-valor y coeficientes ($R^2$, $R^2$ ajustado).
+* **Diagnóstico de Supuestos Gauss-Markov:**
+  * **Normalidad:** Test de Shapiro-Wilk sobre los residuos ($W$, $p$-valor).
+  * **Homocedasticidad:** Test de Breusch-Pagan / Lagrange Multiplier ($LM$, $p$-valor).
+  * **Independencia:** Estadístico de Durbin-Watson ($d$).
+* **3 Pruebas de Hipótesis Formales por Motor:**
+  1. Diferencia de medias con $t$-Student independiente ($t$, $p$-valor).
+  2. Diferencia de proporciones con prueba $z$ ($z$, $p$-valor).
+  3. ANOVA de un factor para comparación múltiple de grupos ($F$, $p$-valor).
+* **Prueba de Independencia Ji-Cuadrado ($\chi^2$):** Validación con tablas de contingencia cruzando variables categóricas ($p < 0.01$).
 
----
+### D. Métodos Numéricos
+Implementaciones explícitas sin dependencias opacas:
+* **Búsqueda de Raíces:** Algoritmos de Bisección y Newton-Raphson para encontrar puntos de equilibrio económico ($R(q) - C(q) = 0$), tiempos de secado de café hasta el 11.5% de humedad, y multiplicador dinámico óptimo de transporte ($S(m) - D(m) = 0$).
+* **Diferenciación Numérica:** Aproximación por diferencias finitas centradas de orden $\mathcal{O}(h^2)$ para calcular la elasticidad-precio puntual $\epsilon_p = \frac{dq}{dp}\frac{p}{q}$.
+* **Integración Numérica:** Regla compuesta de Simpson 1/3 y regla Trapezoidal para integración de flujos continuos de demanda y masa de café recolectada.
+* **Linealización:** Ajuste exponencial de cinética de deshidratación $\ln M(t) = \ln M_0 - kt$ mediante mínimos cuadrados ordinarios.
 
-## 2. Caso 2: Cooperativa El Volcán (Café de Exportación)
-
-* **Esquema:** [`cooperativa.dbml`](file:///var/home/ocelot/Repositories/data-simulation/cooperativa.dbml)
-* **Zonas Cafetaleras:** 30 fincas en Jinotega (Datanlí, Pantasma, El Cuá), Matagalpa (Selva Negra, Yasica Sur), Nueva Segovia (Dipilto, Mozonte) y Madriz (San Juan del Río Coco).
-* **Altitudes:** 950 a 1650 msnm.
-* **Variedades:** Geisha, Pacamara, Bourbon, Maragogipe, Caturra, Catuaí Rojo, Catuaí Amarillo.
-* **Logística:** Fincas $\rightarrow$ Beneficios Húmedos regionales $\rightarrow$ Beneficio Seco Central Sébaco $\rightarrow$ Exportación vía **Puerto Corinto**.
-* **Métricas 2024:**
-  * **2,493 lotes de acopio** recolectados (3,141,263 kg de café cereza).
-  * **7,479 etapas de procesamiento** (despulpado, fermentación, secado en patio, trillado).
-  * **1,920 embarques internacionales** hacia Alemania, EE.UU., Japón, Bélgica, Taiwán e Italia.
-  * **USD $5,918,051.28** en ingresos brutos de exportación.
-  * **Correlación Altitud vs. SCAA:** $r = 0.7196$ (fuerte relación lineal).
-  * **Ji-Cuadrado (Variedad vs. Región):** $\chi^2 = 712.01, p = 1.61 \times 10^{-139}$ ($p < 0.01$ **PASS**).
-  * **Problema de la Mochila:** 12 micro-lotes para subasta internacional (Taza de la Excelencia) bajo restricción de quintales.
-
-### Comandos de Ejecución
-```bash
-# Vía just (Recomendado)
-just generate-volcan
-just inspect-volcan
-just mock-volcan
-
-# Vía CLI directa
-volcan-sim generate
-volcan-sim inspect
-volcan-sim mock-api --port 8001
-```
-
----
-
-## 3. Caso 3: MoviGo (Transporte por Aplicación - Managua)
-
-* **Esquema:** [`movigo.dbml`](file:///var/home/ocelot/Repositories/data-simulation/movigo.dbml)
-* **Zonas Urbanas:** 12 cuadrantes urbanos clasificados por estrato socioeconómico:
-  * **Estrato Alto:** *Villa Fontana, Las Colinas, Santo Domingo*.
-  * **Estrato Medio:** *Los Robles, Altamira, Bolonia, Bello Horizonte, Linda Vista*.
-  * **Comercial / Universitarias:** *Metrocentro / Eje Corporativo UCA*.
-  * **Popular:** *Ciudad Jardín, Mercado Oriental, Mercado Roberto Huembes*.
-* **Driver Continuo:** Precipitación diaria y severidad de lluvia ($P_t$), congestionamiento vial y hora pico.
-* **Ji-Cuadrado de Independencia:** Método de Pago (`efectivo`, `tarjeta`, `billetera_digital`) vs. Estrato Socioeconómico de Origen ($p < 0.01$).
-* **Optimización & Métodos Numéricos:**
-  * Algoritmo Húngaro para despacho y balanceo de conductores a zonas críticas.
-  * Ruta más corta sobre grafos viales de Managua.
-  * Elasticidad-precio de la demanda bajo multiplicador dinámico (1.0x a 2.8x).
-  * Problema de la Mochila (Knapsack 0/1) para selección de bonos e incentivos a conductores bajo presupuesto mensual fijo.
-
-### Comandos de Ejecución
-```bash
-# Vía just (Recomendado)
-just generate-movigo
-just inspect-movigo
-just mock-movigo
-
-# Vía CLI directa
-movigo-sim generate
-movigo-sim inspect
-movigo-sim mock-api --port 8002
-```
+### E. Optimización
+Modelos prescriptivos aplicados al negocio:
+* **Programación Lineal (Simplex):** Maximización de margen bruto sujeto a capacidad horaria de freidoras, hornos y horas-hombre en cocina.
+* **Modelo de Transporte (Vogel - VAM):** Distribución de carga óptima minimizando fletes de café desde centros de acopio hacia beneficios y Puerto Corinto.
+* **Algoritmo Húngaro (Asignación):** Emparejamiento biyectivo óptimo que minimiza el tiempo total de espera entre repartidores/conductores y solicitudes.
+* **Ruta Más Corta (Dijkstra):** Selección de trayectos óptimos sobre la red vial de Managua comparando tiempos en condiciones secas vs. lluvia torrencial.
+* **Problema de la Mochila (Knapsack 0/1):** Selección de lotes especiales de café para subastas internacionales o campañas de incentivos a conductores maximizando retorno bajo presupuesto limitado.
+* **Gestión de Proyectos (CPM / PERT):** Determinación de la ruta crítica y holguras sobre la cadena de valor de beneficio y exportación de café (12 actividades).
 
 ---
 
-## 4. Orquestación con `just`
-
-El repositorio incluye un [`justfile`](file:///var/home/ocelot/Repositories/data-simulation/justfile) para coordinar las tareas de desarrollo, simulación, inspección y carga en bases de datos:
+## 2. Comandos Principales (`justfile`)
 
 | Comando | Descripción |
 | :--- | :--- |
-| `just` | Lista todos los comandos disponibles con su descripción |
-| `just install` | Instala dependencias y los tres paquetes en modo editable (`pip install -e .`) |
-| `just seed-all` / `just seed` | Genera y regenera catálogos y semillas sintéticas con Google Gemini API para los 3 casos |
-| `just seed-antojitos` | Genera catálogos y plantillas semánticas con Gemini API para Antojitos Express |
-| `just seed-volcan` | Genera fincas, variedades, beneficios y notas SCAA con Gemini API para Cooperativa El Volcán |
-| `just seed-movigo` | Genera cuadrantes, conductores, usuarios y plantillas con Gemini API para MoviGo |
-| `just fetch-weather` / `just weather` | Descarga y actualiza desde la API Open-Meteo los datos climáticos para los 3 casos (reemplaza raw data) |
-| `just fetch-weather-antojitos` | Descarga datos meteorológicos de Managua para Antojitos Express |
-| `just fetch-weather-volcan` | Descarga datos agroclimáticos de Jinotega para Cooperativa El Volcán |
-| `just fetch-weather-movigo` | Descarga datos de clima y tráfico de Managua para MoviGo |
-| `just generate-all` | Genera las 3 simulaciones completas para el año 2024 (descarga clima si no existe) |
-| `just generate-antojitos [days]` | Genera datos de Caso 1: Antojitos Express (ej. `just generate-antojitos 30`) |
-| `just generate-volcan [days]` | Genera datos de Caso 2: Cooperativa El Volcán |
-| `just generate-movigo [days]` | Genera datos de Caso 3: MoviGo |
-| `just inspect-all` | Despliega los reportes estadísticos y métricas de los 3 casos |
-| `just inspect-antojitos` | Despliega métricas de Antojitos Express |
-| `just inspect-volcan` | Despliega métricas de Cooperativa El Volcán |
-| `just inspect-movigo` | Despliega métricas de MoviGo |
-| `just mock-antojitos [port]` | Inicia servidor mock de Open-Meteo para Antojitos (defecto: 8000) |
-| `just mock-volcan [port]` | Inicia servidor mock de agro-clima para El Volcán (defecto: 8001) |
-| `just mock-movigo [port]` | Inicia servidor mock de clima/tráfico para MoviGo (defecto: 8002) |
-| `just db-up` / `just db-down` | Levanta o detiene el contenedor local de PostgreSQL 18 Alpine con Compose (`compose.yml`) |
-| `just db-reset` | Detiene el contenedor, borra los volúmenes persistentes y lo inicia limpio |
-| `just db-psql` | Abre una terminal interactiva `psql` dentro de la base de datos |
-| `just load-all` | Carga los 3 casos en sus respectivos esquemas PostgreSQL |
-| `just load-antojitos` | Carga Antojitos Express en el esquema `raw_staging` |
-| `just load-volcan` | Carga El Volcán en el esquema `raw_staging_volcan` |
-| `just load-movigo` | Carga MoviGo en el esquema `raw_staging_movigo` |
-| `just test` | Ejecuta un ciclo de verificación rápida (3 días por caso), verifica y limpia |
-| `just clean` | Elimina artefactos generados, cachés temporales y archivos `__pycache__` |
-| `just clean-all` | Elimina artefactos generados, cachés temporales y la carpeta `data/raw/` de clima |
+| `just` | Lista todas las recetas disponibles |
+| `just install` | Instala paquetes y dependencias en modo editable (`pip install -e .`) |
+| `just generate-all [days]` | Ejecuta las simulaciones para los 3 casos (ej. `just generate-all 7`) |
+| `just inspect-all` | Despliega tablas Rich con estadística, métodos numéricos y optimización |
+| `just load-all` | Carga esquemas, triggers, procedimientos, CSVs y vistas materializadas en PostgreSQL |
+| `just test` | Ejecuta verificación de extremo a extremo (3 días por motor, validación y limpieza) |
+| `just orchestrate` | Inicia el orquestador interactivo de DataOps en consola Bash |
+| `just ingest [target]` | Descarga variables driver meteorológicas vía API (`all`, `antojitos`, `volcan`, `movigo`) |
+| `just monitor` | Inicia el monitor en vivo de consumo de CPU, RAM, disco y PostgreSQL |
+| `just export` | Empaqueta artefactos generados en `.tar.gz` versionado con firmas SHA-256 |
+| `just db-up` / `just db-down` | Levanta o apaga el contenedor de PostgreSQL 18 Alpine |
+| `just db-psql` | Abre una sesión interactiva `psql` dentro de la base de datos |
+| `just clean` | Limpia artefactos generados, cachés temporales y archivos `.pyc` |
 
 ---
 
-## 5. Estructura Estandarizada del Repositorio
+## 3. Guía de Ejecución Rápida
+
+### Requisitos Previos
+* Linux / macOS / WSL2
+* Python 3.10+
+* Docker y Docker Compose
+* `just` (administrador de comandos)
+
+### Paso 1: Configuración del Entorno
+```bash
+# Clonar y entrar al directorio
+git clone <repo-url> && cd data-simulation
+
+# Instalar dependencias
+just install
+
+# Iniciar contenedor PostgreSQL 18
+just db-up
+```
+
+### Paso 2: Generación de Datos Sintéticos
+```bash
+# Simular 30 días de operaciones para los 3 casos
+just generate-all 30
+
+# O simular el año 2024 completo
+just generate-all
+```
+
+### Paso 3: Carga en Base de Datos PostgreSQL
+```bash
+# Carga automática con fallback a Docker exec
+just load-all
+```
+
+### Paso 4: Inspección de Modelos Analíticos
+```bash
+# Visualizar resultados de Estadística, Métodos Numéricos y Optimización
+just inspect-all
+```
+
+### Paso 5: Exportación DataOps
+```bash
+# Generar paquete con sumas de verificación SHA-256
+just export
+```
+
+---
+
+## 4. Estructura del Repositorio
 
 ```text
 ├── antojitos.dbml                   # Esquema DBML Caso 1 (Antojitos Express)
 ├── cooperativa.dbml                 # Esquema DBML Caso 2 (Cooperativa El Volcán)
 ├── movigo.dbml                      # Esquema DBML Caso 3 (MoviGo)
-├── justfile                         # Orquestador de comandos Just
-├── pyproject.toml                   # Configuración de paquete Python data-simulation
-├── requirements.txt                 # Dependencias Python
-├── compose.yml                      # PostgreSQL 18 Alpine local
-├── .env.example                     # Variables de entorno (GEMINI_API_KEY, PG, etc.)
-├── info.md                          # Definición del proyecto integrador
-├── scripts/                         # Generadores de semillas con Google Gemini API
-│   ├── common.py                    # Utilidades de cliente Gemini, reintentos y fallback
-│   ├── generate_antojitos_seeds.py  # Generador de catálogos Caso 1 (Antojitos)
-│   ├── generate_volcan_seeds.py     # Generador de catálogos Caso 2 (El Volcán)
-│   ├── generate_movigo_seeds.py     # Generador de catálogos Caso 3 (MoviGo)
-│   └── generate_all_seeds.py        # Runner maestro de semillas
+├── compose.yml                      # PostgreSQL 18 Alpine con volumen montado
+├── justfile                         # Automatización centralizada
+├── pyproject.toml                   # Configuración del paquete y CLIs
+├── scripts/                         # Pipeline DataOps & Generadores de Semillas
+│   ├── ingesta.sh                   # Ingesta API Open-Meteo con reintentos y curl
+│   ├── orquestador.sh               # Menú interactivo ANSI para estudiantes
+│   ├── monitor.sh                   # Telemetría de recursos y Docker con traps
+│   ├── exportar_resultados.sh       # Empaquetado tar.gz y manifiesto SHA-256
+│   └── generate_all_seeds.py        # Generador de catálogos con Gemini API
 ├── src/
-│   ├── antojitos_sim/               # Motor Caso 1 (Antojitos Express)
-│   │   ├── config.py, models.py, seeds/, weather.py
-│   │   ├── generator.py, enrichment.py, exporter.py, pipeline.py, cli.py
-│   ├── volcan_sim/                  # Motor Caso 2 (Cooperativa El Volcán)
-│   │   ├── config.py, models.py, seeds/, weather.py
-│   │   ├── generator.py, enrichment.py, exporter.py, pipeline.py, cli.py
-│   └── movigo_sim/                  # Motor Caso 3 (MoviGo)
-│       ├── config.py, models.py, seeds/, weather.py
-│       ├── generator.py, enrichment.py, exporter.py, pipeline.py, cli.py
-├── artifacts/                       # (Ignorado en git via .gitignore)
-│   ├── antojitos/
-│   │   ├── csv/                     # 8 CSVs normalizados
-│   │   ├── sql/schema_and_data.sql  # DDL + COPY (schema raw_staging)
-│   │   └── simulation_summary.json  # Métricas y pruebas Ji-Cuadrado
-│   ├── volcan/
-│   │   ├── csv/                     # 9 CSVs normalizados
-│   │   ├── sql/schema_and_data.sql  # DDL + COPY (schema raw_staging_volcan)
-│   │   └── simulation_summary.json  # Métricas y pruebas Ji-Cuadrado
-│   └── movigo/
-│       ├── csv/                     # 7 CSVs normalizados
-│       ├── sql/schema_and_data.sql  # DDL + COPY (schema raw_staging_movigo)
-│       └── simulation_summary.json  # Métricas y pruebas Ji-Cuadrado
-└── data/
-    └── raw/                         # (Ignorado en git via .gitignore, generado vía API)
-        ├── antojitos/clima_managua_2024.json
-        ├── volcan/clima_jinotega_2024.json
-        └── movigo/clima_managua_movigo_2024.json
-```
-
----
-
-## 6. Carga Directa en PostgreSQL (dlt o psql)
-
-### Levantar Base de Datos
-```bash
-just db-up
-# o con Docker Compose: docker compose up -d
-```
-
-### Cargar todos los casos
-```bash
-just load-all
-```
-
-### O cargar individualmente con psql:
-```bash
-# Caso 1 (Antojitos Express -> raw_staging)
-cd artifacts/antojitos/csv && psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql
-
-# Caso 2 (Cooperativa El Volcán -> raw_staging_volcan)
-cd artifacts/volcan/csv && psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql
-
-# Caso 3 (MoviGo -> raw_staging_movigo)
-cd artifacts/movigo/csv && psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql
+│   ├── antojitos_sim/               # Motor Caso 1 (Cocina Fantasma)
+│   │   ├── analytics.py             # ANOVA, Gauss-Markov, Raíces, Simplex, Húngaro
+│   │   ├── exporter.py              # DDL, Triggers, Auditoría, Vistas Materializadas
+│   │   └── generator.py, weather.py, cli.py
+│   ├── volcan_sim/                  # Motor Caso 2 (Café de Exportación)
+│   │   ├── analytics.py             # ANOVA, Cinética secado, Vogel VAM, Mochila, CPM
+│   │   ├── exporter.py              # DDL, SP Cierre, Triggers, Auditoría, Vistas
+│   │   └── generator.py, weather.py, cli.py
+│   └── movigo_sim/                  # Motor Caso 3 (Transporte Urbano MoviGo)
+│       ├── analytics.py             # ANOVA, Gauss-Markov, Bisección, Húngaro, Dijkstra
+│       ├── exporter.py              # DDL, Función liquidación, Triggers, Auditoría
+│       └── generator.py, weather.py, cli.py
+├── artifacts/                       # Salida de simulación (CSVs, SQL, JSON)
+└── data/raw/                        # Series climáticas descargadas
 ```

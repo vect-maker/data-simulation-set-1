@@ -45,6 +45,8 @@ env/
 # Data cache, generated raw datasets & local database
 data/cache/
 data/raw/
+data/exports/
+data/logs/
 postgres_data/
 
 # Generated artifacts and datasets

@@ -123,7 +123,7 @@ def parse_movigo_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
 
     precip = [float(p) if p is not None else 0.0 for p in daily["precipitation_sum"]]
     temps = [float(t) if t is not None else 28.5 for t in daily["temperature_2m_mean"]]
-    codes = [int(c) if c is not None else 0 for c in daily["weather_code"]]
+    codes = [int(c) if c is not None else 0 for c in (daily.get("weather_code") or daily.get("weathercode", []))]
 
     # Traffic congestion index: 1.00 (fluid) to 3.50 (severe downpour chaos)
     # Managua traffic collapses when rainwater floods major avenues / rotaries

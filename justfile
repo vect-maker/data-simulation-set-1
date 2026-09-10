@@ -160,27 +160,39 @@ db-psql:
 
 # Load Antojitos Express data into PostgreSQL (schema raw_staging)
 load-antojitos:
-    @if [ -f artifacts/antojitos/sql/schema_and_data.sql ]; then \
-        cd artifacts/antojitos/csv && PGPASSWORD=postgres psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
-    else \
-        {{ ANTOJITOS }} load; \
-    fi
+	@if [ -f artifacts/antojitos/sql/schema_and_data.sql ]; then \
+		if command -v psql >/dev/null 2>&1; then \
+			cd artifacts/antojitos/csv && PGPASSWORD=postgres psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
+		else \
+			docker compose exec -w /workspace/artifacts/antojitos/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
+		fi \
+	else \
+		{{ ANTOJITOS }} load; \
+	fi
 
 # Load Cooperativa El Volcán data into PostgreSQL (schema raw_staging_volcan)
 load-volcan:
-    @if [ -f artifacts/volcan/sql/schema_and_data.sql ]; then \
-        cd artifacts/volcan/csv && PGPASSWORD=postgres psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
-    else \
-        {{ VOLCAN }} load; \
-    fi
+	@if [ -f artifacts/volcan/sql/schema_and_data.sql ]; then \
+		if command -v psql >/dev/null 2>&1; then \
+			cd artifacts/volcan/csv && PGPASSWORD=postgres psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
+		else \
+			docker compose exec -w /workspace/artifacts/volcan/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
+		fi \
+	else \
+		{{ VOLCAN }} load; \
+	fi
 
 # Load MoviGo data into PostgreSQL (schema raw_staging_movigo)
 load-movigo:
-    @if [ -f artifacts/movigo/sql/schema_and_data.sql ]; then \
-        cd artifacts/movigo/csv && PGPASSWORD=postgres psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
-    else \
-        {{ MOVIGO }} load; \
-    fi
+	@if [ -f artifacts/movigo/sql/schema_and_data.sql ]; then \
+		if command -v psql >/dev/null 2>&1; then \
+			cd artifacts/movigo/csv && PGPASSWORD=postgres psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
+		else \
+			docker compose exec -w /workspace/artifacts/movigo/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
+		fi \
+	else \
+		{{ MOVIGO }} load; \
+	fi
 
 # Load all 3 cases into PostgreSQL
 load-all:
@@ -201,3 +213,20 @@ test:
     {{ MOVIGO }} inspect
     @echo "\n✓ All 3 simulation pipelines verified successfully!"
     @just clean
+
+# DataOps: Interactive Pipeline Orchestrator
+orchestrate:
+    ./scripts/orquestador.sh
+
+# DataOps: Ingest weather & driver variables via public APIs
+ingest target="all":
+    ./scripts/ingesta.sh {{ target }}
+
+# DataOps: Resource & PostgreSQL telemetry monitor
+monitor:
+    ./scripts/monitor.sh
+
+# DataOps: Versioned data export with checksums
+export:
+    ./scripts/exportar_resultados.sh
+

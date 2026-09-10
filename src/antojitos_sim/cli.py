@@ -1,6 +1,7 @@
 """CLI interface for Antojitos Express Synthetic Data Simulation Engine."""
 
 import argparse
+import json
 import logging
 import sys
 from pathlib import Path
@@ -26,6 +27,78 @@ from antojitos_sim.pipeline import load_simulation_to_postgres
 console = Console()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("antojitos_sim")
+
+
+def display_rich_summary(summary: dict):
+    """Render comprehensive multi-pillar academic report using Rich tables."""
+    # 1. General Operational Metrics
+    table_ops = Table(title="Antojitos Express: Métricas Operativas y Demanda (2024)", style="cyan")
+    table_ops.add_column("Métrica", style="bold white")
+    table_ops.add_column("Valor", style="green")
+
+    table_ops.add_row("Ciudad / Mercado", summary["city"])
+    table_ops.add_row("Rango de Fechas", f"{summary['date_range'][0]} a {summary['date_range'][1]}")
+    table_ops.add_row("Total Órdenes Generadas", f"{summary['total_orders']:,}")
+    table_ops.add_row("Total Líneas de Detalle", f"{summary['total_line_items']:,}")
+    table_ops.add_row("Ingreso Bruto Total", f"C$ {summary['total_revenue_nio']:,.2f}")
+    table_ops.add_row("Órdenes Entregadas", f"{summary['delivered_orders']:,}")
+    table_ops.add_row("Órdenes Canceladas", f"{summary['canceled_orders']:,} ({summary['cancellation_rate_pct']}%)")
+    table_ops.add_row("Órdenes Diarias (Media / Min / Max)", f"{summary['daily_orders_mean']} / {summary['daily_orders_min']} / {summary['daily_orders_max']}")
+    table_ops.add_row("Correlación Lluvia-Demanda (r)", f"{summary['weather_order_correlation']:.4f}")
+
+    chi_res = summary["chi_square_test_zone_vs_category"]
+    p_status = "[bold green]PASS (p < 0.01)[/bold green]" if chi_res["guarantee_p_less_than_0_01"] else "[bold red]FAIL[/bold red]"
+    table_ops.add_row("Ji-Cuadrado (Zona vs Categoría)", f"χ² = {chi_res['chi2_statistic']}, p = {chi_res['p_value']:.2e} -> {p_status}")
+    console.print("\n", table_ops)
+
+    # 2. Estadística II: Regresión y Supuestos OLS
+    if "estadistica_ii" in summary:
+        est = summary["estadistica_ii"]
+        table_reg = Table(title="Estadística II: Supuestos OLS y Pruebas de Hipótesis", style="magenta")
+        table_reg.add_column("Análisis / Test", style="bold white")
+        table_reg.add_column("Estadístico / Diagnóstico", style="yellow")
+        table_reg.add_column("Resultado / Conclusión", style="green")
+
+        sup = est.get("validacion_supuestos", {})
+        norm = sup.get("normalidad_residuos", {})
+        table_reg.add_row("Normalidad Residuos (Shapiro)", f"W = {norm.get('estadistico_w')}, p = {norm.get('p_valor')}", "Cumple Gauss-Markov" if norm.get('cumple_supuesto') else "Aceptable para n grande")
+
+        homo = sup.get("homocedasticidad", {})
+        table_reg.add_row("Homocedasticidad (Breusch-Pagan)", f"LM = {homo.get('estadistico_lm')}, p = {homo.get('p_valor')}", "Varianza residual constante" if homo.get('cumple_supuesto') else "Heterocedasticidad leve")
+
+        dw = sup.get("independencia_errores", {})
+        table_reg.add_row("Autocorrelación (Durbin-Watson)", f"DW = {dw.get('estadistico_dw')}", dw.get('diagnostico', 'N/A'))
+
+        for h in est.get("bateria_pruebas_hipotesis", []):
+            table_reg.add_row(f"Hipótesis: {h['id']}", f"p-valor = {h['p_valor']:.4e}", h['conclusion'])
+
+        console.print("\n", table_reg)
+
+    # 3. Métodos Numéricos & Optimización
+    if "metodos_numericos" in summary and "optimizacion" in summary:
+        num = summary["metodos_numericos"]
+        opt = summary["optimizacion"]
+
+        table_math = Table(title="Métodos Numéricos & Optimización Prescriptiva", style="green")
+        table_math.add_column("Pilar / Modelo", style="bold white")
+        table_math.add_column("Solución Numérica / Prescriptiva", style="cyan")
+
+        raices = num.get("ecuaciones_no_lineales_raices", {})
+        table_math.add_row("Raíces (Punto Equilibrio Cocina)", f"Bisección: {raices.get('raiz_biseccion_ordenes')} órdenes | Newton: {raices.get('raiz_newton_raphson_ordenes')} órdenes | Óptimo q*={raices.get('q_optimo_maximo_beneficio')}")
+
+        elast = num.get("diferenciacion_numerica_elasticidad", {})
+        table_math.add_row("Diferenciación (Elasticidad)", f"ε_p({elast.get('precio_evaluado_nio')} NIO) = {elast.get('elasticidad_precio_demanda')} -> {elast.get('clasificacion')}")
+
+        integ = num.get("integración_numerica_demanda", num.get("integracion_numerica_demanda", {}))
+        table_math.add_row("Integración Numérica (Simpson)", f"Simpson: {integ.get('integral_regla_simpson_compuesta')} | Real: {integ.get('suma_discreta_real')} (Error: {integ.get('error_relativo_simpson_pct')}%)")
+
+        pl = opt.get("programacion_lineal_simplex", {})
+        table_math.add_row("Programación Lineal (Simplex)", f"Margen Máx: C$ {pl.get('margen_maximo_nio'):,.2f} | Precios Sombra: {pl.get('precios_sombra_restricciones')}")
+
+        hung = opt.get("algoritmo_hungaro_asignacion", {})
+        table_math.add_row("Asignación Couriers (Húngaro)", f"Tiempo global óptimo de respuesta: {hung.get('tiempo_total_minutos')} minutos ({hung.get('matriz_dimension')})")
+
+        console.print("\n", table_math, "\n")
 
 
 def cmd_generate(args):
@@ -84,6 +157,7 @@ def cmd_generate(args):
             clima=clima_records,
             platillos=engine.platillos,
             zonas=engine.zonas,
+            repartidores=engine.repartidores,
         )
 
     console.print(f"[green]✓[/green] CSV artifacts exported to: [bold]{csv_dir}[/bold]")
@@ -105,26 +179,7 @@ def cmd_generate(args):
             )
         console.print(f"[green]✓[/green] Successfully loaded into PostgreSQL schema '[bold]{args.schema}[/bold]'!")
 
-    # Display summary table
-    table = Table(title="Antojitos Express Simulation Summary (2024)", style="cyan")
-    table.add_column("Metric", style="bold white")
-    table.add_column("Value", style="green")
-
-    table.add_row("City / Market", summary["city"])
-    table.add_row("Date Range", f"{summary['date_range'][0]} to {summary['date_range'][1]}")
-    table.add_row("Total Orders", f"{summary['total_orders']:,}")
-    table.add_row("Total Line Items", f"{summary['total_line_items']:,}")
-    table.add_row("Total Gross Revenue", f"C$ {summary['total_revenue_nio']:,.2f}")
-    table.add_row("Delivered Orders", f"{summary['delivered_orders']:,}")
-    table.add_row("Canceled Orders", f"{summary['canceled_orders']:,} ({summary['cancellation_rate_pct']}%)")
-    table.add_row("Daily Orders (Avg / Min / Max)", f"{summary['daily_orders_mean']} / {summary['daily_orders_min']} / {summary['daily_orders_max']}")
-    table.add_row("Rain-Demand Correlation (r)", f"{summary['weather_order_correlation']:.4f}")
-
-    chi_res = summary["chi_square_test_zone_vs_category"]
-    p_status = "[bold green]PASS (p < 0.01)[/bold green]" if chi_res["guarantee_p_less_than_0_01"] else "[bold red]FAIL[/bold red]"
-    table.add_row("Chi-Square Test (Zone vs Category)", f"χ² = {chi_res['chi2_statistic']}, p = {chi_res['p_value']:.2e} -> {p_status}")
-
-    console.print("\n", table, "\n")
+    display_rich_summary(summary)
 
 
 def cmd_load(args):
@@ -162,11 +217,13 @@ def cmd_inspect(args):
         console.print(f"[red]Error: Summary file {summary_path} not found. Run 'generate' first.[/red]")
         sys.exit(1)
 
-    import json
     with open(summary_path, "r", encoding="utf-8") as f:
         summary = json.load(f)
 
-    console.print_json(data=summary)
+    if getattr(args, "json", False):
+        console.print_json(data=summary)
+    else:
+        display_rich_summary(summary)
 
 
 def cmd_fetch_weather(args):
@@ -211,6 +268,7 @@ def main():
 
     # inspect
     inspect_parser = subparsers.add_parser("inspect", help="Inspect simulation metrics and statistical tests")
+    inspect_parser.add_argument("--json", action="store_true", help="Output raw JSON instead of tables")
     inspect_parser.set_defaults(func=cmd_inspect)
 
     parsed_args = parser.parse_args()
