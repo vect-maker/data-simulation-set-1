@@ -17,9 +17,13 @@ class TestCLIInterfaces(unittest.TestCase):
         self.assertEqual(args.case, "antojitos")
         self.assertEqual(args.days, 5)
 
-        args_b = parser.parse_args(["bundle", "--case", "all"])
-        self.assertEqual(args_b.command, "bundle")
-        self.assertEqual(args_b.case, "all")
+        args_l = parser.parse_args(["load", "--case", "all"])
+        self.assertEqual(args_l.command, "load")
+        self.assertEqual(args_l.case, "all")
+
+        args_w = parser.parse_args(["weather", "--case", "all"])
+        self.assertEqual(args_w.command, "weather")
+        self.assertEqual(args_w.case, "all")
 
         args_i = parser.parse_args(["inspect", "--case", "volcan"])
         self.assertEqual(args_i.command, "inspect")

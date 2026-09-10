@@ -4,7 +4,7 @@ Repositorio de generación y simulación de datos transaccionales realistas para
 
 1. **Bases de Datos Relacionales:** Modelado relacional normalizado (3NF), claves foráneas con integridad referencial, restricciones `CHECK`, funciones PL/pgSQL, procedimientos almacenados (`sp`), tablas de auditoría y triggers (`AFTER UPDATE`, `BEFORE INSERT`).
 2. **Diseño y Uso de Bases de Datos Analíticas:** Esquemas staging (`raw_staging`), vistas materializadas analíticas con refresco e índices únicos para reporting, control de acceso basado en roles (`rol_ingesta_dataops`, `rol_analista_datos`) y optimización de consultas.
-3. **Programación en Scripting (DataOps):** Pipeline de automatización en Bash POSIX con manejo robusto de errores (`set -euo pipefail`), descarga de APIs con `curl`, reintentos exponenciales, procesamiento de datos con `jq`, `awk` y `sed`, monitor de telemetría de sistema con `trap`, orquestador interactivo y empaquetado seguro con sumas de verificación SHA-256.
+3. **Automatización y Scripting:** CLI unificada (`data-sim`), automatización de tareas con `just`, ingesta de APIs REST con reintentos y caché local, pipelines de generación transaccional reproducible y exportación estándar a CSV y SQL DDL.
 4. **Estadística II:** Regresión lineal simple y múltiple con tabla ANOVA completa (SCA, SCE, SCT, $F$, $p$-valor, $R^2$), verificación de supuestos de Gauss-Markov (normalidad de Shapiro-Wilk, homocedasticidad de Breusch-Pagan, autocorrelación de Durbin-Watson), 3 pruebas formales de hipótesis ($t$-Student, $z$-proporciones, ANOVA de un factor) y pruebas de independencia Ji-Cuadrado ($\chi^2$).
 5. **Métodos Numéricos:** Búsqueda de raíces de ecuaciones no lineales (Bisección y Newton-Raphson), cálculo numérico de derivadas y elasticidad-precio de la demanda mediante diferencias finitas centradas, e integración numérica (Regla de Simpson 1/3 y regla Trapezoidal).
 6. **Optimización:** Programación lineal continua (Simplex), modelos de redes y transporte (Método de Aproximación de Vogel - VAM), asignación óptima de recursos (Algoritmo Húngaro), caminos más cortos (Dijkstra sobre grafos urbanos), programación entera (Problema de la Mochila 0/1) y gestión de proyectos (Método de la Ruta Crítica - CPM/PERT).
@@ -68,12 +68,11 @@ Cada caso genera un esquema DDL completo (`schema_and_data.sql`) cargable direct
 * **Seguridad y Roles (RBAC):**
   * Creación y asignación de permisos mínimos para `rol_ingesta_dataops` (escritura en staging) y `rol_analista_datos` (lectura analítica y acceso a vistas materializadas).
 
-### B. Programación en Scripting (DataOps en Linux)
-Pipeline modular ubicado en `scripts/` compatible con POSIX Bash:
-* `scripts/ingesta.sh`: Descarga datos meteorológicos en tiempo real desde la API Archive de Open-Meteo con reintentos exponenciales, validación JSON y extracción de métricas con `jq`, `awk` y `sed`.
-* `scripts/orquestador.sh`: Menú interactivo en terminal ANSI para ejecutar pasos pre-vuelo, generación, pruebas y carga sin fricción.
-* `scripts/monitor.sh`: Daemon de monitoreo de telemetría de CPU, memoria, almacenamiento y estado de contenedores Docker con captura de señales POSIX (`trap`).
-* `scripts/exportar_resultados.sh`: Empaquetado versionado `.tar.gz` de artefactos CSV y SQL con manifiesto de firmas de integridad SHA-256 (`sha256sum`).
+### B. Automatización, Pipelines y CLI
+Arquitectura modular en Python con automatización centralizada vía `justfile` y CLI `data-sim`:
+* **Cliente HTTP Meteorológico:** Descarga datos desde la API Archive de Open-Meteo con caché local y reintentos, más fallback sintético determinista.
+* **Pipelines de Carga a Base de Datos:** Carga directa a PostgreSQL con soporte para `psql` nativo y `docker compose exec`.
+* **Automatización con Just:** Recetas para instalación, generación, inspección visual en consola, tests unitarios y limpieza de entorno.
 
 ### C. Estadística II
 Módulos `analytics.py` en cada motor que calculan métricas rigurosas expuestas tanto en formato Rich (consola) como en JSON:
@@ -113,15 +112,10 @@ Modelos prescriptivos aplicados al negocio:
 | `just` | Lista todas las recetas disponibles |
 | `just install` | Instala paquetes y dependencias en modo editable (`pip install -e .`) |
 | `just test-unit` | Ejecuta suite de pruebas unitarias (Stats, Métodos Numéricos, Optimización, Integridad) |
-| `just test` | Ejecuta suite unitaria + simulación rápida de 3 días + inspección + empaquetado |
+| `just test` | Ejecuta suite unitaria + simulación rápida de 3 días + inspección analítica |
 | `just generate-all [days]` | Ejecuta las simulaciones para los 3 casos (ej. `just generate-all 7`) |
 | `just inspect-all` | Despliega tablas Rich con estadística, métodos numéricos y optimización |
-| `just bundle-all` / `just bundle` | Genera paquetes autocontenidos para estudiantes en `data/exports/student_bundles/` |
 | `just load-all` | Carga esquemas, triggers, procedimientos, CSVs y vistas materializadas en PostgreSQL |
-| `just orchestrate` | Inicia el orquestador interactivo de DataOps en consola Bash |
-| `just ingest [target]` | Descarga variables driver meteorológicas vía API (`all`, `antojitos`, `volcan`, `movigo`) |
-| `just monitor` | Inicia el monitor en vivo de consumo de CPU, RAM, disco y PostgreSQL |
-| `just export` | Empaqueta artefactos generados en `.tar.gz` versionado con firmas SHA-256 |
 | `just db-up` / `just db-down` | Levanta o apaga el contenedor de PostgreSQL 18 Alpine |
 | `just db-psql` | Abre una sesión interactiva `psql` dentro de la base de datos |
 | `just clean` | Limpia artefactos generados, cachés temporales y archivos `.pyc` |
@@ -130,16 +124,14 @@ Modelos prescriptivos aplicados al negocio:
 
 ## 3. CLI Unificada (`data-sim`) y Motores Especializados
 
-El proyecto cuenta con un punto de entrada unificado `data-sim` y mantiene compatibilidad total con los CLIs independientes:
+El proyecto cuenta con un punto de entrada unificado `data-sim` en Python y mantiene compatibilidad total con los CLIs independientes:
 
 ```bash
 # Uso del CLI unificado:
 data-sim generate --case all --days 30   # Genera los 3 casos (o --case antojitos / volcan / movigo)
 data-sim inspect --case all             # Muestra métricas, tablas ANOVA y modelos prescriptivos
-data-sim bundle --case all              # Empaqueta carpetas y .tar.gz para estudiantes
 data-sim load --case all                # Carga datos en PostgreSQL (local psql o Docker)
 data-sim weather --case all             # Descarga o verifica series meteorológicas
-data-sim mock-api --case antojitos -p 8000 # Levanta mock server Open-Meteo
 
 # O usando los CLIs específicos:
 antojitos-sim generate --days 30 && antojitos-sim inspect
@@ -149,20 +141,41 @@ movigo-sim generate --days 30 && movigo-sim inspect
 
 ---
 
-## 4. Paquetes para Estudiantes (Student Bundles)
+## 4. Estructura de Salida en `artifacts/`
 
-Para facilitar la entrega a los estudiantes en el aula universitaria, el sistema genera paquetes individuales limpios y autónomos en `data/exports/student_bundles/`:
+Toda la simulación genera de manera transparente sus archivos de salida directamente en el directorio `artifacts/`:
 
-* `caso_1_antojitos_express/` (y su comprimido `caso_1_antojitos_express.tar.gz`)
-* `caso_2_cooperativa_volcan/` (y su comprimido `caso_2_cooperativa_volcan.tar.gz`)
-* `caso_3_movigo/` (y su comprimido `caso_3_movigo.tar.gz`)
-
-Cada paquete contiene:
-1. `README.md`: Guía de la empresa simulada, diccionario de datos y retos por asignatura.
-2. `schema_and_data.sql`: Script DDL completo con tablas 3NF, triggers, funciones y sentencias `\copy`.
-3. `starter_queries.sql`: Consultas SQL iniciales de exploración, integridad y vistas analíticas.
-4. `*.dbml`: Diagrama Entidad-Relación en formato DBML para dbdocs / dbdiagram.io.
-5. `csv/`: Archivos CSV tabulares generados para carga manual o vía dbt / Pandas.
+```text
+artifacts/
+├── antojitos/
+│   ├── csv/                   # Tablas relacionales normalizadas (3NF) en CSV
+│   │   ├── zonas.csv
+│   │   ├── repartidores.csv
+│   │   ├── categorias_platillo.csv
+│   │   ├── platillos.csv
+│   │   ├── promociones.csv
+│   │   ├── clima_diario.csv
+│   │   ├── ordenes.csv
+│   │   └── detalle_ordenes.csv
+│   ├── sql/
+│   │   └── schema_and_data.sql # DDL con llaves, triggers, auditoría y comandos \copy
+│   └── simulation_summary.json # Resumen métrico, ANOVA, raíces y optimización
+├── volcan/
+│   ├── csv/                   # Tablas de acopio, beneficio y exportación de café
+│   │   ├── fincas.csv, variedades_cafe.csv, beneficios.csv, cuadrillas_corte.csv
+│   │   ├── lotes_acopio.csv, procesamiento_beneficio.csv, subastas_especiales.csv
+│   │   └── embarques_exportacion.csv, clima_zonas_cafetaleras.csv
+│   ├── sql/
+│   │   └── schema_and_data.sql # DDL con procedimientos, triggers y vistas
+│   └── simulation_summary.json # Resumen métrico, cinéticas de secado y Vogel VAM
+└── movigo/
+    ├── csv/                   # Tablas de viajes, movilidad urbana y telemetría
+    │   ├── zonas_urbanas.csv, usuarios.csv, conductores.csv, campanas_incentivos.csv
+    │   └── viajes.csv, telemetria_conductores.csv, clima_cuadrantes.csv
+    ├── sql/
+    │   └── schema_and_data.sql # DDL con funciones de liquidación y auditoría
+    └── simulation_summary.json # Resumen métrico, elasticidad y Dijkstra
+```
 
 ---
 
@@ -193,11 +206,8 @@ Cada paquete contiene:
 │   ├── GUIA_DOCENTE_Y_ESTUDIANTE.md # Manual maestro del proyecto integrador
 │   └── casos/                       # Briefs detallados para estudiantes
 ├── queries/                         # Consultas SQL starter por caso
-├── scripts/                         # Pipeline DataOps & Generadores de Semillas
-│   ├── ingesta.sh                   # Ingesta API Open-Meteo con reintentos y curl
-│   ├── orquestador.sh               # Menú interactivo ANSI para estudiantes
-│   ├── monitor.sh                   # Telemetría de recursos y Docker con traps
-│   ├── exportar_resultados.sh       # Empaquetado tar.gz y manifiesto SHA-256
+├── scripts/                         # Generadores de Semillas y Catálogos Sintéticos
+│   ├── common.py                    # Utilidades de generación semántica
 │   └── generate_all_seeds.py        # Generador de catálogos con Gemini API
 ├── src/
 │   ├── data_sim/                    # Núcleo unificado y compartido
@@ -206,11 +216,10 @@ Cada paquete contiene:
 │   │       ├── stats.py             # ANOVA, Gauss-Markov, Welch t, Chi2, Prop-z
 │   │       ├── numerics.py          # Bisección, Newton, Diferencias finitas, Simpson
 │   │       ├── optimization.py      # Simplex con precios sombra, Vogel, Húngaro, Dijkstra, CPM
-│   │       ├── weather.py           # Cliente HTTP Open-Meteo y mock server
+│   │       ├── weather.py           # Cliente HTTP Open-Meteo con caché y fallback
 │   │       ├── database.py          # Conectores y ejecutores PostgreSQL/Docker
 │   │       ├── exporter.py          # Exportadores CSV y generadores SQL DDL
-│   │       ├── reporting.py         # Visualizadores Rich en consola
-│   │       └── bundle.py            # Generador de paquetes para estudiantes
+│   │       └── reporting.py         # Visualizadores Rich en consola
 │   ├── antojitos_sim/               # Motor Caso 1 (Cocina Fantasma Delivery)
 │   ├── volcan_sim/                  # Motor Caso 2 (Café de Exportación)
 │   └── movigo_sim/                  # Motor Caso 3 (Transporte Urbano MoviGo)
@@ -221,7 +230,5 @@ Cada paquete contiene:
 │   ├── test_relational_integrity.py
 │   └── test_cli.py
 ├── artifacts/                       # Salida de simulación (CSVs, SQL, JSON)
-├── data/
-│   ├── raw/                         # Series climáticas descargadas
-│   └── exports/student_bundles/     # Paquetes listos para distribución
+└── data/raw/                        # Series climáticas descargadas
 ```

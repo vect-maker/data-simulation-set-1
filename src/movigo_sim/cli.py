@@ -18,14 +18,11 @@ from movigo_sim.config import (
     SQL_ARTIFACTS_DIR,
     ARTIFACTS_DIR,
     RAW_DATA_DIR,
-    MOCK_API_PORT,
-    MOCK_API_HOST,
     POSTGRES_SCHEMA,
 )
 from movigo_sim.weather import (
     get_movigo_weather_series,
     fetch_movigo_weather_archive,
-    start_movigo_mock_api_server,
 )
 from movigo_sim.generator import MoviGoSimulationEngine
 from movigo_sim.enrichment import MoviGoSemanticEnricher
@@ -199,11 +196,6 @@ def cmd_load(args):
     console.print(f"[bold green]Data loaded into PostgreSQL schema '{args.schema}'.[/bold green]")
 
 
-def cmd_mock_api(args):
-    """CLI handler for mock-api."""
-    start_movigo_mock_api_server(host=args.host, port=args.port)
-
-
 def cmd_inspect(args):
     """CLI handler for inspect."""
     summary_path = ARTIFACTS_DIR / "simulation_summary.json"
@@ -253,12 +245,6 @@ def main():
     load_parser = subparsers.add_parser("load", help="Load data into PostgreSQL via dlt")
     load_parser.add_argument("--schema", type=str, default=POSTGRES_SCHEMA, help="Target PostgreSQL schema")
     load_parser.set_defaults(func=cmd_load)
-
-    # mock-api
-    mock_parser = subparsers.add_parser("mock-api", help="Serve Open-Meteo mock HTTP endpoint for urban traffic")
-    mock_parser.add_argument("--host", type=str, default=MOCK_API_HOST, help="Host to bind")
-    mock_parser.add_argument("--port", type=int, default=MOCK_API_PORT, help="Port to listen on")
-    mock_parser.set_defaults(func=cmd_mock_api)
 
     # inspect
     inspect_parser = subparsers.add_parser("inspect", help="Inspect simulation metrics and statistical tests")

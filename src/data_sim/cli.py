@@ -5,8 +5,6 @@ Provides unified management across all 3 semester project simulation engines:
 - inspect: Display rich multi-pillar academic indicators and model benchmarks
 - load: Load schemas and synthetic data into PostgreSQL
 - weather: Fetch driver meteorological series from Open-Meteo API
-- bundle: Package complete student distributions (CSVs, SQL, guides, queries)
-- mock-api: Launch standalone mock Open-Meteo HTTP servers for student labs
 """
 
 import argparse
@@ -92,39 +90,6 @@ def cmd_weather(args):
             fetch_open_meteo_managua_series(force_refresh=args.force)
 
 
-def cmd_bundle(args):
-    """Package complete student deliverables."""
-    from data_sim.core.bundle import create_student_bundle, create_all_student_bundles
-
-    console.print(f"\n[bold cyan]===> Creating student bundles (case={args.case})...[/bold cyan]")
-    make_tar = not args.no_archive
-
-    if args.case == "all":
-        results = create_all_student_bundles(make_archive=make_tar)
-        for k, p in results.items():
-            console.print(f"  [green]✓ {k}:[/green] {p}")
-    else:
-        res = create_student_bundle(args.case, make_archive=make_tar)
-        console.print(f"  [green]✓ {args.case}:[/green] {res}")
-
-    console.print("\n[bold green]✓ Student bundles packaged successfully in data/exports/student_bundles/[/bold green]")
-
-
-def cmd_mock_api(args):
-    """Start standalone mock Open-Meteo server."""
-    port = args.port or (8000 if args.case == "antojitos" else 8001 if args.case == "volcan" else 8002)
-
-    if args.case == "antojitos":
-        from antojitos_sim.weather import start_mock_api_server
-        start_mock_api_server(port=port)
-    elif args.case == "volcan":
-        from volcan_sim.weather import start_volcan_mock_api_server
-        start_volcan_mock_api_server(port=port)
-    elif args.case == "movigo":
-        from movigo_sim.weather import start_mock_api_server
-        start_mock_api_server(port=port)
-
-
 def build_parser() -> argparse.ArgumentParser:
     """Build root CLI argument parser."""
     parser = argparse.ArgumentParser(
@@ -155,18 +120,6 @@ def build_parser() -> argparse.ArgumentParser:
     p_wea.add_argument("--case", choices=["all", "antojitos", "volcan", "movigo"], default="all")
     p_wea.add_argument("--force", action="store_true", help="Force refresh API cache")
     p_wea.set_defaults(func=cmd_weather)
-
-    # 5. bundle
-    p_bun = subparsers.add_parser("bundle", help="Package student assignment bundles")
-    p_bun.add_argument("--case", choices=["all", "antojitos", "volcan", "movigo"], default="all")
-    p_bun.add_argument("--no-archive", action="store_true", help="Skip creating .tar.gz compressed archive")
-    p_bun.set_defaults(func=cmd_bundle)
-
-    # 6. mock-api
-    p_mock = subparsers.add_parser("mock-api", help="Run mock Open-Meteo server")
-    p_mock.add_argument("--case", choices=["antojitos", "volcan", "movigo"], default="antojitos")
-    p_mock.add_argument("--port", type=int, default=None, help="Port to bind server")
-    p_mock.set_defaults(func=cmd_mock_api)
 
     return parser
 

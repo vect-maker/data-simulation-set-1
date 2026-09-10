@@ -6,10 +6,8 @@ resilient HTTP retries, fallback simulation, and a mock HTTP server for DataOps 
 
 import json
 import logging
-from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
-from typing import Dict, Any, Callable, Optional
-from urllib.parse import urlparse
+from typing import Dict, Any, Callable
 import requests
 
 logger = logging.getLogger(__name__)
@@ -63,59 +61,3 @@ class WeatherClient:
             with open(cache_path, "w", encoding="utf-8") as f:
                 json.dump(fallback_data, f, indent=2)
             return fallback_data
-
-
-class MockWeatherHandler(BaseHTTPRequestHandler):
-    """Generic HTTP handler mimicking Open-Meteo Archive API for student shell scripts."""
-
-    data_provider: Optional[Callable[[], Dict[str, Any]]] = None
-    service_name: str = "mock-open-meteo"
-
-    def do_GET(self):
-        parsed = urlparse(self.path)
-        if parsed.path in ["/v1/archive", "/archive"]:
-            raw_data = self.data_provider() if self.data_provider else {}
-            body = json.dumps(raw_data, indent=2).encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-        elif parsed.path == "/health":
-            body = json.dumps({"status": "ok", "service": self.service_name}).encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-        else:
-            self.send_response(404)
-            self.end_headers()
-            self.wfile.write(b'{"error": "Not Found. Use /v1/archive"}')
-
-    def log_message(self, format, *args):
-        logger.info("%s - - [%s] %s" % (self.client_address[0], self.log_date_time_string(), format % args))
-
-
-def start_mock_weather_server(
-    data_provider: Callable[[], Dict[str, Any]],
-    service_name: str = "mock-open-meteo",
-    host: str = "127.0.0.1",
-    port: int = 8000,
-):
-    """Run standalone HTTP mock server for Open-Meteo."""
-    handler_class = type(
-        "CustomMockWeatherHandler",
-        (MockWeatherHandler,),
-        {"data_provider": staticmethod(data_provider), "service_name": service_name},
-    )
-
-    server_address = (host, port)
-    httpd = HTTPServer(server_address, handler_class)
-    print(f"\n[Mock API] Serving Open-Meteo endpoint on http://{host}:{port}/v1/archive")
-    print(f"[Mock API] Students can ingest with: curl -s 'http://{host}:{port}/v1/archive' | jq .\n")
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        print("\n[Mock API] Shutting down mock weather server.")
-        httpd.server_close()

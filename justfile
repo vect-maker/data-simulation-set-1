@@ -130,18 +130,6 @@ inspect-all:
     @echo "\n=== Summary: Caso 3 (MoviGo) ==="
     @just inspect-movigo
 
-# Start mock Open-Meteo API server for Antojitos Express (port 8000)
-mock-antojitos port="8000":
-    {{ ANTOJITOS }} mock-api --port {{ port }}
-
-# Start mock Open-Meteo API server for Cooperativa El Volcán (port 8001)
-mock-volcan port="8001":
-    {{ VOLCAN }} mock-api --port {{ port }}
-
-# Start mock Open-Meteo API server for MoviGo (port 8002)
-mock-movigo port="8002":
-    {{ MOVIGO }} mock-api --port {{ port }}
-
 # Start PostgreSQL service via Docker Compose
 db-up:
     docker compose up -d
@@ -206,50 +194,13 @@ load-all:
 test-unit:
     {{ PYTHON }} -m unittest discover -s tests -v
 
-# Run full verification test (unit tests, 3-day simulation across all cases, inspect, and bundle)
+# Run full verification test (unit tests, 3-day simulation across all cases, inspect)
 test: test-unit
     @echo "\n=== Running fast 3-day verification tests via unified data-sim ==="
     {{ DATA_SIM }} generate --case all --days 3
     @echo "\n=== Verifying generated summary reports ==="
     {{ DATA_SIM }} inspect --case all
-    @echo "\n=== Verifying student bundle generation ==="
-    {{ DATA_SIM }} bundle --case all
-    @echo "\n✓ All 3 simulation pipelines and student bundles verified successfully!"
+    @echo "\n✓ All 3 simulation pipelines verified successfully!"
     @just clean
 
-# Package student capstone bundle for Antojitos Express
-bundle-antojitos:
-    {{ DATA_SIM }} bundle --case antojitos
-
-# Package student capstone bundle for Cooperativa El Volcán
-bundle-volcan:
-    {{ DATA_SIM }} bundle --case volcan
-
-# Package student capstone bundle for MoviGo
-bundle-movigo:
-    {{ DATA_SIM }} bundle --case movigo
-
-# Package student capstone bundles for all 3 cases
-bundle-all:
-    {{ DATA_SIM }} bundle --case all
-
-# Alias for bundle-all
-bundle: bundle-all
-
-
-# DataOps: Interactive Pipeline Orchestrator
-orchestrate:
-    ./scripts/orquestador.sh
-
-# DataOps: Ingest weather & driver variables via public APIs
-ingest target="all":
-    ./scripts/ingesta.sh {{ target }}
-
-# DataOps: Resource & PostgreSQL telemetry monitor
-monitor:
-    ./scripts/monitor.sh
-
-# DataOps: Versioned data export with checksums
-export:
-    ./scripts/exportar_resultados.sh
 

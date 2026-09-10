@@ -7,7 +7,7 @@ from typing import List, Dict, Any, Tuple
 import pandas as pd
 import numpy as np
 
-from data_sim.core.weather import WeatherClient, start_mock_weather_server
+from data_sim.core.weather import WeatherClient
 from movigo_sim.config import (
     OPEN_METEO_ARCHIVE_URL,
     OPEN_METEO_LATITUDE,
@@ -16,8 +16,6 @@ from movigo_sim.config import (
     START_DATE,
     END_DATE,
     RAW_DATA_DIR,
-    MOCK_API_PORT,
-    MOCK_API_HOST,
 )
 from movigo_sim.models import ClimaCuadrantes
 
@@ -152,15 +150,3 @@ def get_movigo_weather_series(force_refresh: bool = False) -> Tuple[pd.DataFrame
     ]
     return df, records
 
-
-def start_movigo_mock_api_server(host: str = MOCK_API_HOST, port: int = MOCK_API_PORT):
-    """Start standalone HTTP server serving Managua urban weather & traffic endpoint."""
-    start_mock_weather_server(
-        data_provider=fetch_movigo_weather_archive,
-        service_name="movigo-mock-weather",
-        host=host,
-        port=port,
-    )
-
-
-start_mock_api_server = start_movigo_mock_api_server
