@@ -9,7 +9,10 @@ import logging
 from pathlib import Path
 from typing import List, Dict, Any
 import pandas as pd
-from scipy.stats import chi2_contingency
+import numpy as np
+
+from data_sim.core.exporter import export_models_to_csv, write_json_summary, build_sql_dump
+from data_sim.core.stats import compute_contingency_chi2
 
 from volcan_sim.config import (
     CSV_ARTIFACTS_DIR,
@@ -52,29 +55,18 @@ def export_volcan_to_csv(
     output_dir: Path = CSV_ARTIFACTS_DIR,
 ) -> Dict[str, Path]:
     """Export all relational tables to CSV format."""
-    output_dir.mkdir(parents=True, exist_ok=True)
-    exported_files = {}
-
     tables = {
-        "fincas": [f.model_dump() for f in fincas],
-        "variedades_cafe": [v.model_dump() for v in variedades],
-        "beneficios": [b.model_dump() for b in beneficios],
-        "cuadrillas_corte": [c.model_dump() for c in cuadrillas],
-        "clima_zonas_cafetaleras": [cl.model_dump() for cl in clima],
-        "lotes_acopio": [l.model_dump() for l in lotes],
-        "procesamiento_beneficio": [p.model_dump() for p in procesos],
-        "subastas_especiales": [s.model_dump() for s in subastas],
-        "embarques_exportacion": [e.model_dump() for e in embarques],
+        "fincas": fincas,
+        "variedades_cafe": variedades,
+        "beneficios": beneficios,
+        "cuadrillas_corte": cuadrillas,
+        "clima_zonas_cafetaleras": clima,
+        "lotes_acopio": lotes,
+        "procesamiento_beneficio": procesos,
+        "subastas_especiales": subastas,
+        "embarques_exportacion": embarques,
     }
-
-    for table_name, records in tables.items():
-        csv_path = output_dir / f"{table_name}.csv"
-        df = pd.DataFrame(records)
-        df.to_csv(csv_path, index=False, encoding="utf-8")
-        exported_files[table_name] = csv_path
-        logger.info(f"Exported {len(df)} rows to {csv_path}")
-
-    return exported_files
+    return export_models_to_csv(tables, output_dir)
 
 
 def generate_volcan_postgresql_ddl() -> str:
@@ -139,91 +131,79 @@ CREATE TABLE cuadrillas_corte (
     estado VARCHAR(20) NOT NULL CHECK (estado IN ('activa', 'descanso', 'asignada'))
 );
 
+CREATE TABLE clima_zonas_cafetaleras (
+    fecha DATE PRIMARY KEY,
+    precipitacion_mm DECIMAL(6,2) NOT NULL,
+    temperatura_media_c DECIMAL(4,1) NOT NULL,
+    temperatura_min_c DECIMAL(4,1) NOT NULL,
+    temperatura_max_c DECIMAL(4,1) NOT NULL,
+    condicion_cielo VARCHAR(20) NOT NULL CHECK (condicion_cielo IN ('soleado', 'nublado', 'llovizna', 'temporal'))
+);
+
 CREATE TABLE lotes_acopio (
     id_lote VARCHAR(20) PRIMARY KEY,
     id_finca VARCHAR(10) NOT NULL REFERENCES fincas(id_finca),
     id_variedad VARCHAR(10) NOT NULL REFERENCES variedades_cafe(id_variedad),
-    id_cuadrilla VARCHAR(10) REFERENCES cuadrillas_corte(id_cuadrilla),
     fecha_corte DATE NOT NULL,
-    peso_cereza_kg DECIMAL(10,2) NOT NULL,
-    humedad_porcentaje DECIMAL(4,2) NOT NULL,
+    peso_cereza_kg DECIMAL(10,2) NOT NULL CHECK (peso_cereza_kg > 0),
+    peso_bruto_quintales DECIMAL(8,2) NOT NULL,
+    humedad_porcentaje DECIMAL(4,1) NOT NULL,
     puntaje_catacion_scaa DECIMAL(4,2) NOT NULL,
-    certificacion VARCHAR(50) NOT NULL CHECK (certificacion IN ('Convencional', 'Fairtrade', 'Orgánico', 'Rainforest Alliance', 'SHG')),
-    notas_catacion TEXT,
-    costo_recoleccion_nio DECIMAL(10,2) NOT NULL,
-    estado_lote VARCHAR(25) NOT NULL CHECK (estado_lote IN ('recolectado', 'en_beneficio_humedo', 'en_secado', 'listo_exportacion', 'descartado'))
+    precio_liquidado_qq_usd DECIMAL(8,2) NOT NULL,
+    estado_lote VARCHAR(20) NOT NULL CHECK (estado_lote IN ('acopiado', 'en_beneficio', 'listo_embarque', 'exportado')),
+    notas_catacion TEXT
+);
+
+CREATE TABLE auditoria_lotes (
+    id_auditoria SERIAL PRIMARY KEY,
+    id_lote VARCHAR(20) NOT NULL,
+    estado_anterior VARCHAR(20),
+    estado_nuevo VARCHAR(20),
+    fecha_cambio TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usuario_db VARCHAR(50) NOT NULL DEFAULT CURRENT_USER
 );
 
 CREATE TABLE procesamiento_beneficio (
-    id_proceso BIGINT PRIMARY KEY,
+    id_proceso VARCHAR(20) PRIMARY KEY,
     id_lote VARCHAR(20) NOT NULL REFERENCES lotes_acopio(id_lote),
     id_beneficio VARCHAR(10) NOT NULL REFERENCES beneficios(id_beneficio),
-    etapa VARCHAR(30) NOT NULL CHECK (etapa IN ('despulpado', 'fermentacion', 'secado_patio', 'trillado', 'clasificacion')),
+    tipo_etapa VARCHAR(20) NOT NULL CHECK (tipo_etapa IN ('despulpado', 'fermentacion', 'lavado', 'secado', 'trillado')),
     fecha_inicio TIMESTAMP NOT NULL,
     fecha_fin TIMESTAMP,
-    temperatura_fermentacion_c DECIMAL(4,2),
-    merma_porcentaje DECIMAL(4,2) NOT NULL,
-    peso_salida_kg DECIMAL(10,2) NOT NULL,
-    observaciones_proceso TEXT
+    peso_entrada_qq DECIMAL(8,2) NOT NULL,
+    peso_salida_qq DECIMAL(8,2),
+    merma_porcentaje DECIMAL(4,2),
+    estado_proceso VARCHAR(20) NOT NULL CHECK (estado_proceso IN ('iniciado', 'en_proceso', 'completado'))
 );
 
 CREATE TABLE subastas_especiales (
     id_subasta VARCHAR(10) PRIMARY KEY,
-    id_lote VARCHAR(20) NOT NULL REFERENCES lotes_acopio(id_lote),
-    nombre_lote_especial VARCHAR(100) NOT NULL,
-    peso_quintales DECIMAL(8,2) NOT NULL,
-    costo_certificacion_usd DECIMAL(10,2) NOT NULL,
+    nombre_evento VARCHAR(100) NOT NULL,
+    peso_quintales DECIMAL(6,2) NOT NULL,
+    puntaje_catacion_minimo DECIMAL(4,2) NOT NULL,
+    costo_certificacion_usd DECIMAL(8,2) NOT NULL,
     retorno_esperado_usd DECIMAL(10,2) NOT NULL,
-    puntaje_taza DECIMAL(4,2) NOT NULL,
-    fecha_subasta DATE NOT NULL,
-    estado_subasta VARCHAR(20) NOT NULL CHECK (estado_subasta IN ('programada', 'adjudicada', 'desierta'))
+    fecha_evento DATE NOT NULL
 );
 
 CREATE TABLE embarques_exportacion (
     id_embarque VARCHAR(20) PRIMARY KEY,
     id_lote VARCHAR(20) NOT NULL REFERENCES lotes_acopio(id_lote),
     numero_contenedor VARCHAR(20) NOT NULL,
-    puerto_salida VARCHAR(50) NOT NULL DEFAULT 'Puerto Corinto, Nicaragua',
-    pais_destino VARCHAR(50) NOT NULL CHECK (pais_destino IN ('Alemania', 'Estados Unidos', 'Japón', 'Bélgica', 'Taiwán', 'Italia')),
-    cliente_comprador VARCHAR(100) NOT NULL,
+    pais_destino VARCHAR(50) NOT NULL,
+    puerto_destino VARCHAR(50) NOT NULL,
     fecha_embarque DATE NOT NULL,
     peso_oro_quintales DECIMAL(8,2) NOT NULL,
     precio_quintal_usd DECIMAL(8,2) NOT NULL,
-    flete_transporte_usd DECIMAL(8,2) NOT NULL,
-    total_usd DECIMAL(12,2) NOT NULL
+    total_usd DECIMAL(10,2) NOT NULL
 );
 
-CREATE TABLE clima_zonas_cafetaleras (
-    fecha DATE PRIMARY KEY,
-    region VARCHAR(50) NOT NULL DEFAULT 'Jinotega',
-    precipitacion_mm DECIMAL(5,2) NOT NULL,
-    temperatura_media_c DECIMAL(4,2) NOT NULL,
-    temperatura_min_c DECIMAL(4,2) NOT NULL,
-    temperatura_max_c DECIMAL(4,2) NOT NULL,
-    humedad_relativa_pct DECIMAL(4,2) NOT NULL,
-    condicion_clima VARCHAR(30) NOT NULL CHECK (condicion_clima IN ('soleado', 'nublado', 'llovizna', 'temporal'))
-);
-
--- =========================================================
--- OBJETOS DE BASE DE DATOS (Procedimientos, Triggers, Auditoria)
--- =========================================================
-
--- 1. Tabla de Auditoria de Lotes
-CREATE TABLE auditoria_lotes (
-    id_auditoria BIGSERIAL PRIMARY KEY,
-    id_lote VARCHAR(20) NOT NULL,
-    estado_anterior VARCHAR(25),
-    estado_nuevo VARCHAR(25) NOT NULL,
-    fecha_cambio TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    usuario_db VARCHAR(50) NOT NULL DEFAULT CURRENT_USER
-);
-
--- 2. Trigger de Auditoria de Lotes
-CREATE OR REPLACE FUNCTION fn_auditar_cambio_lote()
+-- Trigger de Auditoria para Lotes
+CREATE OR REPLACE FUNCTION fn_trg_auditar_lotes()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF OLD.estado_lote IS DISTINCT FROM NEW.estado_lote THEN
-        INSERT INTO raw_staging_volcan.auditoria_lotes (id_lote, estado_anterior, estado_nuevo, fecha_cambio, usuario_db)
+    IF (OLD.estado_lote IS DISTINCT FROM NEW.estado_lote) THEN
+        INSERT INTO raw_staging_volcan.auditoria_lotes(id_lote, estado_anterior, estado_nuevo, fecha_cambio, usuario_db)
         VALUES (NEW.id_lote, OLD.estado_lote, NEW.estado_lote, CURRENT_TIMESTAMP, CURRENT_USER);
     END IF;
     RETURN NEW;
@@ -233,20 +213,22 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_auditar_lotes
 AFTER UPDATE ON lotes_acopio
 FOR EACH ROW
-EXECUTE FUNCTION fn_auditar_cambio_lote();
+EXECUTE FUNCTION fn_trg_auditar_lotes();
 
--- 3. Procedimiento Almacenado de Cierre de Etapa de Beneficio con Balance de Masa
+-- Procedimiento Almacenado de Cierre de Etapa
 CREATE OR REPLACE PROCEDURE sp_cerrar_etapa_beneficio(
-    p_id_proceso BIGINT,
-    p_peso_salida DECIMAL(10,2),
-    p_merma DECIMAL(4,2)
+    p_id_proceso VARCHAR(20),
+    p_merma DECIMAL(4,2),
+    p_peso_salida DECIMAL(8,2)
 )
-LANGUAGE plpgsql AS $$
+LANGUAGE plpgsql
+AS $$
 BEGIN
     UPDATE raw_staging_volcan.procesamiento_beneficio
-    SET fecha_fin = CURRENT_TIMESTAMP,
-        peso_salida_kg = p_peso_salida,
-        merma_porcentaje = p_merma
+    SET merma_porcentaje = p_merma,
+        peso_salida_qq = p_peso_salida,
+        estado_proceso = 'completado',
+        fecha_fin = CURRENT_TIMESTAMP
     WHERE id_proceso = p_id_proceso;
 END;
 $$;
@@ -305,10 +287,6 @@ def export_volcan_to_sql_dump(
     output_file: Path = SQL_ARTIFACTS_DIR / "schema_and_data.sql",
 ) -> Path:
     """Generate consolidated SQL file with DDL and COPY commands."""
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    ddl = generate_volcan_postgresql_ddl()
-    post_ddl = generate_volcan_post_load_ddl()
-
     copy_order = [
         "fincas",
         "variedades_cafe",
@@ -320,24 +298,14 @@ def export_volcan_to_sql_dump(
         "subastas_especiales",
         "embarques_exportacion",
     ]
-
-    with open(output_file, "w", encoding="utf-8") as sql_f:
-        sql_f.write(ddl)
-        sql_f.write("\n-- =========================================================\n")
-        sql_f.write("-- DATA LOAD INSTRUCTIONS (psql COPY)\n")
-        sql_f.write("-- =========================================================\n\n")
-
-        for table in copy_order:
-            csv_p = csv_paths.get(table)
-            if csv_p and csv_p.exists():
-                sql_f.write(
-                    f"\\copy raw_staging_volcan.{table} FROM '{csv_p.name}' WITH (FORMAT csv, HEADER true);\n"
-                )
-
-        sql_f.write(post_ddl)
-
-    logger.info(f"Generated SQL schema and load instructions at {output_file}")
-    return output_file
+    return build_sql_dump(
+        output_file=output_file,
+        schema_name="raw_staging_volcan",
+        ddl_content=generate_volcan_postgresql_ddl(),
+        copy_order=copy_order,
+        csv_paths=csv_paths,
+        post_load_ddl=generate_volcan_post_load_ddl(),
+    )
 
 
 def compute_volcan_simulation_summary(
@@ -361,15 +329,13 @@ def compute_volcan_simulation_summary(
     min_scaa = round(float(df_lotes["puntaje_catacion_scaa"].min()), 2) if not df_lotes.empty else 80.0
 
     # Correlation between Farm Altitude and SCAA Cupping Score
-    merged_lotes = df_lotes.merge(df_fincas[["id_finca", "region", "altitud_msnm"]], on="id_finca", how="left") if not df_lotes.empty else pd.DataFrame()
+    merged_lotes = df_lotes.merge(
+        df_fincas[["id_finca", "region", "altitud_msnm"]], on="id_finca", how="left"
+    ) if not df_lotes.empty else pd.DataFrame()
     altitude_corr = float(merged_lotes["altitud_msnm"].corr(merged_lotes["puntaje_catacion_scaa"])) if len(merged_lotes) >= 3 else 0.72
 
     # Chi-Square test of independence: Variedad de Café vs Región de Origen
-    if not merged_lotes.empty and len(merged_lotes["region"].unique()) > 1 and len(merged_lotes["id_variedad"].unique()) > 1:
-        contingency_table = pd.crosstab(merged_lotes["region"], merged_lotes["id_variedad"])
-        chi2_stat, p_val, dof, _ = chi2_contingency(contingency_table)
-    else:
-        chi2_stat, p_val, dof = 718.9, 1e-140, 18
+    chi2_res = compute_contingency_chi2(merged_lotes, "region", "id_variedad")
 
     # Multi-Pillar Analytics
     est_results = compute_volcan_estadistica_ii(df_lotes, df_fincas, df_embarques)
@@ -396,10 +362,10 @@ def compute_volcan_simulation_summary(
         },
         "chi_square_test_variety_vs_region": {
             "test_description": "Estadistica II Hypothesis Test: Independence between Variedad and Region",
-            "chi2_statistic": round(float(chi2_stat), 4),
-            "degrees_of_freedom": int(dof),
-            "p_value": float(p_val),
-            "guarantee_p_less_than_0_01": bool(p_val < 0.01),
+            "chi2_statistic": chi2_res["chi2_statistic"],
+            "degrees_of_freedom": chi2_res["degrees_of_freedom"],
+            "p_value": chi2_res["p_value"],
+            "guarantee_p_less_than_0_01": chi2_res["guarantee_p_less_than_0_01"],
         },
         "knapsack_auction_micro_lots": {
             "total_lots": len(df_subastas),
@@ -412,10 +378,5 @@ def compute_volcan_simulation_summary(
         "optimizacion": opt_results,
     }
 
-    ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
-    summary_path = ARTIFACTS_DIR / "simulation_summary.json"
-    with open(summary_path, "w", encoding="utf-8") as f:
-        json.dump(summary, f, indent=2)
-
-    logger.info(f"Wrote comprehensive summary verification to {summary_path}")
+    write_json_summary(summary, ARTIFACTS_DIR / "simulation_summary.json")
     return summary

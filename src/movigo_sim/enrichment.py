@@ -14,17 +14,17 @@ class MoviGoSemanticEnricher:
 
     def __init__(
         self,
-        templates: Dict[str, Any],
+        templates: Dict[str, Any] | None = None,
         use_llm: bool = False,
         random_seed: int = 42,
     ):
-        self.templates = templates
+        self.templates = templates or {}
         self.use_llm = use_llm
         self.random_seed = random_seed
         np.random.seed(random_seed)
         self.motivos_cancel = (
-            templates.get("motivos_cancelacion")
-            or (templates.get("motivos_cancelacion_conductor", []) + templates.get("motivos_cancelacion_usuario", []))
+            self.templates.get("motivos_cancelacion")
+            or (self.templates.get("motivos_cancelacion_conductor", []) + self.templates.get("motivos_cancelacion_usuario", []))
             or ["Tranque en rotonda Centroamérica", "Lluvia torrencial inundó la vía", "Pasajero no apareció"]
         )
 

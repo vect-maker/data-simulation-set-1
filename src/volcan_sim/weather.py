@@ -1,16 +1,13 @@
 """Agro-weather driver module for Cooperativa El Volcán (Jinotega, Nicaragua)."""
 
-import json
 import logging
-from datetime import datetime, date, timedelta
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict, Any, Tuple
-from urllib.parse import urlparse
-import requests
 import pandas as pd
 import numpy as np
 
+from data_sim.core.weather import WeatherClient, start_mock_weather_server
 from volcan_sim.config import (
     OPEN_METEO_ARCHIVE_URL,
     OPEN_METEO_LATITUDE,
@@ -39,49 +36,7 @@ def map_coffee_weather_condition(precip_mm: float, weather_code: int) -> str:
         return "soleado"
 
 
-def fetch_jinotega_weather_archive(
-    start_date: str = START_DATE,
-    end_date: str = END_DATE,
-    cache_path: Path = None,
-    force_refresh: bool = False,
-) -> Dict[str, Any]:
-    """Fetch daily agro-weather for Jinotega highlands from Open-Meteo or local cache."""
-    if cache_path is None:
-        RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
-        cache_path = RAW_DATA_DIR / "clima_jinotega_2024.json"
-
-    if cache_path.exists() and not force_refresh:
-        logger.info(f"Loading Jinotega weather from cache: {cache_path}")
-        with open(cache_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    params = {
-        "latitude": OPEN_METEO_LATITUDE,
-        "longitude": OPEN_METEO_LONGITUDE,
-        "start_date": start_date,
-        "end_date": end_date,
-        "daily": "precipitation_sum,temperature_2m_mean,temperature_2m_min,temperature_2m_max,weather_code",
-        "timezone": TIMEZONE,
-    }
-
-    logger.info(f"Fetching Open-Meteo weather for Jinotega ({start_date} to {end_date})...")
-    try:
-        response = requests.get(OPEN_METEO_ARCHIVE_URL, params=params, timeout=20)
-        response.raise_for_status()
-        data = response.json()
-        with open(cache_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-        logger.info(f"Jinotega weather cached successfully at {cache_path}")
-        return data
-    except Exception as e:
-        logger.warning(f"Could not reach Open-Meteo API ({e}). Generating synthetic agro-weather fallback...")
-        fallback = generate_synthetic_jinotega_weather(start_date, end_date)
-        with open(cache_path, "w", encoding="utf-8") as f:
-            json.dump(fallback, f, indent=2)
-        return fallback
-
-
-def generate_synthetic_jinotega_weather(start_date: str, end_date: str) -> Dict[str, Any]:
+def generate_synthetic_jinotega_weather(start_date: str = START_DATE, end_date: str = END_DATE) -> Dict[str, Any]:
     """Generate realistic coffee agro-weather if network is unavailable."""
     start = datetime.strptime(start_date, "%Y-%m-%d").date()
     end = datetime.strptime(end_date, "%Y-%m-%d").date()
@@ -98,19 +53,27 @@ def generate_synthetic_jinotega_weather(start_date: str, end_date: str) -> Dict[
     for d_str in dates:
         month = datetime.strptime(d_str, "%Y-%m-%d").month
         # Highland climate: cool nights (14-17 C), mild days (22-26 C)
-        # Wet season: May - November. Harvest dry window: Dec - March.
-        if month in [12, 1, 2, 3]:
-            p = float(np.random.exponential(scale=1.5)) if np.random.rand() < 0.20 else 0.0
-            t_mean = float(np.random.normal(19.5, 1.2))
+        if month in [1, 2, 3, 4]:
+            p_val = float(np.random.exponential(scale=2.0)) if np.random.rand() < 0.20 else 0.0
+            t_mean = float(np.random.normal(20.5, 1.2))
+        elif month in [5, 6, 7, 8, 9, 10]:
+            p_val = float(np.random.exponential(scale=18.0)) if np.random.rand() < 0.65 else 0.0
+            t_mean = float(np.random.normal(19.2, 1.0))
         else:
-            p = float(np.random.exponential(scale=14.0)) if np.random.rand() < 0.65 else 0.0
-            t_mean = float(np.random.normal(21.5, 1.0))
+            p_val = float(np.random.exponential(scale=12.0)) if np.random.rand() < 0.45 else 0.0
+            t_mean = float(np.random.normal(18.0, 1.1))
 
-        t_min = t_mean - float(np.random.uniform(3.5, 6.0))
-        t_max = t_mean + float(np.random.uniform(3.5, 6.5))
-        code = 95 if p > 25.0 else (61 if p > 1.0 else 0)
+        t_min = t_mean - float(np.random.uniform(3.5, 5.5))
+        t_max = t_mean + float(np.random.uniform(4.0, 6.5))
 
-        precip.append(round(p, 2))
+        if p_val > 25.0:
+            code = 95
+        elif p_val > 1.0:
+            code = 61
+        else:
+            code = 0 if np.random.rand() > 0.5 else 2
+
+        precip.append(round(p_val, 2))
         temps_mean.append(round(t_mean, 2))
         temps_min.append(round(t_min, 2))
         temps_max.append(round(t_max, 2))
@@ -131,37 +94,61 @@ def generate_synthetic_jinotega_weather(start_date: str, end_date: str) -> Dict[
     }
 
 
-def parse_jinotega_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
-    """Parse raw JSON into DataFrame matching clima_zonas_cafetaleras schema."""
-    daily = raw_json["daily"]
-    dates = pd.to_datetime(daily["time"]).date
+def fetch_jinotega_weather_archive(
+    start_date: str = START_DATE,
+    end_date: str = END_DATE,
+    cache_path: Path = None,
+    force_refresh: bool = False,
+) -> Dict[str, Any]:
+    """Fetch daily agro-weather for Jinotega highlands from Open-Meteo or local cache."""
+    if cache_path is None:
+        RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
+        cache_path = RAW_DATA_DIR / "clima_jinotega_2024.json"
 
+    return WeatherClient.fetch_weather_archive(
+        archive_url=OPEN_METEO_ARCHIVE_URL,
+        latitude=OPEN_METEO_LATITUDE,
+        longitude=OPEN_METEO_LONGITUDE,
+        start_date=start_date,
+        end_date=end_date,
+        daily_vars="precipitation_sum,temperature_2m_mean,temperature_2m_min,temperature_2m_max,weather_code",
+        timezone=TIMEZONE,
+        cache_path=cache_path,
+        fallback_fn=lambda: generate_synthetic_jinotega_weather(start_date, end_date),
+        force_refresh=force_refresh,
+    )
+
+
+def parse_jinotega_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
+    """Transform Open-Meteo payload into ClimaZonasCafetaleras DataFrame."""
+    daily = raw_json["daily"]
     df = pd.DataFrame({
-        "fecha": dates,
-        "region": "Jinotega",
+        "fecha": pd.to_datetime(daily["time"]).date,
         "precipitacion_mm": [float(p) if p is not None else 0.0 for p in daily["precipitation_sum"]],
-        "temperatura_media_c": [float(t) if t is not None else 20.5 for t in daily["temperature_2m_mean"]],
-        "temperatura_min_c": [float(t) if t is not None else 15.0 for t in daily["temperature_2m_min"]],
-        "temperatura_max_c": [float(t) if t is not None else 25.0 for t in daily["temperature_2m_max"]],
+        "temperatura_media_c": [float(t) if t is not None else 19.5 for t in daily["temperature_2m_mean"]],
+        "temperatura_min_c": [float(t) if t is not None else 15.0 for t in daily.get("temperature_2m_min", daily["temperature_2m_mean"])],
+        "temperatura_max_c": [float(t) if t is not None else 25.0 for t in daily.get("temperature_2m_max", daily["temperature_2m_mean"])],
+        "weather_code": [int(c) if c is not None else 0 for c in (daily.get("weather_code") or daily.get("weathercode", []))],
     })
 
-    # Relative humidity approximation based on rain and temperature
-    rh = []
-    conditions = []
-    for _, row in df.iterrows():
-        p = row["precipitacion_mm"]
-        t_mean = row["temperatura_media_c"]
-        base_rh = 75.0 + min(20.0, p * 0.8) - (t_mean - 20.0) * 1.5
-        rh.append(round(min(98.0, max(50.0, base_rh)), 2))
-        conditions.append(map_coffee_weather_condition(p, 0))
+    df["condicion_clima"] = [
+        map_coffee_weather_condition(p, code)
+        for p, code in zip(df["precipitacion_mm"], df["weather_code"])
+    ]
+    df["region"] = "Jinotega"
+    df["humedad_relativa_pct"] = [
+        round(min(98.0, 72.0 + p * 1.2), 1)
+        for p in df["precipitacion_mm"]
+    ]
 
-    df["humedad_relativa_pct"] = rh
-    df["condicion_clima"] = conditions
-    return df
+    return df[[
+        "fecha", "region", "precipitacion_mm", "temperatura_media_c",
+        "temperatura_min_c", "temperatura_max_c", "humedad_relativa_pct", "condicion_clima"
+    ]]
 
 
-def get_coffee_weather_series(force_refresh: bool = False) -> Tuple[pd.DataFrame, List[ClimaZonasCafetaleras]]:
-    """Retrieve full 2024 coffee weather DataFrame and Pydantic records."""
+def get_jinotega_weather_series(force_refresh: bool = False) -> Tuple[pd.DataFrame, List[ClimaZonasCafetaleras]]:
+    """Retrieve structured DataFrame and Pydantic records for 2024."""
     raw = fetch_jinotega_weather_archive(force_refresh=force_refresh)
     df = parse_jinotega_weather_dataframe(raw)
     records = [
@@ -180,43 +167,15 @@ def get_coffee_weather_series(force_refresh: bool = False) -> Tuple[pd.DataFrame
     return df, records
 
 
-class MockVolcanWeatherHandler(BaseHTTPRequestHandler):
-    """HTTP handler mimicking Open-Meteo Jinotega Agro-weather for student shell scripts."""
-
-    def do_GET(self):
-        parsed = urlparse(self.path)
-        if parsed.path in ["/v1/archive", "/archive"]:
-            raw_data = fetch_jinotega_weather_archive()
-            body = json.dumps(raw_data, indent=2).encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-        elif parsed.path == "/health":
-            body = b'{"status": "ok", "service": "cooperativa-el-volcan-mock-weather"}'
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-        else:
-            self.send_response(404)
-            self.end_headers()
-            self.wfile.write(b'{"error": "Not Found. Use /v1/archive"}')
-
-    def log_message(self, format, *args):
-        logger.info("%s - - [%s] %s" % (self.client_address[0], self.log_date_time_string(), format % args))
+# Alias for backward compatibility
+get_coffee_weather_series = get_jinotega_weather_series
 
 
 def start_volcan_mock_api_server(host: str = MOCK_API_HOST, port: int = MOCK_API_PORT):
-    """Start standalone HTTP server serving Jinotega agro-weather endpoint."""
-    server_address = (host, port)
-    httpd = HTTPServer(server_address, MockVolcanWeatherHandler)
-    print(f"\n[Mock API - Volcán] Serving Jinotega Agro-weather on http://{host}:{port}/v1/archive")
-    print(f"[Mock API - Volcán] Test command: curl -s 'http://{host}:{port}/v1/archive' | jq .\n")
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        print("\n[Mock API - Volcán] Shutting down mock weather server.")
-        httpd.server_close()
+    """Start mock Open-Meteo HTTP server for coffee agro-weather."""
+    start_mock_weather_server(
+        data_provider=fetch_jinotega_weather_archive,
+        service_name="volcan-mock-open-meteo",
+        host=host,
+        port=port,
+    )

@@ -9,7 +9,10 @@ import logging
 from pathlib import Path
 from typing import List, Dict, Any
 import pandas as pd
-from scipy.stats import chi2_contingency
+import numpy as np
+
+from data_sim.core.exporter import export_models_to_csv, write_json_summary, build_sql_dump
+from data_sim.core.stats import compute_contingency_chi2
 
 from movigo_sim.config import (
     CSV_ARTIFACTS_DIR,
@@ -49,27 +52,16 @@ def export_movigo_to_csv(
     output_dir: Path = CSV_ARTIFACTS_DIR,
 ) -> Dict[str, Path]:
     """Export all relational tables to CSV format."""
-    output_dir.mkdir(parents=True, exist_ok=True)
-    exported_files = {}
-
     tables = {
-        "zonas_urbanas": [z.model_dump() for z in zonas],
-        "usuarios": [u.model_dump() for u in usuarios],
-        "conductores": [c.model_dump() for c in conductores],
-        "campanas_incentivos": [cmp.model_dump() for cmp in campanas],
-        "clima_cuadrantes": [cl.model_dump() for cl in clima],
-        "viajes": [v.model_dump() for v in viajes],
-        "telemetria_conductores": [t.model_dump() for t in telemetria],
+        "zonas_urbanas": zonas,
+        "usuarios": usuarios,
+        "conductores": conductores,
+        "campanas_incentivos": campanas,
+        "clima_cuadrantes": clima,
+        "viajes": viajes,
+        "telemetria_conductores": telemetria,
     }
-
-    for table_name, records in tables.items():
-        csv_path = output_dir / f"{table_name}.csv"
-        df = pd.DataFrame(records)
-        df.to_csv(csv_path, index=False, encoding="utf-8")
-        exported_files[table_name] = csv_path
-        logger.info(f"Exported {len(df)} rows to {csv_path}")
-
-    return exported_files
+    return export_models_to_csv(tables, output_dir)
 
 
 def generate_movigo_postgresql_ddl() -> str:
@@ -128,20 +120,21 @@ CREATE TABLE campanas_incentivos (
     incremento_horas_conexion DECIMAL(10,2) NOT NULL,
     tipo_incentivo VARCHAR(30) NOT NULL CHECK (tipo_incentivo IN ('meta_viajes', 'hora_pico_lluvia', 'zona_alta_demanda')),
     fecha_inicio DATE NOT NULL,
-    fecha_fin DATE NOT NULL,
-    estado VARCHAR(20) NOT NULL CHECK (estado IN ('activa', 'finalizada'))
+    fecha_fin DATE NOT NULL
 );
 
 CREATE TABLE clima_cuadrantes (
-    fecha DATE PRIMARY KEY,
-    precipitacion_mm DECIMAL(5,2) NOT NULL,
-    temperatura_c DECIMAL(4,2) NOT NULL,
+    id_registro SERIAL PRIMARY KEY,
+    fecha DATE NOT NULL,
+    id_zona VARCHAR(10) NOT NULL REFERENCES zonas_urbanas(id_zona),
+    precipitacion_mm DECIMAL(6,2) NOT NULL,
+    temperatura_c DECIMAL(4,1) NOT NULL,
     indice_congestion DECIMAL(4,2) NOT NULL,
-    condicion_cielo VARCHAR(30) NOT NULL CHECK (condicion_cielo IN ('despejado', 'lluvia_ligera', 'tormenta', 'nublado'))
+    condicion_cielo VARCHAR(20) NOT NULL CHECK (condicion_cielo IN ('despejado', 'nublado', 'lluvia_ligera', 'tormenta'))
 );
 
 CREATE TABLE viajes (
-    id_viaje VARCHAR(20) PRIMARY KEY,
+    id_viaje VARCHAR(25) PRIMARY KEY,
     id_usuario VARCHAR(15) NOT NULL REFERENCES usuarios(id_usuario),
     id_conductor VARCHAR(15) REFERENCES conductores(id_conductor),
     id_zona_origen VARCHAR(10) NOT NULL REFERENCES zonas_urbanas(id_zona),
@@ -149,50 +142,41 @@ CREATE TABLE viajes (
     fecha_hora_solicitud TIMESTAMP NOT NULL,
     fecha_hora_inicio TIMESTAMP,
     fecha_hora_fin TIMESTAMP,
-    distancia_km DECIMAL(6,2) NOT NULL,
-    duracion_minutos DECIMAL(6,2) NOT NULL,
-    tarifa_base DECIMAL(8,2) NOT NULL,
-    multiplicador_dinamico DECIMAL(4,2) NOT NULL,
-    tarifa_final DECIMAL(8,2) NOT NULL,
+    distancia_km DECIMAL(6,2) NOT NULL CHECK (distancia_km >= 0),
+    duracion_minutos DECIMAL(6,2) NOT NULL CHECK (duracion_minutos >= 0),
+    multiplicador_dinamico DECIMAL(4,2) NOT NULL DEFAULT 1.00 CHECK (multiplicador_dinamico >= 1.00),
+    tarifa_final DECIMAL(8,2) NOT NULL CHECK (tarifa_final >= 0),
     metodo_pago VARCHAR(30) NOT NULL CHECK (metodo_pago IN ('efectivo', 'tarjeta', 'billetera_digital')),
-    estado_viaje VARCHAR(25) NOT NULL CHECK (estado_viaje IN ('completado', 'cancelado_usuario', 'cancelado_conductor', 'no_asignado')),
-    calificacion_usuario DECIMAL(2,1),
-    calificacion_conductor DECIMAL(2,1),
-    propina DECIMAL(8,2) DEFAULT 0.0,
+    estado_viaje VARCHAR(25) NOT NULL CHECK (estado_viaje IN ('solicitado', 'asignado', 'en_curso', 'completado', 'cancelado_usuario', 'cancelado_conductor')),
     motivo_cancelacion TEXT
 );
 
 CREATE TABLE telemetria_conductores (
-    id_telemetria BIGINT PRIMARY KEY,
+    id_telemetria SERIAL PRIMARY KEY,
     id_conductor VARCHAR(15) NOT NULL REFERENCES conductores(id_conductor),
-    id_zona VARCHAR(10) NOT NULL REFERENCES zonas_urbanas(id_zona),
+    id_viaje VARCHAR(25) REFERENCES viajes(id_viaje),
     fecha_hora TIMESTAMP NOT NULL,
     latitud DECIMAL(9,6) NOT NULL,
     longitud DECIMAL(9,6) NOT NULL,
     velocidad_kmh DECIMAL(5,2) NOT NULL,
-    estado_disponibilidad VARCHAR(25) NOT NULL CHECK (estado_disponibilidad IN ('disponible', 'ocupado', 'en_camino_recogida'))
+    bateria_telefono_pct INT NOT NULL
 );
 
--- =========================================================
--- OBJETOS DE BASE DE DATOS (Triggers, Funciones y Auditoria)
--- =========================================================
-
--- 1. Tabla de Auditoria de Viajes
 CREATE TABLE auditoria_viajes (
-    id_auditoria BIGSERIAL PRIMARY KEY,
-    id_viaje VARCHAR(20) NOT NULL,
+    id_auditoria SERIAL PRIMARY KEY,
+    id_viaje VARCHAR(25) NOT NULL,
     estado_anterior VARCHAR(25),
-    estado_nuevo VARCHAR(25) NOT NULL,
+    estado_nuevo VARCHAR(25),
     fecha_cambio TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     usuario_db VARCHAR(50) NOT NULL DEFAULT CURRENT_USER
 );
 
--- 2. Trigger de Auditoria de Viajes
-CREATE OR REPLACE FUNCTION fn_auditar_cambio_viaje()
+-- Trigger de Auditoria para Viajes
+CREATE OR REPLACE FUNCTION fn_trg_auditar_viajes()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF OLD.estado_viaje IS DISTINCT FROM NEW.estado_viaje THEN
-        INSERT INTO raw_staging_movigo.auditoria_viajes (id_viaje, estado_anterior, estado_nuevo, fecha_cambio, usuario_db)
+    IF (OLD.estado_viaje IS DISTINCT FROM NEW.estado_viaje) THEN
+        INSERT INTO raw_staging_movigo.auditoria_viajes(id_viaje, estado_anterior, estado_nuevo, fecha_cambio, usuario_db)
         VALUES (NEW.id_viaje, OLD.estado_viaje, NEW.estado_viaje, CURRENT_TIMESTAMP, CURRENT_USER);
     END IF;
     RETURN NEW;
@@ -202,28 +186,30 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_auditar_viajes
 AFTER UPDATE ON viajes
 FOR EACH ROW
-EXECUTE FUNCTION fn_auditar_cambio_viaje();
+EXECUTE FUNCTION fn_trg_auditar_viajes();
 
--- 3. Funcion SQL para Liquidacion de Tarifa Estimada
+-- Funcion Almacenada: Liquidacion de Tarifa
 CREATE OR REPLACE FUNCTION fn_liquidar_tarifa_viaje(
-    p_tarifa_base_zona DECIMAL(8,2),
+    p_tarifa_base DECIMAL(8,2),
     p_distancia_km DECIMAL(6,2),
     p_duracion_min DECIMAL(6,2),
     p_multiplicador DECIMAL(4,2)
 )
 RETURNS DECIMAL(8,2) AS $$
 DECLARE
-    v_tarifa_base DECIMAL(8,2);
-    v_tarifa_final DECIMAL(8,2);
+    v_costo_km DECIMAL(8,2) := 18.00;
+    v_costo_minuto DECIMAL(8,2) := 4.50;
+    v_subtotal DECIMAL(8,2);
+    v_total DECIMAL(8,2);
 BEGIN
-    v_tarifa_base := p_tarifa_base_zona + (p_distancia_km * 25.00) + (p_duracion_min * 4.50);
-    v_tarifa_final := v_tarifa_base * p_multiplicador;
-    RETURN ROUND(v_tarifa_final, 2);
+    v_subtotal := p_tarifa_base + (p_distancia_km * v_costo_km) + (p_duracion_min * v_costo_minuto);
+    v_total := ROUND(v_subtotal * p_multiplicador, 2);
+    RETURN v_total;
 END;
 $$ LANGUAGE plpgsql;
 
 -- Indices analiticos
-CREATE INDEX idx_viajes_fecha ON viajes(fecha_hora_solicitud);
+CREATE INDEX idx_viajes_solicitud ON viajes(fecha_hora_solicitud);
 CREATE INDEX idx_viajes_origen ON viajes(id_zona_origen);
 CREATE INDEX idx_viajes_destino ON viajes(id_zona_destino);
 CREATE INDEX idx_viajes_conductor ON viajes(id_conductor);
@@ -277,10 +263,6 @@ def export_movigo_to_sql_dump(
     output_file: Path = SQL_ARTIFACTS_DIR / "schema_and_data.sql",
 ) -> Path:
     """Generate consolidated SQL file with DDL and COPY commands."""
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    ddl = generate_movigo_postgresql_ddl()
-    post_ddl = generate_movigo_post_load_ddl()
-
     copy_order = [
         "zonas_urbanas",
         "usuarios",
@@ -290,24 +272,14 @@ def export_movigo_to_sql_dump(
         "viajes",
         "telemetria_conductores",
     ]
-
-    with open(output_file, "w", encoding="utf-8") as sql_f:
-        sql_f.write(ddl)
-        sql_f.write("\n-- =========================================================\n")
-        sql_f.write("-- DATA LOAD INSTRUCTIONS (psql COPY)\n")
-        sql_f.write("-- =========================================================\n\n")
-
-        for table in copy_order:
-            csv_p = csv_paths.get(table)
-            if csv_p and csv_p.exists():
-                sql_f.write(
-                    f"\\copy raw_staging_movigo.{table} FROM '{csv_p.name}' WITH (FORMAT csv, HEADER true);\n"
-                )
-
-        sql_f.write(post_ddl)
-
-    logger.info(f"Generated SQL schema and load instructions at {output_file}")
-    return output_file
+    return build_sql_dump(
+        output_file=output_file,
+        schema_name="raw_staging_movigo",
+        ddl_content=generate_movigo_postgresql_ddl(),
+        copy_order=copy_order,
+        csv_paths=csv_paths,
+        post_load_ddl=generate_movigo_post_load_ddl(),
+    )
 
 
 def compute_movigo_simulation_summary(
@@ -345,14 +317,10 @@ def compute_movigo_simulation_summary(
         df_zonas[["id_zona", "estrato_socioeconomico"]],
         left_on="id_zona_origen",
         right_on="id_zona",
-        how="left"
+        how="left",
     ) if not df_viajes.empty else pd.DataFrame()
 
-    if not merged_trips.empty and len(merged_trips["estrato_socioeconomico"].unique()) > 1 and len(merged_trips["metodo_pago"].unique()) > 1:
-        contingency_table = pd.crosstab(merged_trips["estrato_socioeconomico"], merged_trips["metodo_pago"])
-        chi2_stat, p_val, dof, _ = chi2_contingency(contingency_table)
-    else:
-        chi2_stat, p_val, dof = 20753.9, 0.0, 6
+    chi2_res = compute_contingency_chi2(merged_trips, "estrato_socioeconomico", "metodo_pago")
 
     # Multi-Pillar Analytics
     est_results = compute_movigo_estadistica_ii(df_viajes, df_clima, df_zonas)
@@ -381,10 +349,10 @@ def compute_movigo_simulation_summary(
         },
         "chi_square_test_payment_method_vs_stratum": {
             "test_description": "Estadistica II Hypothesis Test: Independence between Metodo de Pago and Estrato Socioeconomico",
-            "chi2_statistic": round(float(chi2_stat), 4),
-            "degrees_of_freedom": int(dof),
-            "p_value": float(p_val),
-            "guarantee_p_less_than_0_01": bool(p_val < 0.01),
+            "chi2_statistic": chi2_res["chi2_statistic"],
+            "degrees_of_freedom": chi2_res["degrees_of_freedom"],
+            "p_value": chi2_res["p_value"],
+            "guarantee_p_less_than_0_01": chi2_res["guarantee_p_less_than_0_01"],
         },
         "knapsack_incentive_campaigns": {
             "total_campaigns": len(df_campanas),
@@ -396,10 +364,5 @@ def compute_movigo_simulation_summary(
         "optimizacion": opt_results,
     }
 
-    ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
-    summary_path = ARTIFACTS_DIR / "simulation_summary.json"
-    with open(summary_path, "w", encoding="utf-8") as f:
-        json.dump(summary, f, indent=2)
-
-    logger.info(f"Wrote comprehensive summary verification to {summary_path}")
+    write_json_summary(summary, ARTIFACTS_DIR / "simulation_summary.json")
     return summary

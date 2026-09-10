@@ -7,6 +7,7 @@ PIP := VENV_BIN + "pip"
 ANTOJITOS := VENV_BIN + "antojitos-sim"
 VOLCAN := VENV_BIN + "volcan-sim"
 MOVIGO := VENV_BIN + "movigo-sim"
+DATA_SIM := VENV_BIN + "data-sim"
 
 # Default: List all available recipes
 default:
@@ -201,18 +202,40 @@ load-all:
     @just load-movigo
     @echo "✓ All 3 case schemas loaded into PostgreSQL."
 
-# Run quick verification test (3 days per case) and clean up
-test:
-    @echo "=== Running fast 3-day verification tests across all 3 engines ==="
-    {{ ANTOJITOS }} generate --days 3
-    {{ VOLCAN }} generate --days 3
-    {{ MOVIGO }} generate --days 3
+# Run fast unit and integration tests (Stats, Numerics, Optimization, Relational Integrity)
+test-unit:
+    {{ PYTHON }} -m unittest discover -s tests -v
+
+# Run full verification test (unit tests, 3-day simulation across all cases, inspect, and bundle)
+test: test-unit
+    @echo "\n=== Running fast 3-day verification tests via unified data-sim ==="
+    {{ DATA_SIM }} generate --case all --days 3
     @echo "\n=== Verifying generated summary reports ==="
-    {{ ANTOJITOS }} inspect
-    {{ VOLCAN }} inspect
-    {{ MOVIGO }} inspect
-    @echo "\n✓ All 3 simulation pipelines verified successfully!"
+    {{ DATA_SIM }} inspect --case all
+    @echo "\n=== Verifying student bundle generation ==="
+    {{ DATA_SIM }} bundle --case all
+    @echo "\n✓ All 3 simulation pipelines and student bundles verified successfully!"
     @just clean
+
+# Package student capstone bundle for Antojitos Express
+bundle-antojitos:
+    {{ DATA_SIM }} bundle --case antojitos
+
+# Package student capstone bundle for Cooperativa El Volcán
+bundle-volcan:
+    {{ DATA_SIM }} bundle --case volcan
+
+# Package student capstone bundle for MoviGo
+bundle-movigo:
+    {{ DATA_SIM }} bundle --case movigo
+
+# Package student capstone bundles for all 3 cases
+bundle-all:
+    {{ DATA_SIM }} bundle --case all
+
+# Alias for bundle-all
+bundle: bundle-all
+
 
 # DataOps: Interactive Pipeline Orchestrator
 orchestrate:

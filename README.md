@@ -112,10 +112,12 @@ Modelos prescriptivos aplicados al negocio:
 | :--- | :--- |
 | `just` | Lista todas las recetas disponibles |
 | `just install` | Instala paquetes y dependencias en modo editable (`pip install -e .`) |
+| `just test-unit` | Ejecuta suite de pruebas unitarias (Stats, Métodos Numéricos, Optimización, Integridad) |
+| `just test` | Ejecuta suite unitaria + simulación rápida de 3 días + inspección + empaquetado |
 | `just generate-all [days]` | Ejecuta las simulaciones para los 3 casos (ej. `just generate-all 7`) |
 | `just inspect-all` | Despliega tablas Rich con estadística, métodos numéricos y optimización |
+| `just bundle-all` / `just bundle` | Genera paquetes autocontenidos para estudiantes en `data/exports/student_bundles/` |
 | `just load-all` | Carga esquemas, triggers, procedimientos, CSVs y vistas materializadas en PostgreSQL |
-| `just test` | Ejecuta verificación de extremo a extremo (3 días por motor, validación y limpieza) |
 | `just orchestrate` | Inicia el orquestador interactivo de DataOps en consola Bash |
 | `just ingest [target]` | Descarga variables driver meteorológicas vía API (`all`, `antojitos`, `volcan`, `movigo`) |
 | `just monitor` | Inicia el monitor en vivo de consumo de CPU, RAM, disco y PostgreSQL |
@@ -126,64 +128,71 @@ Modelos prescriptivos aplicados al negocio:
 
 ---
 
-## 3. Guía de Ejecución Rápida
+## 3. CLI Unificada (`data-sim`) y Motores Especializados
 
-### Requisitos Previos
-* Linux / macOS / WSL2
-* Python 3.10+
-* Docker y Docker Compose
-* `just` (administrador de comandos)
+El proyecto cuenta con un punto de entrada unificado `data-sim` y mantiene compatibilidad total con los CLIs independientes:
 
-### Paso 1: Configuración del Entorno
 ```bash
-# Clonar y entrar al directorio
-git clone <repo-url> && cd data-simulation
+# Uso del CLI unificado:
+data-sim generate --case all --days 30   # Genera los 3 casos (o --case antojitos / volcan / movigo)
+data-sim inspect --case all             # Muestra métricas, tablas ANOVA y modelos prescriptivos
+data-sim bundle --case all              # Empaqueta carpetas y .tar.gz para estudiantes
+data-sim load --case all                # Carga datos en PostgreSQL (local psql o Docker)
+data-sim weather --case all             # Descarga o verifica series meteorológicas
+data-sim mock-api --case antojitos -p 8000 # Levanta mock server Open-Meteo
 
-# Instalar dependencias
-just install
-
-# Iniciar contenedor PostgreSQL 18
-just db-up
-```
-
-### Paso 2: Generación de Datos Sintéticos
-```bash
-# Simular 30 días de operaciones para los 3 casos
-just generate-all 30
-
-# O simular el año 2024 completo
-just generate-all
-```
-
-### Paso 3: Carga en Base de Datos PostgreSQL
-```bash
-# Carga automática con fallback a Docker exec
-just load-all
-```
-
-### Paso 4: Inspección de Modelos Analíticos
-```bash
-# Visualizar resultados de Estadística, Métodos Numéricos y Optimización
-just inspect-all
-```
-
-### Paso 5: Exportación DataOps
-```bash
-# Generar paquete con sumas de verificación SHA-256
-just export
+# O usando los CLIs específicos:
+antojitos-sim generate --days 30 && antojitos-sim inspect
+volcan-sim generate --days 30 && volcan-sim inspect
+movigo-sim generate --days 30 && movigo-sim inspect
 ```
 
 ---
 
-## 4. Estructura del Repositorio
+## 4. Paquetes para Estudiantes (Student Bundles)
+
+Para facilitar la entrega a los estudiantes en el aula universitaria, el sistema genera paquetes individuales limpios y autónomos en `data/exports/student_bundles/`:
+
+* `caso_1_antojitos_express/` (y su comprimido `caso_1_antojitos_express.tar.gz`)
+* `caso_2_cooperativa_volcan/` (y su comprimido `caso_2_cooperativa_volcan.tar.gz`)
+* `caso_3_movigo/` (y su comprimido `caso_3_movigo.tar.gz`)
+
+Cada paquete contiene:
+1. `README.md`: Guía de la empresa simulada, diccionario de datos y retos por asignatura.
+2. `schema_and_data.sql`: Script DDL completo con tablas 3NF, triggers, funciones y sentencias `\copy`.
+3. `starter_queries.sql`: Consultas SQL iniciales de exploración, integridad y vistas analíticas.
+4. `*.dbml`: Diagrama Entidad-Relación en formato DBML para dbdocs / dbdiagram.io.
+5. `csv/`: Archivos CSV tabulares generados para carga manual o vía dbt / Pandas.
+
+---
+
+## 5. Documentación y Consultas de Inicio
+
+* **Guía Docente y Estudiante:** [`docs/GUIA_DOCENTE_Y_ESTUDIANTE.md`](docs/GUIA_DOCENTE_Y_ESTUDIANTE.md) (Rúbricas, lineamientos por asignatura, preguntas de investigación y entregables).
+* **Guías de Casos de Negocio:**
+  * Caso 1: [`docs/casos/01_antojitos_express.md`](docs/casos/01_antojitos_express.md)
+  * Caso 2: [`docs/casos/02_cooperativa_volcan.md`](docs/casos/02_cooperativa_volcan.md)
+  * Caso 3: [`docs/casos/03_movigo.md`](docs/casos/03_movigo.md)
+* **Consultas SQL Starter:**
+  * [`queries/01_antojitos_express.sql`](queries/01_antojitos_express.sql)
+  * [`queries/02_cooperativa_volcan.sql`](queries/02_cooperativa_volcan.sql)
+  * [`queries/03_movigo.sql`](queries/03_movigo.sql)
+
+---
+
+## 6. Estructura del Repositorio
 
 ```text
-├── antojitos.dbml                   # Esquema DBML Caso 1 (Antojitos Express)
-├── cooperativa.dbml                 # Esquema DBML Caso 2 (Cooperativa El Volcán)
-├── movigo.dbml                      # Esquema DBML Caso 3 (MoviGo)
 ├── compose.yml                      # PostgreSQL 18 Alpine con volumen montado
 ├── justfile                         # Automatización centralizada
 ├── pyproject.toml                   # Configuración del paquete y CLIs
+├── antojitos.dbml                   # Esquema DBML Caso 1 (Antojitos Express)
+├── cooperativa.dbml                 # Esquema DBML Caso 2 (Cooperativa El Volcán)
+├── movigo.dbml                      # Esquema DBML Caso 3 (MoviGo)
+├── docs/                            # Documentación académica y de casos
+│   ├── GUIA_DOCENTE_Y_ESTUDIANTE.md # Manual maestro del proyecto integrador
+│   └── casos/                       # Briefs detallados para estudiantes
+├── queries/                         # Consultas SQL starter por caso
 ├── scripts/                         # Pipeline DataOps & Generadores de Semillas
 │   ├── ingesta.sh                   # Ingesta API Open-Meteo con reintentos y curl
 │   ├── orquestador.sh               # Menú interactivo ANSI para estudiantes
@@ -191,18 +200,28 @@ just export
 │   ├── exportar_resultados.sh       # Empaquetado tar.gz y manifiesto SHA-256
 │   └── generate_all_seeds.py        # Generador de catálogos con Gemini API
 ├── src/
-│   ├── antojitos_sim/               # Motor Caso 1 (Cocina Fantasma)
-│   │   ├── analytics.py             # ANOVA, Gauss-Markov, Raíces, Simplex, Húngaro
-│   │   ├── exporter.py              # DDL, Triggers, Auditoría, Vistas Materializadas
-│   │   └── generator.py, weather.py, cli.py
+│   ├── data_sim/                    # Núcleo unificado y compartido
+│   │   ├── cli.py                   # CLI unificada 'data-sim'
+│   │   └── core/                    # Módulos matemáticos, estadísticos y base
+│   │       ├── stats.py             # ANOVA, Gauss-Markov, Welch t, Chi2, Prop-z
+│   │       ├── numerics.py          # Bisección, Newton, Diferencias finitas, Simpson
+│   │       ├── optimization.py      # Simplex con precios sombra, Vogel, Húngaro, Dijkstra, CPM
+│   │       ├── weather.py           # Cliente HTTP Open-Meteo y mock server
+│   │       ├── database.py          # Conectores y ejecutores PostgreSQL/Docker
+│   │       ├── exporter.py          # Exportadores CSV y generadores SQL DDL
+│   │       ├── reporting.py         # Visualizadores Rich en consola
+│   │       └── bundle.py            # Generador de paquetes para estudiantes
+│   ├── antojitos_sim/               # Motor Caso 1 (Cocina Fantasma Delivery)
 │   ├── volcan_sim/                  # Motor Caso 2 (Café de Exportación)
-│   │   ├── analytics.py             # ANOVA, Cinética secado, Vogel VAM, Mochila, CPM
-│   │   ├── exporter.py              # DDL, SP Cierre, Triggers, Auditoría, Vistas
-│   │   └── generator.py, weather.py, cli.py
 │   └── movigo_sim/                  # Motor Caso 3 (Transporte Urbano MoviGo)
-│       ├── analytics.py             # ANOVA, Gauss-Markov, Bisección, Húngaro, Dijkstra
-│       ├── exporter.py              # DDL, Función liquidación, Triggers, Auditoría
-│       └── generator.py, weather.py, cli.py
+├── tests/                           # Suite de pruebas unitarias e integración
+│   ├── test_core_stats.py
+│   ├── test_core_numerics.py
+│   ├── test_core_optimization.py
+│   ├── test_relational_integrity.py
+│   └── test_cli.py
 ├── artifacts/                       # Salida de simulación (CSVs, SQL, JSON)
-└── data/raw/                        # Series climáticas descargadas
+├── data/
+│   ├── raw/                         # Series climáticas descargadas
+│   └── exports/student_bundles/     # Paquetes listos para distribución
 ```

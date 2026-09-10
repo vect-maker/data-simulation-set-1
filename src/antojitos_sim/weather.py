@@ -1,16 +1,13 @@
-"""Weather driver module: Open-Meteo API ingestion and Mock API server for Shell Scripting."""
+"""Weather driver module for Antojitos Express (Managua)."""
 
-import json
 import logging
-from datetime import datetime, date, timedelta
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict, Any, Tuple
-from urllib.parse import urlparse, parse_qs
-import requests
 import pandas as pd
 import numpy as np
 
+from data_sim.core.weather import WeatherClient, start_mock_weather_server
 from antojitos_sim.config import (
     OPEN_METEO_ARCHIVE_URL,
     OPEN_METEO_LATITUDE,
@@ -20,7 +17,7 @@ from antojitos_sim.config import (
     END_DATE,
     RAW_DATA_DIR,
     MOCK_API_PORT,
-    MOCK_API_HOST
+    MOCK_API_HOST,
 )
 from antojitos_sim.models import ClimaDiario
 
@@ -28,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def map_weather_condition(weather_code: int, precip_mm: float) -> str:
-    """Map WMO weather interpretation code to business sky condition."""
+    """Map WMO weather code to business condition."""
     if precip_mm >= 15.0 or weather_code in [65, 81, 82, 95, 96, 99]:
         return "tormenta"
     elif precip_mm > 0.5 or weather_code in [51, 53, 55, 61, 63, 80]:
@@ -39,49 +36,7 @@ def map_weather_condition(weather_code: int, precip_mm: float) -> str:
         return "despejado"
 
 
-def fetch_open_meteo_archive(
-    start_date: str = START_DATE,
-    end_date: str = END_DATE,
-    cache_path: Path = None,
-    force_refresh: bool = False
-) -> Dict[str, Any]:
-    """Fetch daily historical weather for Managua from Open-Meteo Archive API or local cache."""
-    if cache_path is None:
-        RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
-        cache_path = RAW_DATA_DIR / "clima_managua_2024.json"
-
-    if cache_path.exists() and not force_refresh:
-        logger.info(f"Loading weather from cache: {cache_path}")
-        with open(cache_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    params = {
-        "latitude": OPEN_METEO_LATITUDE,
-        "longitude": OPEN_METEO_LONGITUDE,
-        "start_date": start_date,
-        "end_date": end_date,
-        "daily": "precipitation_sum,temperature_2m_mean,weather_code",
-        "timezone": TIMEZONE
-    }
-
-    logger.info(f"Querying Open-Meteo Archive for Managua ({start_date} to {end_date})...")
-    try:
-        response = requests.get(OPEN_METEO_ARCHIVE_URL, params=params, timeout=20)
-        response.raise_for_status()
-        data = response.json()
-        with open(cache_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-        logger.info(f"Weather successfully fetched and cached at {cache_path}")
-        return data
-    except Exception as e:
-        logger.warning(f"Could not reach Open-Meteo API ({e}). Generating realistic synthetic fallback...")
-        fallback_data = generate_synthetic_weather_fallback(start_date, end_date)
-        with open(cache_path, "w", encoding="utf-8") as f:
-            json.dump(fallback_data, f, indent=2)
-        return fallback_data
-
-
-def generate_synthetic_weather_fallback(start_date: str, end_date: str) -> Dict[str, Any]:
+def generate_synthetic_weather_fallback(start_date: str = START_DATE, end_date: str = END_DATE) -> Dict[str, Any]:
     """Generate realistic tropical weather for Managua if network fails."""
     start = datetime.strptime(start_date, "%Y-%m-%d").date()
     end = datetime.strptime(end_date, "%Y-%m-%d").date()
@@ -108,11 +63,11 @@ def generate_synthetic_weather_fallback(start_date: str, end_date: str) -> Dict[
         if np.random.rand() < rain_prob:
             p_val = float(np.random.exponential(scale=12.0))
             if p_val > 25.0:
-                code = 95 # Tormenta eléctrica
+                code = 95
             elif p_val > 5.0:
-                code = 63 # Lluvia moderada
+                code = 63
             else:
-                code = 51 # Llovizna
+                code = 51
         else:
             p_val = 0.0
             code = 0 if np.random.rand() > 0.4 else 2
@@ -129,19 +84,44 @@ def generate_synthetic_weather_fallback(start_date: str, end_date: str) -> Dict[
             "time": dates,
             "precipitation_sum": precip,
             "temperature_2m_mean": temps,
-            "weather_code": codes
-        }
+            "weather_code": codes,
+        },
     }
 
 
+def fetch_open_meteo_archive(
+    start_date: str = START_DATE,
+    end_date: str = END_DATE,
+    cache_path: Path = None,
+    force_refresh: bool = False,
+) -> Dict[str, Any]:
+    """Fetch daily historical weather for Managua from Open-Meteo Archive API or cache."""
+    if cache_path is None:
+        RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
+        cache_path = RAW_DATA_DIR / "clima_managua_2024.json"
+
+    return WeatherClient.fetch_weather_archive(
+        archive_url=OPEN_METEO_ARCHIVE_URL,
+        latitude=OPEN_METEO_LATITUDE,
+        longitude=OPEN_METEO_LONGITUDE,
+        start_date=start_date,
+        end_date=end_date,
+        daily_vars="precipitation_sum,temperature_2m_mean,weather_code",
+        timezone=TIMEZONE,
+        cache_path=cache_path,
+        fallback_fn=lambda: generate_synthetic_weather_fallback(start_date, end_date),
+        force_refresh=force_refresh,
+    )
+
+
 def parse_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
-    """Parse Open-Meteo response into a structured DataFrame matching clima_diario schema."""
+    """Parse Open-Meteo response into structured DataFrame matching clima_diario schema."""
     daily = raw_json["daily"]
     df = pd.DataFrame({
         "fecha": pd.to_datetime(daily["time"]).date,
         "precipitacion_mm": [float(p) if p is not None else 0.0 for p in daily["precipitation_sum"]],
         "temperatura_c": [float(t) if t is not None else 28.0 for t in daily["temperature_2m_mean"]],
-        "weather_code": [int(c) if c is not None else 0 for c in (daily.get("weather_code") or daily.get("weathercode", []))]
+        "weather_code": [int(c) if c is not None else 0 for c in (daily.get("weather_code") or daily.get("weathercode", []))],
     })
 
     df["condicion_cielo"] = [
@@ -161,50 +141,18 @@ def get_daily_weather_series(force_refresh: bool = False) -> Tuple[pd.DataFrame,
             fecha=row["fecha"],
             precipitacion_mm=row["precipitacion_mm"],
             temperatura_c=row["temperatura_c"],
-            condicion_cielo=row["condicion_cielo"]
+            condicion_cielo=row["condicion_cielo"],
         )
         for _, row in df.iterrows()
     ]
     return df, records
 
 
-class MockOpenMeteoHandler(BaseHTTPRequestHandler):
-    """HTTP handler mimicking Open-Meteo Archive API for student shell scripts."""
-
-    def do_GET(self):
-        parsed = urlparse(self.path)
-        if parsed.path in ["/v1/archive", "/archive"]:
-            raw_data = fetch_open_meteo_archive()
-            body = json.dumps(raw_data, indent=2).encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-        elif parsed.path == "/health":
-            body = b'{"status": "ok", "service": "antojitos-mock-open-meteo"}'
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-        else:
-            self.send_response(404)
-            self.end_headers()
-            self.wfile.write(b'{"error": "Not Found. Use /v1/archive"}')
-
-    def log_message(self, format, *args):
-        logger.info("%s - - [%s] %s" % (self.client_address[0], self.log_date_time_string(), format % args))
-
-
 def start_mock_api_server(host: str = MOCK_API_HOST, port: int = MOCK_API_PORT):
     """Start standalone HTTP server serving Open-Meteo weather endpoint."""
-    server_address = (host, port)
-    httpd = HTTPServer(server_address, MockOpenMeteoHandler)
-    print(f"\n[Mock API] Serving Open-Meteo weather for Managua on http://{host}:{port}/v1/archive")
-    print(f"[Mock API] Students can ingest with: curl -s 'http://{host}:{port}/v1/archive' | jq .\n")
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        print("\n[Mock API] Shutting down mock weather server.")
-        httpd.server_close()
+    start_mock_weather_server(
+        data_provider=fetch_open_meteo_archive,
+        service_name="antojitos-mock-open-meteo",
+        host=host,
+        port=port,
+    )

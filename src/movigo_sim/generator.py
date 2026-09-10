@@ -101,6 +101,11 @@ class MoviGoSimulationEngine:
         self.conductores_map = {c.id_conductor: c for c in self.conductores}
         self.active_conductores = [c for c in self.conductores if c.estado == "activo"]
 
+    @property
+    def semantic_templates(self):
+        """Backward-compatible alias for templates."""
+        return self.templates
+
     def calculate_daily_demand(self, precip_mm: float, dow: int) -> int:
         """Daily ride requests driven by rain and day-of-week in Managua."""
         # Baseline ~180 rides on dry weekdays, +25 Friday/Sat, +4.5 rides per mm of rain

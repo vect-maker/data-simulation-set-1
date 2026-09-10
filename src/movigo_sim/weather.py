@@ -1,16 +1,13 @@
 """Weather and urban traffic congestion driver module for MoviGo (Managua)."""
 
-import json
 import logging
-from datetime import datetime, date, timedelta
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict, Any, Tuple
-from urllib.parse import urlparse
-import requests
 import pandas as pd
 import numpy as np
 
+from data_sim.core.weather import WeatherClient, start_mock_weather_server
 from movigo_sim.config import (
     OPEN_METEO_ARCHIVE_URL,
     OPEN_METEO_LATITUDE,
@@ -39,69 +36,37 @@ def map_sky_condition(precip_mm: float, weather_code: int) -> str:
         return "despejado"
 
 
-def fetch_movigo_weather_archive(
-    start_date: str = START_DATE,
-    end_date: str = END_DATE,
-    cache_path: Path = None,
-    force_refresh: bool = False,
-) -> Dict[str, Any]:
-    """Fetch daily historical weather for Managua from Open-Meteo or local cache."""
-    if cache_path is None:
-        RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
-        cache_path = RAW_DATA_DIR / "clima_managua_movigo_2024.json"
-
-    if cache_path.exists() and not force_refresh:
-        logger.info(f"Loading weather from cache: {cache_path}")
-        with open(cache_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    params = {
-        "latitude": OPEN_METEO_LATITUDE,
-        "longitude": OPEN_METEO_LONGITUDE,
-        "start_date": start_date,
-        "end_date": end_date,
-        "daily": "precipitation_sum,temperature_2m_mean,weather_code",
-        "timezone": TIMEZONE,
-    }
-
-    logger.info(f"Fetching Open-Meteo weather for MoviGo Managua ({start_date} to {end_date})...")
-    try:
-        response = requests.get(OPEN_METEO_ARCHIVE_URL, params=params, timeout=20)
-        response.raise_for_status()
-        data = response.json()
-        with open(cache_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-        logger.info(f"Weather successfully cached at {cache_path}")
-        return data
-    except Exception as e:
-        logger.warning(f"Could not reach Open-Meteo API ({e}). Generating fallback...")
-        fallback = generate_synthetic_weather_fallback(start_date, end_date)
-        with open(cache_path, "w", encoding="utf-8") as f:
-            json.dump(fallback, f, indent=2)
-        return fallback
-
-
-def generate_synthetic_weather_fallback(start_date: str, end_date: str) -> Dict[str, Any]:
-    """Synthetic weather generator if network is unreachable."""
+def generate_synthetic_weather_fallback(start_date: str = START_DATE, end_date: str = END_DATE) -> Dict[str, Any]:
+    """Generate realistic tropical weather for Managua if network fails."""
     start = datetime.strptime(start_date, "%Y-%m-%d").date()
     end = datetime.strptime(end_date, "%Y-%m-%d").date()
     num_days = (end - start).days + 1
+
     dates = [(start + timedelta(days=i)).isoformat() for i in range(num_days)]
     precip = []
     temps = []
     codes = []
+
     np.random.seed(42)
     for d_str in dates:
         month = datetime.strptime(d_str, "%Y-%m-%d").month
         if month in [1, 2, 3, 4, 12]:
-            p = float(np.random.exponential(scale=1.0)) if np.random.rand() < 0.10 else 0.0
-            t = float(np.random.normal(30.0, 1.5))
+            rain_prob = 0.08
+            temp = float(np.random.normal(30.5, 1.8))
         else:
-            p = float(np.random.exponential(scale=12.0)) if np.random.rand() < 0.55 else 0.0
-            t = float(np.random.normal(28.0, 1.2))
-        precip.append(round(p, 2))
-        temps.append(round(t, 2))
-        codes.append(95 if p > 20.0 else (61 if p > 1.0 else 0))
+            rain_prob = 0.55
+            temp = float(np.random.normal(28.0, 1.5))
+
+        if np.random.rand() < rain_prob:
+            p_val = float(np.random.exponential(scale=12.0))
+            code = 95 if p_val > 25.0 else (63 if p_val > 5.0 else 51)
+        else:
+            p_val = 0.0
+            code = 0 if np.random.rand() > 0.4 else 2
+
+        precip.append(round(p_val, 2))
+        temps.append(round(temp, 2))
+        codes.append(code)
 
     return {
         "latitude": OPEN_METEO_LATITUDE,
@@ -116,36 +81,59 @@ def generate_synthetic_weather_fallback(start_date: str, end_date: str) -> Dict[
     }
 
 
-def parse_movigo_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
-    """Parse weather and derive daily traffic congestion index."""
-    daily = raw_json["daily"]
-    dates = pd.to_datetime(daily["time"]).date
+def fetch_movigo_weather_archive(
+    start_date: str = START_DATE,
+    end_date: str = END_DATE,
+    cache_path: Path = None,
+    force_refresh: bool = False,
+) -> Dict[str, Any]:
+    """Fetch daily historical weather for Managua from Open-Meteo or local cache."""
+    if cache_path is None:
+        RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
+        cache_path = RAW_DATA_DIR / "clima_managua_movigo_2024.json"
 
+    return WeatherClient.fetch_weather_archive(
+        archive_url=OPEN_METEO_ARCHIVE_URL,
+        latitude=OPEN_METEO_LATITUDE,
+        longitude=OPEN_METEO_LONGITUDE,
+        start_date=start_date,
+        end_date=end_date,
+        daily_vars="precipitation_sum,temperature_2m_mean,weather_code",
+        timezone=TIMEZONE,
+        cache_path=cache_path,
+        fallback_fn=lambda: generate_synthetic_weather_fallback(start_date, end_date),
+        force_refresh=force_refresh,
+    )
+
+
+fetch_open_meteo_managua_series = fetch_movigo_weather_archive
+
+
+def parse_movigo_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
+    """Parse Open-Meteo payload and generate simulated congestion index based on rain."""
+    daily = raw_json["daily"]
+    dates = [datetime.strptime(t, "%Y-%m-%d").date() for t in daily["time"]]
     precip = [float(p) if p is not None else 0.0 for p in daily["precipitation_sum"]]
-    temps = [float(t) if t is not None else 28.5 for t in daily["temperature_2m_mean"]]
+    temps = [float(t) if t is not None else 28.0 for t in daily["temperature_2m_mean"]]
     codes = [int(c) if c is not None else 0 for c in (daily.get("weather_code") or daily.get("weathercode", []))]
 
-    # Traffic congestion index: 1.00 (fluid) to 3.50 (severe downpour chaos)
-    # Managua traffic collapses when rainwater floods major avenues / rotaries
     congestion_indices = []
     sky_conditions = []
     for d, p, c in zip(dates, precip, codes):
-        dow = d.weekday() # Friday is naturally heavier
+        dow = d.weekday()
         base_cong = 1.20 + (0.35 if dow == 4 else (0.15 if dow in [0, 1, 2, 3] else -0.10))
-        # Rain multiplier: heavy downpour adds up to +1.8 to congestion index
         rain_bump = min(1.80, p * 0.075)
         cong = round(float(np.clip(base_cong + rain_bump + np.random.normal(0, 0.08), 1.00, 3.50)), 2)
         congestion_indices.append(cong)
         sky_conditions.append(map_sky_condition(p, c))
 
-    df = pd.DataFrame({
+    return pd.DataFrame({
         "fecha": dates,
         "precipitacion_mm": precip,
         "temperatura_c": temps,
         "indice_congestion": congestion_indices,
         "condicion_cielo": sky_conditions,
     })
-    return df
 
 
 def get_movigo_weather_series(force_refresh: bool = False) -> Tuple[pd.DataFrame, List[ClimaCuadrantes]]:
@@ -165,43 +153,14 @@ def get_movigo_weather_series(force_refresh: bool = False) -> Tuple[pd.DataFrame
     return df, records
 
 
-class MockMoviGoWeatherHandler(BaseHTTPRequestHandler):
-    """HTTP handler mimicking Open-Meteo for student shell scripts."""
-
-    def do_GET(self):
-        parsed = urlparse(self.path)
-        if parsed.path in ["/v1/archive", "/archive"]:
-            raw_data = fetch_movigo_weather_archive()
-            body = json.dumps(raw_data, indent=2).encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-        elif parsed.path == "/health":
-            body = b'{"status": "ok", "service": "movigo-mock-weather"}'
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-        else:
-            self.send_response(404)
-            self.end_headers()
-            self.wfile.write(b'{"error": "Not Found. Use /v1/archive"}')
-
-    def log_message(self, format, *args):
-        logger.info("%s - - [%s] %s" % (self.client_address[0], self.log_date_time_string(), format % args))
-
-
 def start_movigo_mock_api_server(host: str = MOCK_API_HOST, port: int = MOCK_API_PORT):
     """Start standalone HTTP server serving Managua urban weather & traffic endpoint."""
-    server_address = (host, port)
-    httpd = HTTPServer(server_address, MockMoviGoWeatherHandler)
-    print(f"\n[Mock API - MoviGo] Serving Urban Weather & Traffic on http://{host}:{port}/v1/archive")
-    print(f"[Mock API - MoviGo] Test command: curl -s 'http://{host}:{port}/v1/archive' | jq .\n")
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        print("\n[Mock API - MoviGo] Shutting down mock weather server.")
-        httpd.server_close()
+    start_mock_weather_server(
+        data_provider=fetch_movigo_weather_archive,
+        service_name="movigo-mock-weather",
+        host=host,
+        port=port,
+    )
+
+
+start_mock_api_server = start_movigo_mock_api_server

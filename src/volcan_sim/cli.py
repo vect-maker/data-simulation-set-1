@@ -6,9 +6,13 @@ import logging
 import sys
 from pathlib import Path
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
 
+from data_sim.core.reporting import (
+    render_operational_table,
+    render_statistical_table,
+    render_math_optimization_table,
+)
 from volcan_sim.config import (
     CSV_ARTIFACTS_DIR,
     SQL_ARTIFACTS_DIR,
@@ -40,117 +44,94 @@ logger = logging.getLogger("volcan_sim")
 def display_volcan_rich_summary(summary: dict):
     """Render comprehensive multi-pillar academic report for Cooperativa El Volcán."""
     # 1. Operational Metrics
-    table_ops = Table(title="Cooperativa El Volcán: Resumen Operativo y Cadena de Valor (2024)", style="green")
-    table_ops.add_column("Métrica", style="bold white")
-    table_ops.add_column("Valor", style="cyan")
-
-    table_ops.add_row("Caso de Estudio", summary["case_name"])
-    table_ops.add_row("Regiones Cafetaleras", ", ".join(summary["coffee_regions"]))
-    table_ops.add_row("Puerto de Exportación", summary["export_port"])
-    table_ops.add_row("Total Fincas Participantes", f"{summary['total_farms']}")
-    table_ops.add_row("Total Lotes Cosechados", f"{summary['total_harvest_lots']:,}")
-    table_ops.add_row("Café Cereza Recolectado", f"{summary['total_cherry_harvested_kg']:,.2f} kg")
-    table_ops.add_row("Café Oro Exportado", f"{summary['total_green_coffee_exported_qq']:,.2f} quintales")
-    table_ops.add_row("Ingresos Totales FOB", f"USD ${summary['total_export_revenue_usd']:,.2f}")
-
     scaa_stats = summary["scaa_cupping_scores"]
-    table_ops.add_row("Puntaje SCAA (Media / Min / Max)", f"{scaa_stats['mean']} / {scaa_stats['min']} / {scaa_stats['max']}")
-    table_ops.add_row("Correlación Altitud vs SCAA (r)", f"{scaa_stats['correlation_with_altitude']:.4f}")
-
     chi_res = summary["chi_square_test_variety_vs_region"]
     p_status = "[bold green]PASS (p < 0.01)[/bold green]" if chi_res["guarantee_p_less_than_0_01"] else "[bold red]FAIL[/bold red]"
-    table_ops.add_row("Ji-Cuadrado (Variedad vs Región)", f"χ² = {chi_res['chi2_statistic']}, p = {chi_res['p_value']:.2e} -> {p_status}")
-    console.print("\n", table_ops)
+
+    ops_rows = [
+        ("Caso de Estudio", summary["case_name"]),
+        ("Regiones Cafetaleras", ", ".join(summary["coffee_regions"])),
+        ("Puerto de Exportación", summary["export_port"]),
+        ("Total Fincas Participantes", f"{summary['total_farms']}"),
+        ("Total Lotes Cosechados", f"{summary['total_harvest_lots']:,}"),
+        ("Café Cereza Recolectado", f"{summary['total_cherry_harvested_kg']:,.2f} kg"),
+        ("Café Oro Exportado", f"{summary['total_green_coffee_exported_qq']:,.2f} quintales"),
+        ("Ingresos Totales FOB", f"USD ${summary['total_export_revenue_usd']:,.2f}"),
+        ("Puntaje SCAA (Media / Min / Max)", f"{scaa_stats['mean']} / {scaa_stats['min']} / {scaa_stats['max']}"),
+        ("Correlación Altitud vs SCAA (r)", f"{scaa_stats['correlation_with_altitude']:.4f}"),
+        ("Ji-Cuadrado (Variedad vs Región)", f"χ² = {chi_res['chi2_statistic']}, p = {chi_res['p_value']:.2e} -> {p_status}"),
+    ]
+    render_operational_table("Cooperativa El Volcán: Resumen Operativo y Cadena de Valor (2024)", ops_rows, border_style="green")
 
     # 2. Estadística II: Regresión y Supuestos OLS
     if "estadistica_ii" in summary:
         est = summary["estadistica_ii"]
-        table_reg = Table(title="Estadística II: Regresión Altitud vs SCAA y Pruebas de Hipótesis", style="magenta")
-        table_reg.add_column("Análisis / Test", style="bold white")
-        table_reg.add_column("Estadístico / Diagnóstico", style="yellow")
-        table_reg.add_column("Resultado / Conclusión", style="green")
-
-        sup = est.get("validacion_supuestos_ols", {})
-        norm = sup.get("normalidad_residuos", {})
-        table_reg.add_row("Normalidad Residuos (Shapiro)", f"W = {norm.get('estadistico_w')}, p = {norm.get('p_valor')}", "Cumple Gauss-Markov" if norm.get('cumple_supuesto') else "Aceptable para n grande")
-
-        homo = sup.get("homocedasticidad", {})
-        table_reg.add_row("Homocedasticidad (Breusch-Pagan)", f"LM = {homo.get('estadistico_lm')}, p = {homo.get('p_valor')}", "Varianza residual constante" if homo.get('cumple_supuesto') else "Heterocedasticidad leve")
-
-        dw = sup.get("independencia_errores", {})
-        table_reg.add_row("Autocorrelación (Durbin-Watson)", f"DW = {dw.get('estadistico_dw')}", dw.get('diagnostico', 'N/A'))
-
-        for h in est.get("bateria_pruebas_hipotesis", []):
-            table_reg.add_row(f"Hipótesis: {h['id']}", f"p-valor = {h['p_valor']:.4e}", h['conclusion'])
-
-        console.print("\n", table_reg)
+        render_statistical_table(
+            "Estadística II: Regresión Altitud vs SCAA y Pruebas de Hipótesis",
+            est.get("validacion_supuestos", est.get("validacion_supuestos_ols", {})),
+            est.get("bateria_pruebas_hipotesis", []),
+            border_style="magenta",
+        )
 
     # 3. Métodos Numéricos & Optimización
     if "metodos_numericos" in summary and "optimizacion" in summary:
         num = summary["metodos_numericos"]
         opt = summary["optimizacion"]
+        secado = num.get("cinetica_secado_deshidratacion", num.get("linealizacion_cinetica_secado", {}))
+        newt = num.get("raices_newton_raphson_tiempo_secado", num.get("calculo_raices_newton_secado", {}))
+        cpm = opt.get("gestion_proyectos_cpm_pert", opt.get("metodo_ruta_critica_cpm", {}))
+        trans = opt.get("modelo_transporte_vogel", opt.get("modelo_transporte_cafetalero", {}))
 
-        table_math = Table(title="Métodos Numéricos & Optimización Prescriptiva", style="cyan")
-        table_math.add_column("Pilar / Modelo", style="bold white")
-        table_math.add_column("Solución Numérica / Prescriptiva", style="green")
-
-        secado = num.get("linealizacion_cinetica_secado", {})
-        table_math.add_row("Linealización (Cinética de Secado)", f"{secado.get('modelo_teorico')} | k={secado.get('constante_secado_k')} | R²={secado.get('r_cuadrado_linealizado')}")
-
-        newt = num.get("calculo_raices_newton_secado", {})
-        table_math.add_row("Raíces (Newton-Raphson Secado)", f"Días óptimos para 11.5% humedad: {newt.get('dias_optimos_secado_newton')} días ({newt.get('iteraciones_convergencia')} iteraciones)")
-
-        cpm = opt.get("metodo_ruta_critica_cpm", {})
-        table_math.add_row("Ruta Crítica (CPM / PERT)", f"Duración Total: {cpm.get('duracion_total_proyecto_dias')} días | Ruta: {cpm.get('ruta_critica')}")
-
-        trans = opt.get("modelo_transporte_cafetalero", {})
-        table_math.add_row("Modelo de Transporte (Vogel VAM)", f"Oferta: {trans.get('oferta_total_quintales')} qq | Costo Total Óptimo de Flete: USD ${trans.get('costo_total_flete_usd'):,.2f}")
-
-        console.print("\n", table_math, "\n")
+        math_rows = [
+            ("Linealización (Cinética de Secado)", f"{secado.get('modelo', secado.get('modelo_teorico'))} | k={secado.get('constante_secado_k')} | R²={secado.get('coeficiente_determinacion_r2', secado.get('r_cuadrado_linealizado'))}"),
+            ("Raíces (Newton-Raphson Secado)", f"Horas para 11.5% humedad: {newt.get('tiempo_optimo_horas', newt.get('dias_optimos_secado_newton'))} ({newt.get('iteraciones_newton', newt.get('iteraciones_convergencia'))} iteraciones)"),
+            ("Ruta Crítica (CPM / PERT)", f"Duración Total: {cpm.get('duracion_total_dias', cpm.get('duracion_total_proyecto_dias'))} días | Ruta: {cpm.get('ruta_critica')}"),
+            ("Modelo de Transporte (Vogel VAM)", f"Oferta: {trans.get('oferta_total_quintales')} qq | Costo Total Óptimo de Flete: USD ${trans.get('costo_total_minimo_flete_usd', trans.get('costo_total_flete_usd')):,.2f}"),
+        ]
+        render_math_optimization_table("Métodos Numéricos & Optimización Prescriptiva", math_rows, border_style="cyan")
 
 
-def cmd_generate(args):
-    """Run full synthetic data generation pipeline."""
-    console.print(Panel.fit(
-        "[bold green]Cooperativa El Volcán Synthetic Data Simulation[/bold green]\n"
-        "[cyan]Nicaragua Specialty Coffee Export Supply Chain (Jinotega - Puerto Corinto)[/cyan]",
-        border_style="green"
-    ))
+def run_generation(days=None, seed=42, live_llm=False, load_db=False, schema=POSTGRES_SCHEMA, output_dir=None):
+    """Programmatic entry point for Volcan simulation generation."""
+    weather_df, clima_records = get_coffee_weather_series()
+    if days and days < len(weather_df):
+        weather_df = weather_df.head(days)
+        clima_records = clima_records[:days]
 
-    # 1. Weather series
-    with console.status("[bold yellow]Fetching/loading 2024 Jinotega agro-weather from Open-Meteo..."):
-        weather_df, clima_records = get_coffee_weather_series(force_refresh=args.refresh_weather)
-        if args.days and args.days < len(weather_df):
-            weather_df = weather_df.head(args.days)
-            clima_records = clima_records[:args.days]
+    engine = VolcanSimulationEngine(random_seed=seed)
+    lotes, procesos, subastas, embarques = engine.run_simulation(weather_df)
 
-    console.print(f"[green]✓[/green] Agro-climatic series ready: [bold]{len(weather_df)}[/bold] days (2024).")
+    enricher = VolcanSemanticEnricher(
+        templates=engine.notes_templates,
+        use_llm=live_llm,
+        random_seed=seed,
+    )
+    lotes, procesos = enricher.enrich_lots_and_processes(lotes, procesos)
 
-    # 2. Simulation engine
-    with console.status(f"[bold yellow]Running agricultural simulation (seed={args.seed})..."):
-        engine = VolcanSimulationEngine(random_seed=args.seed)
-        lotes, procesos, subastas, embarques = engine.run_simulation(weather_df)
-
-    console.print(
-        f"[green]✓[/green] Simulated: [bold]{len(lotes):,}[/bold] lots, "
-        f"[bold]{len(procesos):,}[/bold] processing steps, [bold]{len(embarques):,}[/bold] shipments."
+    csv_dir = Path(output_dir) if output_dir else CSV_ARTIFACTS_DIR
+    csv_files = export_volcan_to_csv(
+        fincas=engine.fincas,
+        variedades=engine.variedades,
+        beneficios=engine.beneficios,
+        cuadrillas=engine.cuadrillas,
+        clima=clima_records,
+        lotes=lotes,
+        procesos=procesos,
+        subastas=subastas,
+        embarques=embarques,
+        output_dir=csv_dir,
+    )
+    sql_file = export_volcan_to_sql_dump(csv_files)
+    summary = compute_volcan_simulation_summary(
+        fincas=engine.fincas,
+        variedades=engine.variedades,
+        lotes=lotes,
+        embarques=embarques,
+        subastas=subastas,
     )
 
-    # 3. Semantic enrichment
-    with console.status(f"[bold yellow]Applying semantic enrichment (live_llm={args.live_llm})..."):
-        enricher = VolcanSemanticEnricher(
-            templates=engine.notes_templates,
-            use_llm=args.live_llm,
-            random_seed=args.seed,
-        )
-        lotes, procesos = enricher.enrich_lots_and_processes(lotes, procesos)
-
-    console.print("[green]✓[/green] Cupping tasting notes enriched.")
-
-    # 4. Artifact exports
-    with console.status("[bold yellow]Exporting CSVs and PostgreSQL SQL dump..."):
-        csv_dir = Path(args.output_dir) if args.output_dir else CSV_ARTIFACTS_DIR
-        csv_files = export_volcan_to_csv(
+    if load_db:
+        load_volcan_to_postgres(
             fincas=engine.fincas,
             variedades=engine.variedades,
             beneficios=engine.beneficios,
@@ -160,43 +141,26 @@ def cmd_generate(args):
             subastas=subastas,
             embarques=embarques,
             clima=clima_records,
-            output_dir=csv_dir,
-        )
-        sql_file = export_volcan_to_sql_dump(csv_files)
-        summary = compute_volcan_simulation_summary(
-            fincas=engine.fincas,
-            variedades=engine.variedades,
-            lotes=lotes,
-            embarques=embarques,
-            subastas=subastas,
+            schema_name=schema,
         )
 
-    console.print(f"[green]✓[/green] CSV artifacts exported to: [bold]{csv_dir}[/bold]")
-    console.print(f"[green]✓[/green] SQL script generated: [bold]{sql_file}[/bold]")
+    return summary
 
-    # 5. Optional dlt load
-    if args.load_db:
-        with console.status(f"[bold yellow]Loading dataset into PostgreSQL via dlt ({args.schema})..."):
-            load_volcan_to_postgres(
-                fincas=engine.fincas,
-                variedades=engine.variedades,
-                beneficios=engine.beneficios,
-                cuadrillas=engine.cuadrillas,
-                lotes=lotes,
-                procesos=procesos,
-                subastas=subastas,
-                embarques=embarques,
-                clima=clima_records,
-                schema_name=args.schema,
-            )
-        console.print(f"[green]✓[/green] Successfully loaded into PostgreSQL schema '[bold]{args.schema}[/bold]'!")
 
+def run_inspection():
+    """Programmatic entry point for inspecting summary."""
+    summary_path = ARTIFACTS_DIR / "simulation_summary.json"
+    if not summary_path.exists():
+        console.print(f"[red]Error: Summary file {summary_path} not found. Run 'generate' first.[/red]")
+        sys.exit(1)
+
+    with open(summary_path, "r", encoding="utf-8") as f:
+        summary = json.load(f)
     display_volcan_rich_summary(summary)
 
 
-def cmd_load(args):
-    """Load pre-generated or fresh data into PostgreSQL."""
-    console.print("[bold cyan]Running dlt pipeline load to PostgreSQL...[/bold cyan]")
+def run_loading(schema=POSTGRES_SCHEMA):
+    """Programmatic entry point for loading to PostgreSQL."""
     engine = VolcanSimulationEngine(42)
     weather_df, clima_records = get_coffee_weather_series()
     lotes, procesos, subastas, embarques = engine.run_simulation(weather_df)
@@ -213,18 +177,41 @@ def cmd_load(args):
         subastas=subastas,
         embarques=embarques,
         clima=clima_records,
-        schema_name=args.schema,
+        schema_name=schema,
     )
+
+
+def cmd_generate(args):
+    """CLI handler for generate."""
+    console.print(Panel.fit(
+        "[bold green]Cooperativa El Volcán Synthetic Data Simulation[/bold green]\n"
+        "[cyan]Nicaragua Specialty Coffee Export Supply Chain (Jinotega - Puerto Corinto)[/cyan]",
+        border_style="green"
+    ))
+    summary = run_generation(
+        days=args.days,
+        seed=args.seed,
+        live_llm=args.live_llm,
+        load_db=args.load_db,
+        schema=args.schema,
+        output_dir=args.output_dir,
+    )
+    display_volcan_rich_summary(summary)
+
+
+def cmd_load(args):
+    """CLI handler for load."""
+    run_loading(schema=args.schema)
     console.print(f"[bold green]Data loaded into PostgreSQL schema '{args.schema}'.[/bold green]")
 
 
 def cmd_mock_api(args):
-    """Run Mock Open-Meteo API server for student ingesta.sh scripts."""
+    """CLI handler for mock-api."""
     start_volcan_mock_api_server(host=args.host, port=args.port)
 
 
 def cmd_inspect(args):
-    """Inspect generated simulation summary."""
+    """CLI handler for inspect."""
     summary_path = ARTIFACTS_DIR / "simulation_summary.json"
     if not summary_path.exists():
         console.print(f"[red]Error: Summary file {summary_path} not found. Run 'generate' first.[/red]")
@@ -240,25 +227,25 @@ def cmd_inspect(args):
 
 
 def cmd_fetch_weather(args):
-    """Fetch fresh agro-weather series from Open-Meteo API."""
-    console.print("[bold cyan]Fetching agro-weather series from Open-Meteo Archive API...[/bold cyan]")
+    """CLI handler for fetch-weather."""
+    console.print("[bold cyan]Fetching agro-weather series from Open-Meteo API for Jinotega...[/bold cyan]")
     fetch_jinotega_weather_archive(force_refresh=True)
-    console.print(f"[bold green]✓ Successfully fetched and saved weather to {RAW_DATA_DIR / 'clima_jinotega_2024.json'}[/bold green]")
+    console.print(f"[bold green]✓ Successfully fetched and saved agro-weather to {RAW_DATA_DIR / 'clima_jinotega_2024.json'}[/bold green]")
 
 
 def main():
     parser = argparse.ArgumentParser(
         prog="volcan-sim",
-        description="Cooperativa El Volcán Synthetic Data Simulation CLI (Specialty Coffee Export - Nicaragua)"
+        description="Cooperativa El Volcán Synthetic Data Simulation CLI (Jinotega, Nicaragua)"
     )
     subparsers = parser.add_subparsers(dest="subcommand", required=True)
 
     # generate
-    gen_parser = subparsers.add_parser("generate", help="Generate 2024 synthetic harvest facts")
+    gen_parser = subparsers.add_parser("generate", help="Generate 2024 coffee harvest & processing facts")
     gen_parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
     gen_parser.add_argument("--days", type=int, default=None, help="Number of days to simulate")
-    gen_parser.add_argument("--refresh-weather", action="store_true", help="Force refresh weather from Open-Meteo")
-    gen_parser.add_argument("--live-llm", action="store_true", help="Use live Gemini LLM for dynamic enrichment")
+    gen_parser.add_argument("--refresh-weather", action="store_true", help="Force refresh agro-weather from Open-Meteo")
+    gen_parser.add_argument("--live-llm", action="store_true", help="Use live Gemini LLM for cupping notes")
     gen_parser.add_argument("--load-db", action="store_true", help="Load into PostgreSQL via dlt immediately")
     gen_parser.add_argument("--schema", type=str, default=POSTGRES_SCHEMA, help="Target PostgreSQL staging schema")
     gen_parser.add_argument("--output-dir", type=str, default=str(CSV_ARTIFACTS_DIR), help="Output directory for CSVs")
@@ -274,7 +261,7 @@ def main():
     load_parser.set_defaults(func=cmd_load)
 
     # mock-api
-    mock_parser = subparsers.add_parser("mock-api", help="Serve Open-Meteo mock HTTP endpoint for ingesta.sh")
+    mock_parser = subparsers.add_parser("mock-api", help="Serve Open-Meteo mock HTTP endpoint for agro-weather")
     mock_parser.add_argument("--host", type=str, default=MOCK_API_HOST, help="Host to bind")
     mock_parser.add_argument("--port", type=int, default=MOCK_API_PORT, help="Port to listen on")
     mock_parser.set_defaults(func=cmd_mock_api)

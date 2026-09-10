@@ -25,9 +25,15 @@ dependencies = [
 ]
 
 [project.scripts]
+data-sim = "data_sim.cli:main"
 antojitos-sim = "antojitos_sim.cli:main"
 volcan-sim = "volcan_sim.cli:main"
 movigo-sim = "movigo_sim.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
