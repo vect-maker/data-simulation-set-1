@@ -71,7 +71,7 @@ Cada caso genera un esquema DDL completo (`schema_and_data.sql`) cargable direct
 ### B. Automatización, Pipelines y CLI
 Arquitectura modular en Python con automatización centralizada vía `justfile` y CLI `data-sim`:
 * **Cliente HTTP Meteorológico:** Descarga datos desde la API Archive de Open-Meteo con caché local y reintentos, más fallback sintético determinista.
-* **Pipelines de Carga a Base de Datos:** Carga directa a PostgreSQL con soporte para `psql` nativo y `docker compose exec`.
+* **Pipelines de Carga a Base de Datos:** Carga directa a PostgreSQL con soporte para `psql` nativo y `podman compose exec`.
 * **Automatización con Just:** Recetas para instalación, generación, inspección visual en consola, tests unitarios y limpieza de entorno.
 
 ### C. Estadística II
@@ -134,7 +134,7 @@ El proyecto cuenta con un punto de entrada unificado `data-sim` en Python y mant
 # Uso del CLI unificado:
 data-sim generate --case all --days 30   # Genera los 3 casos (o --case antojitos / volcan / movigo)
 data-sim inspect --case all             # Muestra métricas, tablas ANOVA y modelos prescriptivos
-data-sim load --case all                # Carga datos en PostgreSQL (local psql o Docker)
+data-sim load --case all                # Carga datos en PostgreSQL (local psql o Podman)
 data-sim weather --case all             # Descarga o verifica series meteorológicas
 
 # O usando los CLIs específicos:
@@ -145,7 +145,7 @@ movigo-sim generate --days 30 && movigo-sim inspect
 
 ---
 
-## 4. API REST para Estudiantes (`FastAPI` & Docker Compose)
+## 4. API REST para Estudiantes (`FastAPI` & Podman Compose)
 
 El repositorio incluye un servicio web REST en FastAPI (`src/api`) conectado directamente a PostgreSQL para que los estudiantes puedan consumir, filtrar y paginar los datos simulados:
 
@@ -158,7 +158,7 @@ El repositorio incluye un servicio web REST en FastAPI (`src/api`) conectado dir
   * **Caso 3 (MoviGo):** `/movigo/zonas`, `/movigo/usuarios`, `/movigo/conductores`, `/movigo/campanas`, `/movigo/clima`, `/movigo/viajes`, `/movigo/viajes/{id_viaje}`, `/movigo/telemetria`.
 
 ```bash
-# Iniciar servicios completos en Docker Compose (Postgres + FastAPI):
+# Iniciar servicios completos en Podman Compose (Postgres + FastAPI):
 just api-up
 
 # Verificar estado de salud y conexión a la base de datos:
@@ -222,7 +222,7 @@ artifacts/
 ## 7. Estructura del Repositorio
 
 ```text
-├── Dockerfile                       # Contenedor de la API REST FastAPI
+├── Dockerfile                       # Contenedor de la API REST FastAPI (Podman/Docker)
 ├── compose.yml                      # PostgreSQL 18 Alpine + FastAPI API
 ├── justfile                         # Automatización centralizada
 ├── pyproject.toml                   # Configuración del paquete y CLIs
@@ -250,7 +250,7 @@ artifacts/
 │   │       ├── numerics.py          # Bisección, Newton, Diferencias finitas, Simpson
 │   │       ├── optimization.py      # Simplex con precios sombra, Vogel, Húngaro, Dijkstra, CPM
 │   │       ├── weather.py           # Cliente HTTP Open-Meteo con caché y fallback
-│   │       ├── database.py          # Conectores y ejecutores PostgreSQL/Docker
+│   │       ├── database.py          # Conectores y ejecutores PostgreSQL/Podman
 │   │       ├── exporter.py          # Exportadores CSV y generadores SQL DDL
 │   │       └── reporting.py         # Visualizadores Rich en consola
 │   ├── antojitos_sim/               # Motor Caso 1 (Cocina Fantasma Delivery)

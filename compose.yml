@@ -25,7 +25,7 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - .:/workspace:ro
+      - .:/workspace:ro,z
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-integrador_db}"]
       interval: 5s
@@ -48,7 +48,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
-      - .:/workspace
+      - .:/workspace:z
     depends_on:
       postgres:
         condition: service_healthy

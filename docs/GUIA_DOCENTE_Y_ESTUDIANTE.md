@@ -72,7 +72,7 @@ just inspect-all
 
 ### C. Levantar PostgreSQL y Cargar las Bases de Datos
 ```bash
-# Iniciar contenedor Docker de PostgreSQL 18
+# Iniciar contenedor Podman de PostgreSQL 18
 just db-up
 
 # Cargar automáticamente los 3 esquemas relacionales

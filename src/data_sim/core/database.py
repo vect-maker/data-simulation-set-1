@@ -2,7 +2,7 @@
 
 Provides unified database operations:
 - Connection verification and healthchecks
-- SQL script execution (local psql / Docker container exec fallback)
+- SQL script execution (local psql / Podman or Docker container exec fallback)
 - Table verification and row count inspection
 """
 
@@ -66,7 +66,7 @@ def load_sql_script(
     host: str = DEFAULT_POSTGRES_HOST,
     port: int = DEFAULT_POSTGRES_PORT,
 ) -> bool:
-    """Execute SQL dump containing \\copy statements via local psql or Docker exec."""
+    """Execute SQL dump containing \\copy statements via local psql or Podman/Docker exec."""
     if not sql_file.exists():
         logger.error(f"SQL file not found: {sql_file}")
         return False
@@ -94,16 +94,23 @@ def load_sql_script(
         except Exception as e:
             logger.warning(f"Failed local psql execution: {e}")
 
-    # 2. Try Docker compose exec fallback
-    if shutil.which("docker"):
-        logger.info(f"Executing {sql_file.name} via Docker container...")
+    # 2. Try Podman / Docker compose exec fallback
+    compose_bin = None
+    if shutil.which("podman"):
+        compose_bin = ["podman", "compose"]
+    elif shutil.which("docker"):
+        compose_bin = ["docker", "compose"]
+
+    if compose_bin:
+        tool_name = compose_bin[0].capitalize()
+        logger.info(f"Executing {sql_file.name} via {tool_name} container...")
         # Relative path inside mounted /workspace
         rel_working = os.path.relpath(working_dir, Path.cwd())
         rel_sql = os.path.relpath(sql_file, working_dir)
         container_workdir = f"/workspace/{rel_working}"
 
         cmd = [
-            "docker", "compose", "exec",
+            *compose_bin, "exec",
             "-w", container_workdir,
             "-T", "postgres",
             "psql",
@@ -114,14 +121,14 @@ def load_sql_script(
         try:
             res = subprocess.run(cmd, capture_output=True, text=True)
             if res.returncode == 0:
-                logger.info(f"Successfully loaded schema via Docker psql: {res.stdout[-200:] if len(res.stdout) > 200 else res.stdout}")
+                logger.info(f"Successfully loaded schema via {tool_name} psql: {res.stdout[-200:] if len(res.stdout) > 200 else res.stdout}")
                 return True
             else:
-                logger.error(f"Docker psql failed: {res.stderr}")
+                logger.error(f"{tool_name} psql failed: {res.stderr}")
                 return False
         except Exception as e:
-            logger.error(f"Failed Docker exec: {e}")
+            logger.error(f"Failed {tool_name} exec: {e}")
             return False
 
-    logger.error("Neither local psql nor Docker is available to execute the SQL script.")
+    logger.error("Neither local psql nor Podman/Docker compose is available to execute the SQL script.")
     return False

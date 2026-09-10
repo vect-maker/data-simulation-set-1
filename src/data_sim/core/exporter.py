@@ -33,6 +33,10 @@ def export_models_to_csv(
         else:
             df = pd.DataFrame(records)
 
+        for col in df.columns:
+            if col.startswith("id_") and pd.api.types.is_float_dtype(df[col]):
+                df[col] = df[col].astype("Int64")
+
         df.to_csv(csv_path, index=False, encoding="utf-8")
         exported_files[table_name] = csv_path
         logger.info(f"Exported {len(df)} rows to {csv_path}")

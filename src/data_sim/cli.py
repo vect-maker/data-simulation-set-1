@@ -60,7 +60,14 @@ def cmd_load(args):
 
     for case in cases:
         console.print(f"\n[bold cyan]===> Loading into PostgreSQL: {case.upper()}[/bold cyan]")
-        if case == "antojitos":
+        sql_file = Path(f"artifacts/{case}/sql/schema_and_data.sql")
+        working_dir = Path(f"artifacts/{case}/csv")
+        if sql_file.exists() and working_dir.exists():
+            from data_sim.core.database import load_sql_script
+            success = load_sql_script(sql_file, working_dir)
+            if not success:
+                console.print(f"[bold red]Failed loading {case} via SQL script.[/bold red]")
+        elif case == "antojitos":
             from antojitos_sim.cli import run_loading as load_antojitos
             load_antojitos()
         elif case == "volcan":

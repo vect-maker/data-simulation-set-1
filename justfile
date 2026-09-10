@@ -8,6 +8,7 @@ ANTOJITOS := VENV_BIN + "antojitos-sim"
 VOLCAN := VENV_BIN + "volcan-sim"
 MOVIGO := VENV_BIN + "movigo-sim"
 DATA_SIM := VENV_BIN + "data-sim"
+COMPOSE := env_var_or_default("COMPOSE_CMD", "podman compose")
 
 # Default: List all available recipes
 default:
@@ -130,36 +131,36 @@ inspect-all:
     @echo "\n=== Summary: Caso 3 (MoviGo) ==="
     @just inspect-movigo
 
-# Start PostgreSQL service via Docker Compose
+# Start PostgreSQL service via Podman Compose
 db-up:
-    docker compose up -d postgres
+    {{ COMPOSE }} up -d postgres
 
 # Stop PostgreSQL service
 db-down:
-    docker compose stop postgres
+    {{ COMPOSE }} stop postgres
 
 # Reset PostgreSQL service and delete stored volume
 db-reset:
-    docker compose down -v
-    docker compose up -d postgres
+    {{ COMPOSE }} down -v
+    {{ COMPOSE }} up -d postgres
 
-# Start all services (PostgreSQL + FastAPI API) via Docker Compose
+# Start all services (PostgreSQL + FastAPI API) via Podman Compose
 api-up:
-    docker compose up -d --build
+    {{ COMPOSE }} up -d --build
 
 # Stop all services (PostgreSQL + FastAPI API)
 api-down:
-    docker compose down
+    {{ COMPOSE }} down
 
 # Stream logs for the FastAPI API container
 api-logs:
-    docker compose logs -f api
+    {{ COMPOSE }} logs -f api
 
 # Restart FastAPI API container
 api-restart:
-    docker compose restart api
+    {{ COMPOSE }} restart api
 
-# Run FastAPI API locally for development without Docker
+# Run FastAPI API locally for development without Podman
 api-run:
     {{ VENV_BIN }}uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
 
@@ -169,7 +170,7 @@ api-eval case="all":
 
 # Open interactive PostgreSQL shell (psql)
 db-psql:
-    docker compose exec postgres psql -U postgres -d integrador_db
+    {{ COMPOSE }} exec postgres psql -U postgres -d integrador_db
 
 # Load Antojitos Express data into PostgreSQL (schema raw_staging)
 load-antojitos:
@@ -177,7 +178,7 @@ load-antojitos:
 		if command -v psql >/dev/null 2>&1; then \
 			cd artifacts/antojitos/csv && PGPASSWORD=postgres psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
 		else \
-			docker compose exec -w /workspace/artifacts/antojitos/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
+			{{ COMPOSE }} exec -w /workspace/artifacts/antojitos/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
 		fi \
 	else \
 		{{ ANTOJITOS }} load; \
@@ -189,7 +190,7 @@ load-volcan:
 		if command -v psql >/dev/null 2>&1; then \
 			cd artifacts/volcan/csv && PGPASSWORD=postgres psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
 		else \
-			docker compose exec -w /workspace/artifacts/volcan/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
+			{{ COMPOSE }} exec -w /workspace/artifacts/volcan/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
 		fi \
 	else \
 		{{ VOLCAN }} load; \
@@ -201,7 +202,7 @@ load-movigo:
 		if command -v psql >/dev/null 2>&1; then \
 			cd artifacts/movigo/csv && PGPASSWORD=postgres psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
 		else \
-			docker compose exec -w /workspace/artifacts/movigo/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
+			{{ COMPOSE }} exec -w /workspace/artifacts/movigo/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
 		fi \
 	else \
 		{{ MOVIGO }} load; \
@@ -228,7 +229,7 @@ test: test-unit
 # Reset all generated artifacts, caches, and database volumes
 reset-all:
     @just clean
-    @if docker compose ps -q postgres 2>/dev/null | grep -q .; then \
+    @if {{ COMPOSE }} ps -q postgres 2>/dev/null | grep -q .; then \
         just db-reset; \
     fi
     @echo "✓ Full reset completed: artifacts, caches, and database storage wiped."
@@ -238,9 +239,9 @@ pipeline days="":
     @just clean
     @just generate-all {{ days }}
     @just inspect-all
-    @if docker compose ps -q postgres 2>/dev/null | grep -q . || pg_isready -h localhost -p 5432 >/dev/null 2>&1; then \
+    @if {{ COMPOSE }} ps -q postgres 2>/dev/null | grep -q . || pg_isready -h localhost -p 5432 >/dev/null 2>&1; then \
         just load-all; \
     else \
         echo "ℹ PostgreSQL is not running. Start it with 'just db-up' and run 'just load-all' to populate DB."; \
     fi
-    @echo "\n✓ End-to-end pipeline completed! Expose API with 'just api-run' (local) or 'just api-up' (docker)."
+    @echo "\n✓ End-to-end pipeline completed! Expose API with 'just api-run' (local) or 'just api-up' (podman)."
