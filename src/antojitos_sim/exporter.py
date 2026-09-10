@@ -3,10 +3,9 @@
 Generates CSV artifacts, PostgreSQL DDL, and data SQL dumps.
 """
 
-import json
 import logging
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Any
 import pandas as pd
 import numpy as np
 
@@ -42,16 +41,16 @@ logger = logging.getLogger(__name__)
 
 
 def export_to_csv(
-    zonas: List[Zona],
-    repartidores: List[Repartidor],
-    categorias: List[CategoriaPlatillo],
-    platillos: List[Platillo],
-    promociones: List[Promocion],
-    clima: List[ClimaDiario],
-    ordenes: List[Orden],
-    detalles: List[DetalleOrden],
+    zonas: list[Zona],
+    repartidores: list[Repartidor],
+    categorias: list[CategoriaPlatillo],
+    platillos: list[Platillo],
+    promociones: list[Promocion],
+    clima: list[ClimaDiario],
+    ordenes: list[Orden],
+    detalles: list[DetalleOrden],
     output_dir: Path = CSV_ARTIFACTS_DIR,
-) -> Dict[str, Path]:
+) -> dict[str, Path]:
     """Export all relational tables to standard CSV format."""
     tables = {
         "zonas": zonas,
@@ -282,7 +281,7 @@ GRANT SELECT ON mv_resumen_diario_ventas TO rol_analista_datos;
 
 
 def export_to_sql_dump(
-    csv_paths: Dict[str, Path],
+    csv_paths: dict[str, Path],
     output_file: Path = SQL_ARTIFACTS_DIR / "schema_and_data.sql",
 ) -> Path:
     """Generate consolidated SQL file with DDL, COPY statements, and analytical objects."""
@@ -307,13 +306,13 @@ def export_to_sql_dump(
 
 
 def compute_simulation_summary(
-    ordenes: List[Orden],
-    detalles: List[DetalleOrden],
-    clima: List[ClimaDiario],
-    platillos: List[Platillo],
-    zonas: List[Zona],
-    repartidores: Optional[List[Repartidor]] = None,
-) -> Dict[str, Any]:
+    ordenes: list[Orden],
+    detalles: list[DetalleOrden],
+    clima: list[ClimaDiario],
+    platillos: list[Platillo],
+    zonas: list[Zona],
+    repartidores: list[Repartidor] | None = None,
+) -> dict[str, Any]:
     """Compute mathematical & statistical properties across the 5 pillars."""
     df_orders = pd.DataFrame([o.model_dump() for o in ordenes])
     df_details = pd.DataFrame([d.model_dump() for d in detalles])

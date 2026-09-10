@@ -9,7 +9,6 @@ Supports both:
 import argparse
 import sys
 from pathlib import Path
-from typing import List, Optional
 from pydantic import BaseModel, Field
 from rich.panel import Panel
 
@@ -37,39 +36,39 @@ DEFAULT_SEEDS_DIR = BASE_DIR / "src" / "antojitos_sim" / "seeds"
 
 # Pydantic Container Schemas
 class SemanticTemplates(BaseModel):
-    notas_entrega: List[str] = Field(description="Direcciones de entrega con puntos de referencia típicos de Managua")
-    motivos_cancelacion: List[str] = Field(description="Motivos realistas de cancelación en delivery urbano de Managua")
-    comentarios_retraso: List[str] = Field(description="Quejas realistas de clientes por retrasos o pedidos fríos")
-    comentarios_exitosos: List[str] = Field(description="Comentarios positivos elogiando la gastronomía nicaragüense")
+    notas_entrega: list[str] = Field(description="Direcciones de entrega con puntos de referencia típicos de Managua")
+    motivos_cancelacion: list[str] = Field(description="Motivos realistas de cancelación en delivery urbano de Managua")
+    comentarios_retraso: list[str] = Field(description="Quejas realistas de clientes por retrasos o pedidos fríos")
+    comentarios_exitosos: list[str] = Field(description="Comentarios positivos elogiando la gastronomía nicaragüense")
 
 
 class CategoriaCatalog(BaseModel):
-    categorias: List[CategoriaPlatillo]
+    categorias: list[CategoriaPlatillo]
 
 
 class PlatilloCatalog(BaseModel):
-    platillos: List[Platillo]
+    platillos: list[Platillo]
 
 
 class ZonaCatalog(BaseModel):
-    zonas: List[Zona]
+    zonas: list[Zona]
 
 
 class RepartidorCatalog(BaseModel):
-    repartidores: List[Repartidor]
+    repartidores: list[Repartidor]
 
 
 class PromocionCatalog(BaseModel):
-    promociones: List[Promocion]
+    promociones: list[Promocion]
 
 
 class AntojitosSeedBundle(BaseModel):
     """Consolidated schema to generate all dimensional catalogs in a single API request."""
-    categorias: List[CategoriaPlatillo]
-    platillos: List[Platillo]
-    zonas: List[Zona]
-    repartidores: List[Repartidor]
-    promociones: List[Promocion]
+    categorias: list[CategoriaPlatillo]
+    platillos: list[Platillo]
+    zonas: list[Zona]
+    repartidores: list[Repartidor]
+    promociones: list[Promocion]
     semantic_templates: SemanticTemplates
 
 
@@ -117,38 +116,38 @@ def generate_antojitos_granular(seeds_dir: Path, target: str = "all", dry_run: b
     if target in ("all", "categorias"):
         console.print("[yellow]Generando Categorías...[/yellow]")
         prompt = "Genera exactamente 5 categorías oficiales con id_categoria enteros del 1 al 5 (1: Fritanga, 2: Quesillos, 3: Hamburguesas, 4: Bebidas, 5: Postres) para delivery en Managua."
-        data = generate_structured_data(client, prompt, CategoriaCatalog)
-        save_json_file([c.model_dump() for c in data.categorias], seeds_dir / "categorias_platillo.json", dry_run)
+        cat_data = generate_structured_data(client, prompt, CategoriaCatalog)
+        save_json_file([c.model_dump() for c in cat_data.categorias], seeds_dir / "categorias_platillo.json", dry_run)
 
     if target in ("all", "platillos"):
         console.print("[yellow]Generando Platillos (35)...[/yellow]")
         prompt = "Genera exactamente 35 platillos nicaragüenses con id_platillo enteros del 1 al 35, precios NIO 50-380 y categorías válidas (id_categoria enteros 1 a 5)."
-        data = generate_structured_data(client, prompt, PlatilloCatalog)
-        save_json_file([p.model_dump() for p in data.platillos], seeds_dir / "platillos_managua.json", dry_run)
+        plat_data = generate_structured_data(client, prompt, PlatilloCatalog)
+        save_json_file([p.model_dump() for p in plat_data.platillos], seeds_dir / "platillos_managua.json", dry_run)
 
     if target in ("all", "zonas"):
         console.print("[yellow]Generando Zonas Urbanas de Managua (12)...[/yellow]")
         prompt = "Genera 12 zonas de entrega de Managua con id_zona enteros del 1 al 12 con coordenadas reales respecto a Los Robles."
-        data = generate_structured_data(client, prompt, ZonaCatalog)
-        save_json_file([z.model_dump() for z in data.zonas], seeds_dir / "zonas_managua.json", dry_run)
+        zona_data = generate_structured_data(client, prompt, ZonaCatalog)
+        save_json_file([z.model_dump() for z in zona_data.zonas], seeds_dir / "zonas_managua.json", dry_run)
 
     if target in ("all", "repartidores"):
         console.print("[yellow]Generando Repartidores (25)...[/yellow]")
         prompt = "Genera 25 repartidores para Managua con id_repartidor enteros del 1 al 25 con moto, bici o auto y calificaciones 4.10-4.95."
-        data = generate_structured_data(client, prompt, RepartidorCatalog)
-        save_json_file([r.model_dump() for r in data.repartidores], seeds_dir / "repartidores_managua.json", dry_run)
+        rep_data = generate_structured_data(client, prompt, RepartidorCatalog)
+        save_json_file([r.model_dump() for r in rep_data.repartidores], seeds_dir / "repartidores_managua.json", dry_run)
 
     if target in ("all", "promociones"):
         console.print("[yellow]Generando Promociones Knapsack (12)...[/yellow]")
         prompt = "Genera 12 promociones con id_promocion enteros del 1 al 12 año 2024 para optimización de mochila."
-        data = generate_structured_data(client, prompt, PromocionCatalog)
-        save_json_file([p.model_dump(mode="json") for p in data.promociones], seeds_dir / "promociones_knapsack.json", dry_run)
+        promo_data = generate_structured_data(client, prompt, PromocionCatalog)
+        save_json_file([p.model_dump(mode="json") for p in promo_data.promociones], seeds_dir / "promociones_knapsack.json", dry_run)
 
     if target in ("all", "templates"):
         console.print("[yellow]Generando Plantillas Semánticas...[/yellow]")
         prompt = "Genera direcciones vernáculas de Managua, motivos de cancelación, quejas y reseñas positivas."
-        data = generate_structured_data(client, prompt, SemanticTemplates)
-        save_json_file(data.model_dump(), seeds_dir / "semantic_templates.json", dry_run)
+        temp_data = generate_structured_data(client, prompt, SemanticTemplates)
+        save_json_file(temp_data.model_dump(), seeds_dir / "semantic_templates.json", dry_run)
 
     tracker.print_status()
 

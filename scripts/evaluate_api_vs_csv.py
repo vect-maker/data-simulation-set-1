@@ -9,12 +9,11 @@ Performs automated verification:
 """
 
 import argparse
-import csv
 import math
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 import pandas as pd
 import requests
 from rich.console import Console
@@ -223,11 +222,11 @@ def compare_values(val_api: Any, val_csv: Any, tolerance: float = 0.01) -> bool:
 
 def evaluate_endpoint(
     base_url: str,
-    spec: Dict[str, Any],
+    spec: dict[str, Any],
     artifacts_dir: Path,
     sample_size: int = 50,
     tolerance: float = 0.01,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compare a single API endpoint against its corresponding CSV artifact."""
     endpoint = spec["endpoint"]
     csv_path = artifacts_dir / spec["csv_file"]

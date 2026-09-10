@@ -9,7 +9,6 @@ Supports both:
 import argparse
 import sys
 from pathlib import Path
-from typing import List, Optional
 from pydantic import BaseModel, Field
 from rich.panel import Panel
 
@@ -36,34 +35,34 @@ DEFAULT_SEEDS_DIR = BASE_DIR / "src" / "movigo_sim" / "seeds"
 
 # Pydantic Container Schemas
 class MoviGoSemanticTemplates(BaseModel):
-    motivos_cancelacion: List[str] = Field(description="Lista representativa de motivos de cancelación en Managua")
-    motivos_cancelacion_conductor: List[str] = Field(description="Motivos realistas de cancelación por parte del conductor en Managua (tráfico, lluvias, cauces, pinchazos)")
-    motivos_cancelacion_usuario: List[str] = Field(description="Motivos realistas de cancelación por parte del pasajero (demora, cambio de ruta, tomó caponera)")
-    comentarios_viaje: List[str] = Field(description="Reseñas y comentarios del pasajero sobre el servicio, vehículo y tarifa")
+    motivos_cancelacion: list[str] = Field(description="Lista representativa de motivos de cancelación en Managua")
+    motivos_cancelacion_conductor: list[str] = Field(description="Motivos realistas de cancelación por parte del conductor en Managua (tráfico, lluvias, cauces, pinchazos)")
+    motivos_cancelacion_usuario: list[str] = Field(description="Motivos realistas de cancelación por parte del pasajero (demora, cambio de ruta, tomó caponera)")
+    comentarios_viaje: list[str] = Field(description="Reseñas y comentarios del pasajero sobre el servicio, vehículo y tarifa")
 
 
 class ZonaUrbanaCatalog(BaseModel):
-    zonas: List[ZonaUrbana]
+    zonas: list[ZonaUrbana]
 
 
 class UsuarioCatalog(BaseModel):
-    usuarios: List[Usuario]
+    usuarios: list[Usuario]
 
 
 class ConductorCatalog(BaseModel):
-    conductores: List[Conductor]
+    conductores: list[Conductor]
 
 
 class CampanaCatalog(BaseModel):
-    campanas: List[CampanaIncentivo]
+    campanas: list[CampanaIncentivo]
 
 
 class MoviGoSeedBundle(BaseModel):
     """Consolidated schema to generate all dimensional catalogs in a single API request."""
-    zonas: List[ZonaUrbana]
-    conductores: List[Conductor]
-    usuarios: List[Usuario]
-    campanas: List[CampanaIncentivo]
+    zonas: list[ZonaUrbana]
+    conductores: list[Conductor]
+    usuarios: list[Usuario]
+    campanas: list[CampanaIncentivo]
     semantic_templates: MoviGoSemanticTemplates
 
 
@@ -114,32 +113,32 @@ def generate_movigo_granular(seeds_dir: Path, target: str = "all", dry_run: bool
     if target in ("all", "zonas"):
         console.print("[yellow]Generando Cuadrantes Urbanos de Managua (12)...[/yellow]")
         prompt = "Genera 12 cuadrantes urbanos de Managua con id_zona enteros del 1 al 12 con estrato socioeconómico."
-        data = generate_structured_data(client, prompt, ZonaUrbanaCatalog)
-        save_json_file([z.model_dump() for z in data.zonas], seeds_dir / "zonas_urbanas.json", dry_run)
+        zona_data = generate_structured_data(client, prompt, ZonaUrbanaCatalog)
+        save_json_file([z.model_dump() for z in zona_data.zonas], seeds_dir / "zonas_urbanas.json", dry_run)
 
     if target in ("all", "conductores"):
         console.print("[yellow]Generando Conductores (20)...[/yellow]")
         prompt = "Genera 20 conductores de MoviGo con id_conductor enteros del 1 al 20 con vehículos comunes en Nicaragua y placas M-XXXXXX."
-        data = generate_structured_data(client, prompt, ConductorCatalog)
-        save_json_file([c.model_dump() for c in data.conductores], seeds_dir / "conductores.json", dry_run)
+        cond_data = generate_structured_data(client, prompt, ConductorCatalog)
+        save_json_file([c.model_dump() for c in cond_data.conductores], seeds_dir / "conductores.json", dry_run)
 
     if target in ("all", "usuarios"):
         console.print("[yellow]Generando Pasajeros Frecuentes (20)...[/yellow]")
         prompt = "Genera 20 pasajeros con id_usuario enteros del 1 al 20 con formato telefónico +505 y métodos de pago."
-        data = generate_structured_data(client, prompt, UsuarioCatalog)
-        save_json_file([u.model_dump(mode="json") for u in data.usuarios], seeds_dir / "usuarios.json", dry_run)
+        usr_data = generate_structured_data(client, prompt, UsuarioCatalog)
+        save_json_file([u.model_dump(mode="json") for u in usr_data.usuarios], seeds_dir / "usuarios.json", dry_run)
 
     if target in ("all", "campanas"):
         console.print("[yellow]Generando Campañas de Incentivos Knapsack (12)...[/yellow]")
         prompt = "Genera 12 campañas de incentivos con id_campana enteros del 1 al 12 año 2024 para optimización de mochila."
-        data = generate_structured_data(client, prompt, CampanaCatalog)
-        save_json_file([c.model_dump(mode="json") for c in data.campanas], seeds_dir / "campanas_incentivos.json", dry_run)
+        camp_data = generate_structured_data(client, prompt, CampanaCatalog)
+        save_json_file([c.model_dump(mode="json") for c in camp_data.campanas], seeds_dir / "campanas_incentivos.json", dry_run)
 
     if target in ("all", "templates"):
         console.print("[yellow]Generando Plantillas de Cancelación y Reseñas...[/yellow]")
         prompt = "Genera motivos de cancelación y comentarios de pasajeros para ride-hailing en Managua."
-        data = generate_structured_data(client, prompt, MoviGoSemanticTemplates)
-        save_json_file(data.model_dump(), seeds_dir / "semantic_templates.json", dry_run)
+        temp_data = generate_structured_data(client, prompt, MoviGoSemanticTemplates)
+        save_json_file(temp_data.model_dump(), seeds_dir / "semantic_templates.json", dry_run)
 
     tracker.print_status()
 

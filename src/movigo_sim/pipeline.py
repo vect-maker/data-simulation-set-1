@@ -1,7 +1,7 @@
 """dlt pipeline for MoviGo staging in PostgreSQL."""
 
 import logging
-from typing import List, Dict, Any, Optional
+from typing import Any
 import dlt
 
 from movigo_sim.config import (
@@ -27,13 +27,13 @@ logger = logging.getLogger(__name__)
 
 @dlt.source(name="movigo_ride_hailing")
 def movigo_source(
-    zonas_data: List[Dict[str, Any]],
-    usuarios_data: List[Dict[str, Any]],
-    conductores_data: List[Dict[str, Any]],
-    viajes_data: List[Dict[str, Any]],
-    telemetria_data: List[Dict[str, Any]],
-    campanas_data: List[Dict[str, Any]],
-    clima_data: List[Dict[str, Any]],
+    zonas_data: list[dict[str, Any]],
+    usuarios_data: list[dict[str, Any]],
+    conductores_data: list[dict[str, Any]],
+    viajes_data: list[dict[str, Any]],
+    telemetria_data: list[dict[str, Any]],
+    campanas_data: list[dict[str, Any]],
+    clima_data: list[dict[str, Any]],
 ):
     """dlt source bundling the 7 MoviGo relational tables."""
 
@@ -77,15 +77,15 @@ def movigo_source(
 
 
 def load_movigo_to_postgres(
-    zonas: List[ZonaUrbana],
-    usuarios: List[Usuario],
-    conductores: List[Conductor],
-    viajes: List[Viaje],
-    telemetria: List[TelemetriaConductor],
-    campanas: List[CampanaIncentivo],
-    clima: List[ClimaCuadrantes],
+    zonas: list[ZonaUrbana],
+    usuarios: list[Usuario],
+    conductores: list[Conductor],
+    viajes: list[Viaje],
+    telemetria: list[TelemetriaConductor],
+    campanas: list[CampanaIncentivo],
+    clima: list[ClimaCuadrantes],
     schema_name: str = POSTGRES_SCHEMA,
-    connection_url: Optional[str] = None,
+    connection_url: str | None = None,
 ) -> Any:
     """Execute dlt pipeline loading all MoviGo tables into PostgreSQL."""
     if connection_url is None:

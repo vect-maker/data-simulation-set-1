@@ -9,7 +9,7 @@ Handles standard generation of:
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Any, List, Union
+from typing import Any
 from pydantic import BaseModel
 import pandas as pd
 
@@ -17,9 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 def export_models_to_csv(
-    tables: Dict[str, List[Union[BaseModel, Dict[str, Any]]]],
+    tables: dict[str, list[BaseModel | dict[str, Any]]],
     output_dir: Path,
-) -> Dict[str, Path]:
+) -> dict[str, Path]:
     """Export list of Pydantic models or dicts to clean CSV files."""
     output_dir.mkdir(parents=True, exist_ok=True)
     exported_files = {}
@@ -29,7 +29,7 @@ def export_models_to_csv(
         if not records:
             df = pd.DataFrame()
         elif isinstance(records[0], BaseModel):
-            df = pd.DataFrame([r.model_dump() for r in records])
+            df = pd.DataFrame([r.model_dump() if isinstance(r, BaseModel) else r for r in records])
         else:
             df = pd.DataFrame(records)
 
@@ -44,7 +44,7 @@ def export_models_to_csv(
     return exported_files
 
 
-def write_json_summary(summary: Dict[str, Any], output_path: Path) -> Path:
+def write_json_summary(summary: dict[str, Any], output_path: Path) -> Path:
     """Save simulation summary metrics to formatted JSON."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -66,8 +66,8 @@ def build_sql_dump(
     output_file: Path,
     schema_name: str,
     ddl_content: str,
-    copy_order: List[str],
-    csv_paths: Dict[str, Path],
+    copy_order: list[str],
+    csv_paths: dict[str, Path],
     post_load_ddl: str = "",
 ) -> Path:
     """Generate consolidated SQL file with DDL, COPY statements, and analytical views."""

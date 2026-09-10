@@ -6,7 +6,7 @@ Delegates core computations to data_sim.core while maintaining business domain m
 - Optimizacion: Simplex LP (kitchen capacity & shadow prices), Hungarian courier dispatch, Knapsack 0/1
 """
 
-from typing import Dict, Any, List
+from typing import Any
 import numpy as np
 import pandas as pd
 
@@ -38,7 +38,7 @@ def compute_estadistica_ii_models(
     df_platillos: pd.DataFrame,
     df_zonas: pd.DataFrame,
     df_repartidores: pd.DataFrame,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Perform formal Estadistica II inferential battery."""
     df_orders["fecha"] = pd.to_datetime(df_orders["fecha_hora_creacion"]).dt.date
     daily_orders = df_orders.groupby("fecha").size().reset_index(name="num_orders")
@@ -126,7 +126,7 @@ def compute_estadistica_ii_models(
     }
 
 
-def compute_metodos_numericos_models(df_orders: pd.DataFrame) -> Dict[str, Any]:
+def compute_metodos_numericos_models(df_orders: pd.DataFrame) -> dict[str, Any]:
     """Calculate numerical analysis problems and analytical benchmarks."""
     # 1. Non-linear root finding: Break-Even Point f(q) = -0.0035 q^2 + 225 q - 350000 = 0
     profit_fun = lambda q: -0.0035 * (q ** 2) + 225.0 * q - 350000.0
@@ -180,7 +180,7 @@ def compute_metodos_numericos_models(df_orders: pd.DataFrame) -> Dict[str, Any]:
     }
 
 
-def compute_optimizacion_models() -> Dict[str, Any]:
+def compute_optimizacion_models() -> dict[str, Any]:
     """Solve Linear Programming Simplex (with Shadow Prices), Hungarian Assignment, and Knapsack."""
     # 1. Simplex LP
     c = np.array([120.0, 65.0, 110.0, 55.0])

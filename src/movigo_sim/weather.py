@@ -3,7 +3,7 @@
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Dict, Any, Tuple
+from typing import Any
 import pandas as pd
 import numpy as np
 
@@ -34,7 +34,7 @@ def map_sky_condition(precip_mm: float, weather_code: int) -> str:
         return "despejado"
 
 
-def generate_synthetic_weather_fallback(start_date: str = START_DATE, end_date: str = END_DATE) -> Dict[str, Any]:
+def generate_synthetic_weather_fallback(start_date: str = START_DATE, end_date: str = END_DATE) -> dict[str, Any]:
     """Generate realistic tropical weather for Managua if network fails."""
     start = datetime.strptime(start_date, "%Y-%m-%d").date()
     end = datetime.strptime(end_date, "%Y-%m-%d").date()
@@ -82,9 +82,9 @@ def generate_synthetic_weather_fallback(start_date: str = START_DATE, end_date: 
 def fetch_movigo_weather_archive(
     start_date: str = START_DATE,
     end_date: str = END_DATE,
-    cache_path: Path = None,
+    cache_path: Path | None = None,
     force_refresh: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Fetch daily historical weather for Managua from Open-Meteo or local cache."""
     if cache_path is None:
         RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -107,7 +107,7 @@ def fetch_movigo_weather_archive(
 fetch_open_meteo_managua_series = fetch_movigo_weather_archive
 
 
-def parse_movigo_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
+def parse_movigo_weather_dataframe(raw_json: dict[str, Any]) -> pd.DataFrame:
     """Parse Open-Meteo payload and generate simulated congestion index based on rain."""
     daily = raw_json["daily"]
     dates = [datetime.strptime(t, "%Y-%m-%d").date() for t in daily["time"]]
@@ -117,7 +117,7 @@ def parse_movigo_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
 
     congestion_indices = []
     sky_conditions = []
-    for d, p, c in zip(dates, precip, codes):
+    for d, p, c in zip(dates, precip, codes, strict=True):
         dow = d.weekday()
         base_cong = 1.20 + (0.35 if dow == 4 else (0.15 if dow in [0, 1, 2, 3] else -0.10))
         rain_bump = min(1.80, p * 0.075)
@@ -134,7 +134,7 @@ def parse_movigo_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
     })
 
 
-def get_movigo_weather_series(force_refresh: bool = False) -> Tuple[pd.DataFrame, List[ClimaCuadrantes]]:
+def get_movigo_weather_series(force_refresh: bool = False) -> tuple[pd.DataFrame, list[ClimaCuadrantes]]:
     """Retrieve full 2024 weather DataFrame and Pydantic records."""
     raw = fetch_movigo_weather_archive(force_refresh=force_refresh)
     df = parse_movigo_weather_dataframe(raw)

@@ -1,7 +1,7 @@
 """dlt pipeline for Cooperativa El Volcán staging in PostgreSQL."""
 
 import logging
-from typing import List, Dict, Any, Optional
+from typing import Any
 import dlt
 
 from volcan_sim.config import (
@@ -29,15 +29,15 @@ logger = logging.getLogger(__name__)
 
 @dlt.source(name="cooperativa_el_volcan")
 def volcan_source(
-    fincas_data: List[Dict[str, Any]],
-    variedades_data: List[Dict[str, Any]],
-    beneficios_data: List[Dict[str, Any]],
-    cuadrillas_data: List[Dict[str, Any]],
-    lotes_data: List[Dict[str, Any]],
-    procesos_data: List[Dict[str, Any]],
-    subastas_data: List[Dict[str, Any]],
-    embarques_data: List[Dict[str, Any]],
-    clima_data: List[Dict[str, Any]],
+    fincas_data: list[dict[str, Any]],
+    variedades_data: list[dict[str, Any]],
+    beneficios_data: list[dict[str, Any]],
+    cuadrillas_data: list[dict[str, Any]],
+    lotes_data: list[dict[str, Any]],
+    procesos_data: list[dict[str, Any]],
+    subastas_data: list[dict[str, Any]],
+    embarques_data: list[dict[str, Any]],
+    clima_data: list[dict[str, Any]],
 ):
     """dlt source bundling the 9 coffee supply chain entities with primary keys."""
 
@@ -91,17 +91,17 @@ def volcan_source(
 
 
 def load_volcan_to_postgres(
-    fincas: List[Finca],
-    variedades: List[VariedadCafe],
-    beneficios: List[Beneficio],
-    cuadrillas: List[CuadrillaCorte],
-    lotes: List[LoteAcopio],
-    procesos: List[ProcesamientoBeneficio],
-    subastas: List[SubastaEspecial],
-    embarques: List[EmbarqueExportacion],
-    clima: List[ClimaZonasCafetaleras],
+    fincas: list[Finca],
+    variedades: list[VariedadCafe],
+    beneficios: list[Beneficio],
+    cuadrillas: list[CuadrillaCorte],
+    lotes: list[LoteAcopio],
+    procesos: list[ProcesamientoBeneficio],
+    subastas: list[SubastaEspecial],
+    embarques: list[EmbarqueExportacion],
+    clima: list[ClimaZonasCafetaleras],
     schema_name: str = POSTGRES_SCHEMA,
-    connection_url: Optional[str] = None,
+    connection_url: str | None = None,
 ) -> Any:
     """Execute dlt pipeline loading all coffee tables into PostgreSQL."""
     if connection_url is None:

@@ -1,9 +1,10 @@
 """Query building, filtering, sorting, and serialization utilities."""
 
 import datetime
-from decimal import Decimal
 import re
-from typing import Any, Dict, List, Optional, Set, Tuple
+from decimal import Decimal
+from typing import Any
+
 from fastapi import HTTPException
 
 from src.api.database import fetch_all, fetch_count, fetch_one
@@ -18,9 +19,9 @@ def validate_identifier(name: str) -> str:
     return name
 
 
-def sanitize_row(row: Dict[str, Any]) -> Dict[str, Any]:
+def sanitize_row(row: dict[str, Any]) -> dict[str, Any]:
     """Convert Postgres-specific data types (Decimals, time objects) to JSON primitives."""
-    clean: Dict[str, Any] = {}
+    clean: dict[str, Any] = {}
     for k, v in row.items():
         if isinstance(v, Decimal):
             clean[k] = float(v)
@@ -36,19 +37,19 @@ def sanitize_row(row: Dict[str, Any]) -> Dict[str, Any]:
 def execute_paginated_query(
     schema: str,
     table: str,
-    filters: Optional[List[Tuple[str, str, Any]]] = None,
-    sort: Optional[str] = None,
-    allowed_sort_columns: Optional[Set[str]] = None,
-    default_sort: Optional[str] = None,
+    filters: list[tuple[str, str, Any]] | None = None,
+    sort: str | None = None,
+    allowed_sort_columns: set[str] | None = None,
+    default_sort: str | None = None,
     offset: int = 0,
     limit: int = 50,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Execute a parameterized, paginated query returning a standard envelope."""
     validate_identifier(schema)
     validate_identifier(table)
 
-    where_clauses: List[str] = []
-    params: List[Any] = []
+    where_clauses: list[str] = []
+    params: list[Any] = []
 
     if filters:
         for col, op, val in filters:
@@ -82,7 +83,9 @@ def execute_paginated_query(
     clamped_limit = max(1, min(limit, 200))
     clamped_offset = max(0, offset)
 
-    data_sql = f"SELECT * FROM {schema}.{table}{where_sql}{sort_clause} LIMIT %s OFFSET %s;"
+    data_sql = (
+        f"SELECT * FROM {schema}.{table}{where_sql}{sort_clause} LIMIT %s OFFSET %s;"
+    )
     query_params = tuple(params + [clamped_limit, clamped_offset])
     raw_rows = fetch_all(data_sql, query_params)
     items = [sanitize_row(r) for r in raw_rows]
@@ -101,7 +104,7 @@ def fetch_single_resource(
     table: str,
     id_column: str,
     id_value: Any,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Fetch a single record by its primary key or raise 404."""
     validate_identifier(schema)
     validate_identifier(table)
@@ -112,6 +115,6 @@ def fetch_single_resource(
     if not row:
         raise HTTPException(
             status_code=404,
-            detail=f"{table.rstrip('s').capitalize()} with ID '{id_value}' not found in {schema}."
+            detail=f"{table.rstrip('s').capitalize()} with ID '{id_value}' not found in {schema}.",
         )
     return sanitize_row(row)

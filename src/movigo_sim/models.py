@@ -1,7 +1,6 @@
 """Pydantic models for MoviGo ride-hailing relational schema."""
 
 from datetime import date, datetime
-from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -51,12 +50,12 @@ class Viaje(BaseModel):
 
     id_viaje: int = Field(ge=1)
     id_usuario: int = Field(ge=1)
-    id_conductor: Optional[int] = None
+    id_conductor: int | None = None
     id_zona_origen: int = Field(ge=1)
     id_zona_destino: int = Field(ge=1)
     fecha_hora_solicitud: datetime
-    fecha_hora_inicio: Optional[datetime] = None
-    fecha_hora_fin: Optional[datetime] = None
+    fecha_hora_inicio: datetime | None = None
+    fecha_hora_fin: datetime | None = None
     distancia_km: float = Field(ge=0.5)
     duracion_minutos: float = Field(ge=2.0)
     tarifa_base: float = Field(ge=0.0)
@@ -64,10 +63,10 @@ class Viaje(BaseModel):
     tarifa_final: float = Field(ge=0.0)
     metodo_pago: str = Field(pattern=r"^(efectivo|tarjeta|billetera_digital)$")
     estado_viaje: str = Field(pattern=r"^(completado|cancelado_usuario|cancelado_conductor|no_asignado)$")
-    calificacion_usuario: Optional[float] = Field(None, ge=1.0, le=5.0)
-    calificacion_conductor: Optional[float] = Field(None, ge=1.0, le=5.0)
+    calificacion_usuario: float | None = Field(None, ge=1.0, le=5.0)
+    calificacion_conductor: float | None = Field(None, ge=1.0, le=5.0)
     propina: float = Field(ge=0.0, default=0.0)
-    motivo_cancelacion: Optional[str] = None
+    motivo_cancelacion: str | None = None
 
 
 class TelemetriaConductor(BaseModel):

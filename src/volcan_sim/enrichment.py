@@ -6,11 +6,9 @@ Supports offline template banking as well as optional live Gemini LLM enrichment
 """
 
 import logging
-import os
-from typing import List, Dict, Any, Tuple
+from typing import Any
 import numpy as np
 
-from volcan_sim.config import POSTGRES_SCHEMA
 from volcan_sim.models import LoteAcopio, ProcesamientoBeneficio
 
 logger = logging.getLogger(__name__)
@@ -21,7 +19,7 @@ class VolcanSemanticEnricher:
 
     def __init__(
         self,
-        templates: Dict[str, Any],
+        templates: dict[str, Any],
         use_llm: bool = False,
         random_seed: int = 42,
     ):
@@ -30,17 +28,17 @@ class VolcanSemanticEnricher:
         self.random_seed = random_seed
         np.random.seed(random_seed)
 
-        self.notas_altas: List[str] = (
+        self.notas_altas: list[str] = (
             templates.get("notas_catacion_altas")
             or templates.get("notas_altas")
             or ["Jazmín, flor de café, bergamota, acidez cítrica brillante"]
         )
-        self.notas_medias: List[str] = (
+        self.notas_medias: list[str] = (
             templates.get("notas_catacion_medias")
             or templates.get("notas_medias")
             or ["Chocolate amargo, panela, caramelo tostado, ciruela pasa"]
         )
-        self.defectos: List[str] = (
+        self.defectos: list[str] = (
             templates.get("defectos_proceso")
             or templates.get("observaciones_proceso")
             or ["Sobrefermentación en pila", "Secado desparejo por lluvias imprevistas"]
@@ -48,9 +46,9 @@ class VolcanSemanticEnricher:
 
     def enrich_lots_and_processes(
         self,
-        lotes: List[LoteAcopio],
-        procesos: List[ProcesamientoBeneficio],
-    ) -> Tuple[List[LoteAcopio], List[ProcesamientoBeneficio]]:
+        lotes: list[LoteAcopio],
+        procesos: list[ProcesamientoBeneficio],
+    ) -> tuple[list[LoteAcopio], list[ProcesamientoBeneficio]]:
         """Populate sensory cupping descriptions and milling logs."""
         logger.info(f"Enriching {len(lotes)} coffee lots with SCAA cupping notes...")
 

@@ -6,7 +6,7 @@ Provides Rich table formatters for the 5 analytical pillars:
 - Métodos Numéricos & Optimización Solutions Table
 """
 
-from typing import Dict, Any, List, Tuple
+from typing import Any
 from rich.console import Console
 from rich.table import Table
 
@@ -15,7 +15,7 @@ console = Console()
 
 def render_operational_table(
     title: str,
-    metrics: List[Tuple[str, str]],
+    metrics: list[tuple[str, str]],
     border_style: str = "cyan",
 ) -> None:
     """Render Rich table for operational indicators."""
@@ -31,8 +31,8 @@ def render_operational_table(
 
 def render_statistical_table(
     title: str,
-    supuestos: Dict[str, Any],
-    hipotesis: List[Dict[str, Any]],
+    supuestos: dict[str, Any],
+    hipotesis: list[dict[str, Any]],
     border_style: str = "magenta",
 ) -> None:
     """Render Rich table for regression assumptions and hypothesis tests."""
@@ -81,7 +81,7 @@ def render_statistical_table(
 
 def render_math_optimization_table(
     title: str,
-    solutions: List[Tuple[str, str]],
+    solutions: list[tuple[str, str]],
     border_style: str = "green",
 ) -> None:
     """Render Rich table for numerical methods and optimization models."""

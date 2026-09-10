@@ -1,7 +1,7 @@
 """dlt data pipeline for Antojitos Express staging and loading into PostgreSQL."""
 
 import logging
-from typing import List, Dict, Any, Optional
+from typing import Any
 import dlt
 
 from antojitos_sim.config import (
@@ -28,14 +28,14 @@ logger = logging.getLogger(__name__)
 
 @dlt.source(name="antojitos_express")
 def antojitos_source(
-    zonas_data: List[Dict[str, Any]],
-    repartidores_data: List[Dict[str, Any]],
-    categorias_data: List[Dict[str, Any]],
-    platillos_data: List[Dict[str, Any]],
-    promociones_data: List[Dict[str, Any]],
-    clima_data: List[Dict[str, Any]],
-    ordenes_data: List[Dict[str, Any]],
-    detalles_data: List[Dict[str, Any]],
+    zonas_data: list[dict[str, Any]],
+    repartidores_data: list[dict[str, Any]],
+    categorias_data: list[dict[str, Any]],
+    platillos_data: list[dict[str, Any]],
+    promociones_data: list[dict[str, Any]],
+    clima_data: list[dict[str, Any]],
+    ordenes_data: list[dict[str, Any]],
+    detalles_data: list[dict[str, Any]],
 ):
     """dlt source bundling the 8 relational entities with primary keys."""
 
@@ -84,16 +84,16 @@ def antojitos_source(
 
 
 def load_simulation_to_postgres(
-    zonas: List[Zona],
-    repartidores: List[Repartidor],
-    categorias: List[CategoriaPlatillo],
-    platillos: List[Platillo],
-    promociones: List[Promocion],
-    clima: List[ClimaDiario],
-    ordenes: List[Orden],
-    detalles: List[DetalleOrden],
+    zonas: list[Zona],
+    repartidores: list[Repartidor],
+    categorias: list[CategoriaPlatillo],
+    platillos: list[Platillo],
+    promociones: list[Promocion],
+    clima: list[ClimaDiario],
+    ordenes: list[Orden],
+    detalles: list[DetalleOrden],
     schema_name: str = POSTGRES_SCHEMA,
-    connection_url: Optional[str] = None,
+    connection_url: str | None = None,
 ) -> Any:
     """Execute dlt pipeline loading all simulation tables into PostgreSQL."""
     if connection_url is None:

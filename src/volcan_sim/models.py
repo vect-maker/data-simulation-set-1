@@ -1,7 +1,6 @@
 """Pydantic models for Cooperativa El Volcán relational schema."""
 
 from datetime import date, datetime
-from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -66,13 +65,13 @@ class LoteAcopio(BaseModel):
     id_lote: int = Field(ge=1)
     id_finca: int = Field(ge=1)
     id_variedad: int = Field(ge=1)
-    id_cuadrilla: Optional[int] = None
+    id_cuadrilla: int | None = None
     fecha_corte: date
     peso_cereza_kg: float = Field(ge=50.0)
     humedad_porcentaje: float = Field(ge=40.0, le=68.0)
     puntaje_catacion_scaa: float = Field(ge=72.0, le=96.5)
     certificacion: str = Field(pattern=r"^(Convencional|Fairtrade|Orgánico|Rainforest Alliance|SHG)$")
-    notas_catacion: Optional[str] = None
+    notas_catacion: str | None = None
     costo_recoleccion_nio: float = Field(ge=0.0)
     estado_lote: str = Field(pattern=r"^(recolectado|en_beneficio_humedo|en_secado|listo_exportacion|descartado)$")
 
@@ -86,11 +85,11 @@ class ProcesamientoBeneficio(BaseModel):
     id_beneficio: int = Field(ge=1)
     etapa: str = Field(pattern=r"^(despulpado|fermentacion|secado_patio|trillado|clasificacion)$")
     fecha_inicio: datetime
-    fecha_fin: Optional[datetime] = None
-    temperatura_fermentacion_c: Optional[float] = None
+    fecha_fin: datetime | None = None
+    temperatura_fermentacion_c: float | None = None
     merma_porcentaje: float = Field(ge=0.0, le=85.0)
     peso_salida_kg: float = Field(ge=0.0)
-    observaciones_proceso: Optional[str] = None
+    observaciones_proceso: str | None = None
 
 
 class SubastaEspecial(BaseModel):
@@ -98,7 +97,7 @@ class SubastaEspecial(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id_subasta: int = Field(ge=1)
-    id_lote: Optional[int] = None
+    id_lote: int | None = None
     nombre_lote_especial: str
     peso_quintales: float = Field(ge=5.0, le=50.0)
     costo_certificacion_usd: float = Field(ge=500.0, le=5000.0)

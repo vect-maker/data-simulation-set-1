@@ -11,7 +11,7 @@ Generates transactional facts deterministically with strict mathematical guarant
 import json
 import logging
 from datetime import datetime, date, timedelta, time
-from typing import List, Dict, Any, Tuple
+from typing import Any
 import numpy as np
 import pandas as pd
 
@@ -37,7 +37,6 @@ from antojitos_sim.models import (
     CategoriaPlatillo,
     Platillo,
     Promocion,
-    ClimaDiario,
     Orden,
     DetalleOrden,
 )
@@ -48,7 +47,7 @@ logger = logging.getLogger(__name__)
 # Chi-Square Dependency Matrix: P(Category | Zone)
 # Guaranteed to produce p-value < 0.01 on contingency test
 # Categories order: 1 (CAT-FRT), 2 (CAT-QSL), 3 (CAT-HAM), 4 (CAT-BEB), 5 (CAT-POS)
-ZONE_CATEGORY_PROBABILITIES: Dict[int, List[float]] = {
+ZONE_CATEGORY_PROBABILITIES: dict[int, list[float]] = {
     1:  [0.25, 0.20, 0.25, 0.18, 0.12], # Los Robles: Modern / Gastro mix
     2:  [0.35, 0.25, 0.15, 0.15, 0.10], # Altamira: Traditional / Fritanga
     3:  [0.20, 0.15, 0.35, 0.20, 0.10], # Villa Fontana: High burger/snack & beer
@@ -78,31 +77,31 @@ HOURLY_ARRIVAL_WEIGHTS = np.array([
 HOURLY_ARRIVAL_WEIGHTS /= HOURLY_ARRIVAL_WEIGHTS.sum()
 
 
-def load_seed_catalogs() -> Tuple[
-    List[Zona],
-    List[Repartidor],
-    List[CategoriaPlatillo],
-    List[Platillo],
-    List[Promocion],
-    Dict[str, Any],
+def load_seed_catalogs() -> tuple[
+    list[Zona],
+    list[Repartidor],
+    list[CategoriaPlatillo],
+    list[Platillo],
+    list[Promocion],
+    dict[str, Any],
 ]:
     """Load dimensional seed catalogs from JSON fixtures."""
-    with open(SEEDS_DIR / "zonas_managua.json", "r", encoding="utf-8") as f:
+    with open(SEEDS_DIR / "zonas_managua.json", encoding="utf-8") as f:
         zonas = [Zona(**z) for z in json.load(f)]
 
-    with open(SEEDS_DIR / "repartidores_managua.json", "r", encoding="utf-8") as f:
+    with open(SEEDS_DIR / "repartidores_managua.json", encoding="utf-8") as f:
         repartidores = [Repartidor(**r) for r in json.load(f)]
 
-    with open(SEEDS_DIR / "categorias_platillo.json", "r", encoding="utf-8") as f:
+    with open(SEEDS_DIR / "categorias_platillo.json", encoding="utf-8") as f:
         categorias = [CategoriaPlatillo(**c) for c in json.load(f)]
 
-    with open(SEEDS_DIR / "platillos_managua.json", "r", encoding="utf-8") as f:
+    with open(SEEDS_DIR / "platillos_managua.json", encoding="utf-8") as f:
         platillos = [Platillo(**p) for p in json.load(f)]
 
-    with open(SEEDS_DIR / "promociones_knapsack.json", "r", encoding="utf-8") as f:
+    with open(SEEDS_DIR / "promociones_knapsack.json", encoding="utf-8") as f:
         promociones = [Promocion(**pr) for pr in json.load(f)]
 
-    with open(SEEDS_DIR / "semantic_templates.json", "r", encoding="utf-8") as f:
+    with open(SEEDS_DIR / "semantic_templates.json", encoding="utf-8") as f:
         templates = json.load(f)
 
     return zonas, repartidores, categorias, platillos, promociones, templates
@@ -130,7 +129,7 @@ class AntojitosSimulationEngine:
         self.active_repartidores = [r for r in self.repartidores if r.estado == "activo"]
 
         # Platillos grouped by category for fast sampling
-        self.platillos_by_cat: Dict[int, List[Platillo]] = {}
+        self.platillos_by_cat: dict[int, list[Platillo]] = {}
         for p in self.platillos:
             self.platillos_by_cat.setdefault(p.id_categoria, []).append(p)
 
@@ -185,8 +184,8 @@ class AntojitosSimulationEngine:
             0.08, # Centroamérica
             0.06, # Rubenia
         ]
-        zone_weights = np.array(zone_weights) / sum(zone_weights)
-        idx = int(np.random.choice(len(self.zonas), p=zone_weights))
+        zone_probs = np.array(zone_weights) / sum(zone_weights)
+        idx = int(np.random.choice(len(self.zonas), p=zone_probs))
         return self.zonas[idx]
 
     def sample_category_for_zone(self, id_zona: int) -> int:
@@ -245,12 +244,12 @@ class AntojitosSimulationEngine:
     def run_simulation(
         self,
         weather_df: pd.DataFrame,
-    ) -> Tuple[List[Orden], List[DetalleOrden]]:
+    ) -> tuple[list[Orden], list[DetalleOrden]]:
         """Run full year simulation and return validated headers and line items."""
         logger.info(f"Starting Antojitos Express numerical simulation across {len(weather_df)} days...")
 
-        orders: List[Orden] = []
-        details: List[DetalleOrden] = []
+        orders: list[Orden] = []
+        details: list[DetalleOrden] = []
         detail_id_counter = 1
         order_num_counter = 1
 

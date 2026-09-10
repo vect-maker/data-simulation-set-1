@@ -4,12 +4,10 @@ Generates CSV files, SQL dump with academic database objects (Functions, Trigger
 and statistical/numerical summary reports.
 """
 
-import json
 import logging
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any
 import pandas as pd
-import numpy as np
 
 from data_sim.core.exporter import export_models_to_csv, write_json_summary, build_sql_dump
 from data_sim.core.stats import compute_contingency_chi2
@@ -42,15 +40,15 @@ logger = logging.getLogger(__name__)
 
 
 def export_movigo_to_csv(
-    zonas: List[ZonaUrbana],
-    usuarios: List[Usuario],
-    conductores: List[Conductor],
-    campanas: List[CampanaIncentivo],
-    clima: List[ClimaCuadrantes],
-    viajes: List[Viaje],
-    telemetria: List[TelemetriaConductor],
+    zonas: list[ZonaUrbana],
+    usuarios: list[Usuario],
+    conductores: list[Conductor],
+    campanas: list[CampanaIncentivo],
+    clima: list[ClimaCuadrantes],
+    viajes: list[Viaje],
+    telemetria: list[TelemetriaConductor],
     output_dir: Path = CSV_ARTIFACTS_DIR,
-) -> Dict[str, Path]:
+) -> dict[str, Path]:
     """Export all relational tables to CSV format."""
     tables = {
         "zonas_urbanas": zonas,
@@ -262,7 +260,7 @@ GRANT SELECT ON mv_kpis_movilidad_horaria TO rol_analista_datos;
 
 
 def export_movigo_to_sql_dump(
-    csv_paths: Dict[str, Path],
+    csv_paths: dict[str, Path],
     output_file: Path = SQL_ARTIFACTS_DIR / "schema_and_data.sql",
 ) -> Path:
     """Generate consolidated SQL file with DDL and COPY commands."""
@@ -286,11 +284,11 @@ def export_movigo_to_sql_dump(
 
 
 def compute_movigo_simulation_summary(
-    zonas: List[ZonaUrbana],
-    viajes: List[Viaje],
-    clima: List[ClimaCuadrantes],
-    campanas: List[CampanaIncentivo],
-) -> Dict[str, Any]:
+    zonas: list[ZonaUrbana],
+    viajes: list[Viaje],
+    clima: list[ClimaCuadrantes],
+    campanas: list[CampanaIncentivo],
+) -> dict[str, Any]:
     """Compute mathematical, inferential, and optimization properties of MoviGo dataset."""
     df_viajes = pd.DataFrame([v.model_dump() for v in viajes])
     df_zonas = pd.DataFrame([z.model_dump() for z in zonas])

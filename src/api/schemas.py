@@ -1,7 +1,7 @@
 """Pydantic schemas and response models for all cases."""
 
 from datetime import date, datetime
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from typing import Generic, TypeVar
 from pydantic import BaseModel, ConfigDict, Field
 
 T = TypeVar("T")
@@ -9,7 +9,7 @@ T = TypeVar("T")
 
 class PaginatedResponse(BaseModel, Generic[T]):
     """Standard REST pagination envelope."""
-    items: List[T] = Field(..., description="List of items for the current page")
+    items: list[T] = Field(..., description="List of items for the current page")
     count: int = Field(..., description="Number of items in the current page")
     total: int = Field(..., description="Total number of items matching filters")
     offset: int = Field(..., description="Current pagination offset")
@@ -93,22 +93,22 @@ class OrdenOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id_orden: int
     id_zona: int
-    id_repartidor: Optional[int] = None
-    id_promocion: Optional[int] = None
+    id_repartidor: int | None = None
+    id_promocion: int | None = None
     fecha_hora_creacion: datetime
-    fecha_hora_entrega: Optional[datetime] = None
+    fecha_hora_entrega: datetime | None = None
     metodo_pago: str
     estado_orden: str
     total_orden: float
     costo_envio: float
     propina: float
-    notas_entrega: Optional[str] = None
-    comentario_cliente: Optional[str] = None
-    motivo_cancelacion: Optional[str] = None
+    notas_entrega: str | None = None
+    comentario_cliente: str | None = None
+    motivo_cancelacion: str | None = None
 
 
 class OrdenDetailOut(OrdenOut):
-    items: List[DetalleOrdenOut] = Field(default_factory=list, description="Associated order items")
+    items: list[DetalleOrdenOut] = Field(default_factory=list, description="Associated order items")
 
 
 # =========================================================
@@ -178,13 +178,13 @@ class LoteAcopioOut(BaseModel):
     id_lote: int
     id_finca: int
     id_variedad: int
-    id_cuadrilla: Optional[int] = None
+    id_cuadrilla: int | None = None
     fecha_corte: date
     peso_cereza_kg: float
     humedad_porcentaje: float
     puntaje_catacion_scaa: float
     certificacion: str
-    notas_catacion: Optional[str] = None
+    notas_catacion: str | None = None
     costo_recoleccion_nio: float
     estado_lote: str
 
@@ -196,17 +196,17 @@ class ProcesamientoBeneficioOut(BaseModel):
     id_beneficio: int
     etapa: str
     fecha_inicio: datetime
-    fecha_fin: Optional[datetime] = None
-    temperatura_fermentacion_c: Optional[float] = None
+    fecha_fin: datetime | None = None
+    temperatura_fermentacion_c: float | None = None
     merma_porcentaje: float
     peso_salida_kg: float
-    observaciones_proceso: Optional[str] = None
+    observaciones_proceso: str | None = None
 
 
 class SubastaEspecialOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id_subasta: int
-    id_lote: Optional[int] = None
+    id_lote: int | None = None
     nombre_lote_especial: str
     peso_quintales: float
     costo_certificacion_usd: float
@@ -294,12 +294,12 @@ class ViajeOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id_viaje: int
     id_usuario: int
-    id_conductor: Optional[int] = None
+    id_conductor: int | None = None
     id_zona_origen: int
     id_zona_destino: int
     fecha_hora_solicitud: datetime
-    fecha_hora_inicio: Optional[datetime] = None
-    fecha_hora_fin: Optional[datetime] = None
+    fecha_hora_inicio: datetime | None = None
+    fecha_hora_fin: datetime | None = None
     distancia_km: float
     duracion_minutos: float
     tarifa_base: float
@@ -307,10 +307,10 @@ class ViajeOut(BaseModel):
     tarifa_final: float
     metodo_pago: str
     estado_viaje: str
-    calificacion_usuario: Optional[float] = None
-    calificacion_conductor: Optional[float] = None
+    calificacion_usuario: float | None = None
+    calificacion_conductor: float | None = None
     propina: float
-    motivo_cancelacion: Optional[str] = None
+    motivo_cancelacion: str | None = None
 
 
 class TelemetriaConductorOut(BaseModel):

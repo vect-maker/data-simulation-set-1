@@ -7,7 +7,8 @@ resilient HTTP retries, fallback simulation, and a mock HTTP server for DataOps 
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Any, Callable
+from typing import Any
+from collections.abc import Callable
 import requests
 
 logger = logging.getLogger(__name__)
@@ -26,16 +27,16 @@ class WeatherClient:
         daily_vars: str,
         timezone: str,
         cache_path: Path,
-        fallback_fn: Callable[[], Dict[str, Any]],
+        fallback_fn: Callable[[], dict[str, Any]],
         force_refresh: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Fetch daily archive weather or retrieve from local cache, with synthetic fallback."""
         if cache_path.exists() and not force_refresh:
             logger.info(f"Loading weather from local cache: {cache_path}")
-            with open(cache_path, "r", encoding="utf-8") as f:
+            with open(cache_path, encoding="utf-8") as f:
                 return json.load(f)
 
-        params = {
+        params: dict[str, Any] = {
             "latitude": latitude,
             "longitude": longitude,
             "start_date": start_date,

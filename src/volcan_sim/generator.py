@@ -11,7 +11,7 @@ Generates realistic coffee supply chain facts with strict mathematical guarantee
 import json
 import logging
 from datetime import datetime, date, timedelta, time
-from typing import List, Dict, Any, Tuple
+from typing import Any
 import numpy as np
 import pandas as pd
 
@@ -21,7 +21,6 @@ from volcan_sim.config import (
     SCAA_ALTITUDE_COEFF,
     SCAA_NOISE_STD,
     VARIETY_CUP_BONUS,
-    CHERRY_TO_ORO_RATIO,
     MOISTURE_TARGET_EXPORT,
     OUTLIER_COE_WINNER_PROB,
     OUTLIER_DEFECT_LOT_PROB,
@@ -44,7 +43,7 @@ logger = logging.getLogger(__name__)
 # Chi-Square Transition Matrix: P(Variedad | Región)
 # Varieties order: VAR-001 (Geisha), VAR-002 (Pacamara), VAR-003 (Bourbon),
 #                  VAR-004 (Maragogipe), VAR-005 (Caturra), VAR-006 (Catuaí Rojo), VAR-007 (Catuaí Amarillo)
-REGION_VARIETY_PROBABILITIES: Dict[str, List[float]] = {
+REGION_VARIETY_PROBABILITIES: dict[str, list[float]] = {
     # Nueva Segovia (Dipilto): Capital of Cup of Excellence, high exotic micro-lots
     "Nueva Segovia - Dipilto": [0.22, 0.26, 0.20, 0.08, 0.12, 0.06, 0.06],
     # Jinotega: High-volume mountain valleys, productive Caturra and Catuaí
@@ -56,7 +55,7 @@ REGION_VARIETY_PROBABILITIES: Dict[str, List[float]] = {
 }
 
 # Regional wet mill routing mapping
-REGION_WET_MILL: Dict[str, int] = {
+REGION_WET_MILL: dict[str, int] = {
     "Jinotega": 1,
     "Matagalpa": 2,
     "Nueva Segovia - Dipilto": 3,
@@ -64,31 +63,31 @@ REGION_WET_MILL: Dict[str, int] = {
 }
 
 
-def load_volcan_seed_catalogs() -> Tuple[
-    List[Finca],
-    List[VariedadCafe],
-    List[Beneficio],
-    List[CuadrillaCorte],
-    List[SubastaEspecial],
-    Dict[str, Any],
+def load_volcan_seed_catalogs() -> tuple[
+    list[Finca],
+    list[VariedadCafe],
+    list[Beneficio],
+    list[CuadrillaCorte],
+    list[SubastaEspecial],
+    dict[str, Any],
 ]:
     """Load dimensional catalogs from JSON fixtures."""
-    with open(SEEDS_DIR / "fincas_nicaragua.json", "r", encoding="utf-8") as f:
+    with open(SEEDS_DIR / "fincas_nicaragua.json", encoding="utf-8") as f:
         fincas = [Finca(**f_data) for f_data in json.load(f)]
 
-    with open(SEEDS_DIR / "variedades_cafe.json", "r", encoding="utf-8") as f:
+    with open(SEEDS_DIR / "variedades_cafe.json", encoding="utf-8") as f:
         variedades = [VariedadCafe(**v) for v in json.load(f)]
 
-    with open(SEEDS_DIR / "beneficios.json", "r", encoding="utf-8") as f:
+    with open(SEEDS_DIR / "beneficios.json", encoding="utf-8") as f:
         beneficios = [Beneficio(**b) for b in json.load(f)]
 
-    with open(SEEDS_DIR / "cuadrillas.json", "r", encoding="utf-8") as f:
+    with open(SEEDS_DIR / "cuadrillas.json", encoding="utf-8") as f:
         cuadrillas = [CuadrillaCorte(**c) for c in json.load(f)]
 
-    with open(SEEDS_DIR / "subastas_knapsack.json", "r", encoding="utf-8") as f:
+    with open(SEEDS_DIR / "subastas_knapsack.json", encoding="utf-8") as f:
         subastas = [SubastaEspecial(**s) for s in json.load(f)]
 
-    with open(SEEDS_DIR / "tasting_notes.json", "r", encoding="utf-8") as f:
+    with open(SEEDS_DIR / "tasting_notes.json", encoding="utf-8") as f:
         notes = json.load(f)
 
     return fincas, variedades, beneficios, cuadrillas, subastas, notes
@@ -182,19 +181,19 @@ class VolcanSimulationEngine:
     def run_simulation(
         self,
         weather_df: pd.DataFrame,
-    ) -> Tuple[
-        List[LoteAcopio],
-        List[ProcesamientoBeneficio],
-        List[SubastaEspecial],
-        List[EmbarqueExportacion],
+    ) -> tuple[
+        list[LoteAcopio],
+        list[ProcesamientoBeneficio],
+        list[SubastaEspecial],
+        list[EmbarqueExportacion],
     ]:
         """Run full year coffee cycle simulation."""
         logger.info(f"Starting Cooperativa El Volcán simulation across {len(weather_df)} days...")
 
-        lotes: List[LoteAcopio] = []
-        procesos: List[ProcesamientoBeneficio] = []
-        subastas: List[SubastaEspecial] = []
-        embarques: List[EmbarqueExportacion] = []
+        lotes: list[LoteAcopio] = []
+        procesos: list[ProcesamientoBeneficio] = []
+        subastas: list[SubastaEspecial] = []
+        embarques: list[EmbarqueExportacion] = []
 
         lote_counter = 1
         proceso_counter = 1
@@ -208,7 +207,7 @@ class VolcanSimulationEngine:
         certifications = self.notes_templates.get("certificaciones", ["Convencional"])
         buyers = self.notes_templates.get("clientes_compradores", [])
 
-        for day_idx, (_, row) in enumerate(weather_df.iterrows()):
+        for _day_idx, (_, row) in enumerate(weather_df.iterrows()):
             curr_date: date = row["fecha"]
             precip_mm: float = float(row["precipitacion_mm"])
             daily_lots_count = self.get_seasonal_daily_lots(curr_date, precip_mm)

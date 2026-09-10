@@ -4,7 +4,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any, Type, TypeVar
+from typing import Any, TypeVar
 from dotenv import load_dotenv
 from rich.console import Console
 from pydantic import BaseModel
@@ -59,7 +59,7 @@ import time
 def generate_structured_data(
     client: Any,
     prompt: str,
-    response_schema: Type[T],
+    response_schema: type[T],
     model: str = GEMINI_MODEL,
     max_retries: int = 4,
 ) -> T:

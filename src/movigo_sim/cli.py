@@ -147,7 +147,7 @@ def run_inspection():
         console.print(f"[red]Error: Summary file {summary_path} not found. Run 'generate' first.[/red]")
         sys.exit(1)
 
-    with open(summary_path, "r", encoding="utf-8") as f:
+    with open(summary_path, encoding="utf-8") as f:
         summary = json.load(f)
     display_movigo_rich_summary(summary)
 
@@ -203,7 +203,7 @@ def cmd_inspect(args):
         console.print(f"[red]Error: Summary file {summary_path} not found. Run 'generate' first.[/red]")
         sys.exit(1)
 
-    with open(summary_path, "r", encoding="utf-8") as f:
+    with open(summary_path, encoding="utf-8") as f:
         summary = json.load(f)
 
     if getattr(args, "json", False):

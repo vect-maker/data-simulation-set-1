@@ -1,7 +1,6 @@
 """Pydantic models for Antojitos Express relational schema and simulation entities."""
 
 from datetime import date, datetime
-from typing import Optional, List
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -82,18 +81,18 @@ class Orden(BaseModel):
 
     id_orden: int = Field(ge=1)
     id_zona: int = Field(ge=1)
-    id_repartidor: Optional[int] = None
-    id_promocion: Optional[int] = None
+    id_repartidor: int | None = None
+    id_promocion: int | None = None
     fecha_hora_creacion: datetime
-    fecha_hora_entrega: Optional[datetime] = None
+    fecha_hora_entrega: datetime | None = None
     metodo_pago: str = Field(pattern=r"^(efectivo|tarjeta|billetera_digital)$")
     estado_orden: str = Field(pattern=r"^(entregada|cancelada|en_camino|preparando)$")
     total_orden: float = Field(ge=0.0)
     costo_envio: float = Field(ge=0.0)
     propina: float = Field(ge=0.0, default=0.0)
-    notas_entrega: Optional[str] = None
-    comentario_cliente: Optional[str] = None
-    motivo_cancelacion: Optional[str] = None
+    notas_entrega: str | None = None
+    comentario_cliente: str | None = None
+    motivo_cancelacion: str | None = None
 
 
 class DetalleOrden(BaseModel):
@@ -111,6 +110,6 @@ class DetalleOrden(BaseModel):
 # Models for Gemini Structured Outputs
 class BatchIncidentFeedback(BaseModel):
     """Schema for Gemini batch generation of semantic order feedback."""
-    motivo_cancelacion: Optional[str] = Field(None, description="Detailed Nicaraguan cancellation reason if order failed")
-    comentario_cliente: Optional[str] = Field(None, description="Customer review or complaint reflecting delivery delay or food temperature")
-    notas_entrega: Optional[str] = Field(None, description="Nicaraguan style delivery reference directions (e.g. del semáforo 2c al lago)")
+    motivo_cancelacion: str | None = Field(None, description="Detailed Nicaraguan cancellation reason if order failed")
+    comentario_cliente: str | None = Field(None, description="Customer review or complaint reflecting delivery delay or food temperature")
+    notas_entrega: str | None = Field(None, description="Nicaraguan style delivery reference directions (e.g. del semáforo 2c al lago)")

@@ -1,7 +1,8 @@
 """Routers for Caso 3: MoviGo (Transporte por Aplicación y Movilidad Urbana - Managua)."""
 
 from datetime import date
-from typing import Optional
+from typing import Annotated, Any
+
 from fastapi import APIRouter, Query
 
 from src.api.schemas import (
@@ -22,13 +23,13 @@ SCHEMA = "raw_staging_movigo"
 
 @router.get("/zonas", response_model=PaginatedResponse[ZonaUrbanaOut], summary="Listar cuadrantes y zonas urbanas")
 def get_zonas_movigo(
-    estrato: Optional[str] = Query(None, description="Filtrar por estrato socioeconómico (alto, medio, popular, comercial)"),
-    sort: Optional[str] = Query(None, description="Ordenar por nombre_zona, estrato_socioeconomico, etc."),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
+    estrato: Annotated[str | None, Query(description="Filtrar por estrato socioeconómico (alto, medio, popular, comercial)")] = None,
+    sort: Annotated[str | None, Query(description="Ordenar por nombre_zona, estrato_socioeconomico, etc.")] = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Consulta la zonificación urbana de Managua y tarifas base de bajada de bandera."""
-    filters = []
+    filters: list[tuple[str, str, Any]] = []
     if estrato:
         filters.append(("estrato_socioeconomico", "=", estrato))
 
@@ -47,13 +48,13 @@ def get_zonas_movigo(
 
 @router.get("/usuarios", response_model=PaginatedResponse[UsuarioOut], summary="Listar pasajeros registrados")
 def get_usuarios(
-    metodo_pago: Optional[str] = Query(None, description="efectivo, tarjeta, billetera_digital"),
-    sort: Optional[str] = Query(None, description="Ordenar por fecha_registro o calificacion_promedio"),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
+    metodo_pago: Annotated[str | None, Query(description="efectivo, tarjeta, billetera_digital")] = None,
+    sort: Annotated[str | None, Query(description="Ordenar por fecha_registro o calificacion_promedio")] = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Consulta los perfiles y hábitos de pago de pasajeros en la aplicación."""
-    filters = []
+    filters: list[tuple[str, str, Any]] = []
     if metodo_pago:
         filters.append(("metodo_pago_preferido", "=", metodo_pago))
 
@@ -72,15 +73,15 @@ def get_usuarios(
 
 @router.get("/conductores", response_model=PaginatedResponse[ConductorOut], summary="Listar flota de conductores")
 def get_conductores(
-    tipo_servicio: Optional[str] = Query(None, description="movigo_estandar, movigo_comfort, movigo_moto"),
-    estado: Optional[str] = Query(None, description="activo, inactivo, en_viaje, desconectado"),
-    calificacion_min: Optional[float] = Query(None, description="Calificación mínima"),
-    sort: Optional[str] = Query(None, description="Ordenar por calificacion_promedio o tasa_aceptacion_pct"),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
+    tipo_servicio: Annotated[str | None, Query(description="movigo_estandar, movigo_comfort, movigo_moto")] = None,
+    estado: Annotated[str | None, Query(description="activo, inactivo, en_viaje, desconectado")] = None,
+    calificacion_min: Annotated[float | None, Query(description="Calificación mínima")] = None,
+    sort: Annotated[str | None, Query(description="Ordenar por calificacion_promedio o tasa_aceptacion_pct")] = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Consulta la flota de conductores, vehículos, calificación y tasa de aceptación."""
-    filters = []
+    filters: list[tuple[str, str, Any]] = []
     if tipo_servicio:
         filters.append(("tipo_servicio", "=", tipo_servicio))
     if estado:
@@ -103,13 +104,13 @@ def get_conductores(
 
 @router.get("/campanas", response_model=PaginatedResponse[CampanaIncentivoOut], summary="Listar campañas de incentivos")
 def get_campanas(
-    tipo_incentivo: Optional[str] = Query(None, description="meta_viajes, hora_pico_lluvia, zona_alta_demanda"),
-    estado: Optional[str] = Query(None, description="activa, finalizada"),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
+    tipo_incentivo: Annotated[str | None, Query(description="meta_viajes, hora_pico_lluvia, zona_alta_demanda")] = None,
+    estado: Annotated[str | None, Query(description="activa, finalizada")] = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Consulta los programas de incentivos y bonos para conductores."""
-    filters = []
+    filters: list[tuple[str, str, Any]] = []
     if tipo_incentivo:
         filters.append(("tipo_incentivo", "=", tipo_incentivo))
     if estado:
@@ -129,15 +130,15 @@ def get_campanas(
 
 @router.get("/clima", response_model=PaginatedResponse[ClimaCuadranteOut], summary="Clima y congestión urbana")
 def get_clima_movigo(
-    fecha_desde: Optional[date] = Query(None, description="Fecha mínima YYYY-MM-DD"),
-    fecha_hasta: Optional[date] = Query(None, description="Fecha máxima YYYY-MM-DD"),
-    condicion_cielo: Optional[str] = Query(None, description="despejado, nublado, lluvia_ligera, tormenta"),
-    sort: Optional[str] = Query(None, description="Ordenar por fecha o indice_congestion"),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
+    fecha_desde: Annotated[date | None, Query(description="Fecha mínima YYYY-MM-DD")] = None,
+    fecha_hasta: Annotated[date | None, Query(description="Fecha máxima YYYY-MM-DD")] = None,
+    condicion_cielo: Annotated[str | None, Query(description="despejado, nublado, lluvia_ligera, tormenta")] = None,
+    sort: Annotated[str | None, Query(description="Ordenar por fecha o indice_congestion")] = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Series de microclima urbano e índice de congestión vial en Managua."""
-    filters = []
+    filters: list[tuple[str, str, Any]] = []
     if fecha_desde:
         filters.append(("fecha", ">=", fecha_desde))
     if fecha_hasta:
@@ -160,18 +161,18 @@ def get_clima_movigo(
 
 @router.get("/viajes", response_model=PaginatedResponse[ViajeOut], summary="Listar viajes en plataforma")
 def get_viajes(
-    id_zona_origen: Optional[int] = Query(None, description="Zona de partida"),
-    id_zona_destino: Optional[int] = Query(None, description="Zona de destino"),
-    id_conductor: Optional[int] = Query(None, description="Conductor asignado"),
-    id_usuario: Optional[int] = Query(None, description="Usuario pasajero"),
-    estado_viaje: Optional[str] = Query(None, description="completado, cancelado_usuario, cancelado_conductor, no_asignado"),
-    metodo_pago: Optional[str] = Query(None, description="efectivo, tarjeta, billetera_digital"),
-    sort: Optional[str] = Query(None, description="Ordenar por fecha_hora_solicitud, tarifa_final, duracion_minutos"),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
+    id_zona_origen: Annotated[int | None, Query(description="Zona de partida")] = None,
+    id_zona_destino: Annotated[int | None, Query(description="Zona de destino")] = None,
+    id_conductor: Annotated[int | None, Query(description="Conductor asignado")] = None,
+    id_usuario: Annotated[int | None, Query(description="Usuario pasajero")] = None,
+    estado_viaje: Annotated[str | None, Query(description="completado, cancelado_usuario, cancelado_conductor, no_asignado")] = None,
+    metodo_pago: Annotated[str | None, Query(description="efectivo, tarjeta, billetera_digital")] = None,
+    sort: Annotated[str | None, Query(description="Ordenar por fecha_hora_solicitud, tarifa_final, duracion_minutos")] = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Histórico transaccional de viajes urbanos, tarifas dinámicas y distancias."""
-    filters = []
+    filters: list[tuple[str, str, Any]] = []
     if id_zona_origen:
         filters.append(("id_zona_origen", "=", id_zona_origen))
     if id_zona_destino:
@@ -206,15 +207,15 @@ def get_viaje_by_id(id_viaje: int):
 
 @router.get("/telemetria", response_model=PaginatedResponse[TelemetriaConductorOut], summary="Listar registros de telemetría")
 def get_telemetria(
-    id_conductor: Optional[int] = Query(None, description="Filtrar por conductor"),
-    id_zona: Optional[int] = Query(None, description="Filtrar por zona"),
-    estado_disponibilidad: Optional[str] = Query(None, description="disponible, ocupado, en_camino_recogida"),
-    sort: Optional[str] = Query(None, description="Ordenar por fecha_hora o velocidad_kmh"),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
+    id_conductor: Annotated[int | None, Query(description="Filtrar por conductor")] = None,
+    id_zona: Annotated[int | None, Query(description="Filtrar por zona")] = None,
+    estado_disponibilidad: Annotated[str | None, Query(description="disponible, ocupado, en_camino_recogida")] = None,
+    sort: Annotated[str | None, Query(description="Ordenar por fecha_hora o velocidad_kmh")] = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Datos telemétricos de conducción (velocidad, coordenadas, estado de disponibilidad)."""
-    filters = []
+    filters: list[tuple[str, str, Any]] = []
     if id_conductor:
         filters.append(("id_conductor", "=", id_conductor))
     if id_zona:

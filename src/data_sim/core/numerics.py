@@ -8,7 +8,8 @@ Provides explicit implementations and analytical wrappers for:
 - Exponential decay parameter estimation via logarithmic linearization
 """
 
-from typing import Callable, Tuple, Dict, Any, Optional
+from typing import Any
+from collections.abc import Callable
 import numpy as np
 from scipy.integrate import trapezoid, simpson
 from scipy import stats
@@ -20,7 +21,7 @@ def bisection_method(
     b: float,
     tol: float = 1e-4,
     max_iter: int = 100,
-) -> Tuple[float, int, bool]:
+) -> tuple[float, int, bool]:
     """Find root of f(x) = 0 in [a, b] using the Bisection Method.
 
     Returns:
@@ -58,7 +59,7 @@ def newton_raphson_method(
     x0: float,
     tol: float = 1e-5,
     max_iter: int = 100,
-) -> Tuple[float, int, bool]:
+) -> tuple[float, int, bool]:
     """Find root of f(x) = 0 using Newton-Raphson iteration x_{k+1} = x_k - f(x_k)/df(x_k).
 
     Returns:
@@ -98,7 +99,7 @@ def calculate_price_elasticity(
     dq_dp: float,
     price: float,
     quantity: float,
-) -> Tuple[float, str]:
+) -> tuple[float, str]:
     """Calculate point price elasticity of demand epsilon = (dq/dp) * (p/q).
 
     Returns:
@@ -122,8 +123,8 @@ def calculate_price_elasticity(
 
 def numerical_integration_composite(
     y_values: np.ndarray,
-    x_values: Optional[np.ndarray] = None,
-) -> Dict[str, float]:
+    x_values: np.ndarray | None = None,
+) -> dict[str, float]:
     """Integrate discrete curve using Trapezoidal and Composite Simpson 1/3 rules."""
     y = np.asarray(y_values, dtype=float)
     x = np.asarray(x_values, dtype=float) if x_values is not None else np.arange(len(y), dtype=float)
@@ -149,7 +150,7 @@ def numerical_integration_composite(
 def fit_exponential_decay(
     t_hours: np.ndarray,
     moisture_pct: np.ndarray,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Fit coffee drying kinetics M(t) = M0 * exp(-k * t) using OLS on ln(M)."""
     t = np.asarray(t_hours, dtype=float)
     m = np.asarray(moisture_pct, dtype=float)

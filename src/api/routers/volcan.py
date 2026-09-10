@@ -1,7 +1,8 @@
 """Routers for Caso 2: Cooperativa El Volcán (Café de Exportación de Altura - Jinotega / Matagalpa)."""
 
 from datetime import date
-from typing import Optional
+from typing import Annotated, Any
+
 from fastapi import APIRouter, Query
 
 from src.api.schemas import (
@@ -24,15 +25,15 @@ SCHEMA = "raw_staging_volcan"
 
 @router.get("/fincas", response_model=PaginatedResponse[FincaOut], summary="Listar fincas productoras de café")
 def get_fincas(
-    region: Optional[str] = Query(None, description="Filtrar por Jinotega, Matagalpa, Nueva Segovia - Dipilto, Madriz"),
-    municipio: Optional[str] = Query(None, description="Filtrar por municipio"),
-    altitud_min: Optional[int] = Query(None, description="Altitud mínima en msnm"),
-    sort: Optional[str] = Query(None, description="Ordenar por altitud_msnm o area_manzanas"),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
+    region: Annotated[str | None, Query(description="Filtrar por Jinotega, Matagalpa, Nueva Segovia - Dipilto, Madriz")] = None,
+    municipio: Annotated[str | None, Query(description="Filtrar por municipio")] = None,
+    altitud_min: Annotated[int | None, Query(description="Altitud mínima en msnm")] = None,
+    sort: Annotated[str | None, Query(description="Ordenar por altitud_msnm o area_manzanas")] = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Consulta el registro de fincas cafetaleras asociadas a la cooperativa."""
-    filters = []
+    filters: list[tuple[str, str, Any]] = []
     if region:
         filters.append(("region", "=", region))
     if municipio:
@@ -55,12 +56,12 @@ def get_fincas(
 
 @router.get("/variedades", response_model=PaginatedResponse[VariedadCafeOut], summary="Listar variedades botánicas de café")
 def get_variedades(
-    resistencia_roya: Optional[str] = Query(None, description="alta, media, susceptible"),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
+    resistencia_roya: Annotated[str | None, Query(description="alta, media, susceptible")] = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Consulta el catálogo de variedades botánicas de café cultivadas."""
-    filters = []
+    filters: list[tuple[str, str, Any]] = []
     if resistencia_roya:
         filters.append(("resistencia_roya", "=", resistencia_roya))
 
@@ -78,12 +79,12 @@ def get_variedades(
 
 @router.get("/beneficios", response_model=PaginatedResponse[BeneficioOut], summary="Listar beneficios húmedos y secos")
 def get_beneficios(
-    tipo_beneficio: Optional[str] = Query(None, description="humedo, seco"),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
+    tipo_beneficio: Annotated[str | None, Query(description="humedo, seco")] = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Consulta la infraestructura de procesamiento de beneficio de café."""
-    filters = []
+    filters: list[tuple[str, str, Any]] = []
     if tipo_beneficio:
         filters.append(("tipo_beneficio", "=", tipo_beneficio))
 
@@ -101,12 +102,12 @@ def get_beneficios(
 
 @router.get("/cuadrillas", response_model=PaginatedResponse[CuadrillaCorteOut], summary="Listar cuadrillas de recolección")
 def get_cuadrillas(
-    estado: Optional[str] = Query(None, description="activa, descanso, asignada"),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
+    estado: Annotated[str | None, Query(description="activa, descanso, asignada")] = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Consulta las cuadrillas de recolectores para la cosecha de café."""
-    filters = []
+    filters: list[tuple[str, str, Any]] = []
     if estado:
         filters.append(("estado", "=", estado))
 
@@ -124,16 +125,16 @@ def get_cuadrillas(
 
 @router.get("/clima", response_model=PaginatedResponse[ClimaCafetaleroOut], summary="Clima en zonas cafetaleras")
 def get_clima_volcan(
-    fecha_desde: Optional[date] = Query(None, description="Fecha inicio YYYY-MM-DD"),
-    fecha_hasta: Optional[date] = Query(None, description="Fecha fin YYYY-MM-DD"),
-    region: Optional[str] = Query(None, description="Filtrar por región"),
-    condicion_clima: Optional[str] = Query(None, description="soleado, nublado, llovizna, temporal"),
-    sort: Optional[str] = Query(None, description="Ordenar por fecha o precipitación"),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
+    fecha_desde: Annotated[date | None, Query(description="Fecha inicio YYYY-MM-DD")] = None,
+    fecha_hasta: Annotated[date | None, Query(description="Fecha fin YYYY-MM-DD")] = None,
+    region: Annotated[str | None, Query(description="Filtrar por región")] = None,
+    condicion_clima: Annotated[str | None, Query(description="soleado, nublado, llovizna, temporal")] = None,
+    sort: Annotated[str | None, Query(description="Ordenar por fecha o precipitación")] = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Series meteorológicas agropecuarias en las cordilleras cafetaleras de Jinotega."""
-    filters = []
+    filters: list[tuple[str, str, Any]] = []
     if fecha_desde:
         filters.append(("fecha", ">=", fecha_desde))
     if fecha_hasta:
@@ -158,19 +159,19 @@ def get_clima_volcan(
 
 @router.get("/lotes", response_model=PaginatedResponse[LoteAcopioOut], summary="Listar lotes de café cosechados")
 def get_lotes(
-    fecha_desde: Optional[date] = Query(None, description="Fecha mínima de corte"),
-    fecha_hasta: Optional[date] = Query(None, description="Fecha máxima de corte"),
-    id_finca: Optional[int] = Query(None, description="Filtrar por finca de origen"),
-    id_variedad: Optional[int] = Query(None, description="Filtrar por variedad"),
-    certificacion: Optional[str] = Query(None, description="Convencional, Fairtrade, Orgánico, Rainforest Alliance, SHG"),
-    estado_lote: Optional[str] = Query(None, description="recolectado, en_beneficio_humedo, en_secado, listo_exportacion, descartado"),
-    scaa_min: Optional[float] = Query(None, description="Puntaje de catación SCAA mínimo"),
-    sort: Optional[str] = Query(None, description="Ordenar por fecha_corte, -peso_cereza_kg, -puntaje_catacion_scaa"),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
+    fecha_desde: Annotated[date | None, Query(description="Fecha mínima de corte")] = None,
+    fecha_hasta: Annotated[date | None, Query(description="Fecha máxima de corte")] = None,
+    id_finca: Annotated[int | None, Query(description="Filtrar por finca de origen")] = None,
+    id_variedad: Annotated[int | None, Query(description="Filtrar por variedad")] = None,
+    certificacion: Annotated[str | None, Query(description="Convencional, Fairtrade, Orgánico, Rainforest Alliance, SHG")] = None,
+    estado_lote: Annotated[str | None, Query(description="recolectado, en_beneficio_humedo, en_secado, listo_exportacion, descartado")] = None,
+    scaa_min: Annotated[float | None, Query(description="Puntaje de catación SCAA mínimo")] = None,
+    sort: Annotated[str | None, Query(description="Ordenar por fecha_corte, -peso_cereza_kg, -puntaje_catacion_scaa")] = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Consulta los lotes cosechados y entregados en centros de acopio."""
-    filters = []
+    filters: list[tuple[str, str, Any]] = []
     if fecha_desde:
         filters.append(("fecha_corte", ">=", fecha_desde))
     if fecha_hasta:
@@ -207,15 +208,15 @@ def get_lote_by_id(id_lote: int):
 
 @router.get("/procesamiento", response_model=PaginatedResponse[ProcesamientoBeneficioOut], summary="Procesamiento en beneficios")
 def get_procesamiento(
-    id_lote: Optional[int] = Query(None, description="Filtrar por lote"),
-    id_beneficio: Optional[int] = Query(None, description="Filtrar por beneficio"),
-    etapa: Optional[str] = Query(None, description="despulpado, fermentacion, secado_patio, trillado, clasificacion"),
-    sort: Optional[str] = Query(None, description="Ordenar por fecha_inicio o merma_porcentaje"),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
+    id_lote: Annotated[int | None, Query(description="Filtrar por lote")] = None,
+    id_beneficio: Annotated[int | None, Query(description="Filtrar por beneficio")] = None,
+    etapa: Annotated[str | None, Query(description="despulpado, fermentacion, secado_patio, trillado, clasificacion")] = None,
+    sort: Annotated[str | None, Query(description="Ordenar por fecha_inicio o merma_porcentaje")] = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Registro de transformaciones, secado y evaluación del café en beneficios."""
-    filters = []
+    filters: list[tuple[str, str, Any]] = []
     if id_lote:
         filters.append(("id_lote", "=", id_lote))
     if id_beneficio:
@@ -238,12 +239,12 @@ def get_procesamiento(
 
 @router.get("/subastas", response_model=PaginatedResponse[SubastaEspecialOut], summary="Subastas de microlotes especiales")
 def get_subastas(
-    estado_subasta: Optional[str] = Query(None, description="programada, adjudicada, desierta"),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
+    estado_subasta: Annotated[str | None, Query(description="programada, adjudicada, desierta")] = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Consulta de subastas internacionales de café de especialidad."""
-    filters = []
+    filters: list[tuple[str, str, Any]] = []
     if estado_subasta:
         filters.append(("estado_subasta", "=", estado_subasta))
 
@@ -261,15 +262,15 @@ def get_subastas(
 
 @router.get("/embarques", response_model=PaginatedResponse[EmbarqueExportacionOut], summary="Embarques marítimos de exportación")
 def get_embarques(
-    pais_destino: Optional[str] = Query(None, description="País comprador"),
-    puerto_salida: Optional[str] = Query(None, description="Puerto de salida"),
-    fecha_desde: Optional[date] = Query(None, description="Fecha mínima de embarque"),
-    sort: Optional[str] = Query(None, description="Ordenar por fecha_embarque o -total_usd"),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
+    pais_destino: Annotated[str | None, Query(description="País comprador")] = None,
+    puerto_salida: Annotated[str | None, Query(description="Puerto de salida")] = None,
+    fecha_desde: Annotated[date | None, Query(description="Fecha mínima de embarque")] = None,
+    sort: Annotated[str | None, Query(description="Ordenar por fecha_embarque o -total_usd")] = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Consulta de exportaciones y despachos marítimos hacia mercados internacionales."""
-    filters = []
+    filters: list[tuple[str, str, Any]] = []
     if pais_destino:
         filters.append(("pais_destino", "=", pais_destino))
     if puerto_salida:

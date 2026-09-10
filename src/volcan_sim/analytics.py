@@ -6,7 +6,7 @@ Delegates core computations to data_sim.core:
 - Optimizacion: Transportation model, CPM/PERT project scheduling with slacks, Knapsack 0/1 auction selection
 """
 
-from typing import Dict, Any, List
+from typing import Any
 import numpy as np
 import pandas as pd
 
@@ -25,7 +25,6 @@ from data_sim.core.numerics import (
 from data_sim.core.optimization import (
     knapsack_01,
     compute_critical_path_method,
-    solve_simplex_lp,
 )
 
 
@@ -33,7 +32,7 @@ def compute_volcan_estadistica_ii(
     df_lotes: pd.DataFrame,
     df_fincas: pd.DataFrame,
     df_embarques: pd.DataFrame,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Perform formal Estadistica II inferential battery on coffee harvest data."""
     merged_lotes = df_lotes.merge(
         df_fincas[["id_finca", "region", "altitud_msnm"]], on="id_finca", how="left"
@@ -98,7 +97,7 @@ def compute_volcan_estadistica_ii(
     }
 
 
-def compute_volcan_metodos_numericos(df_lotes: pd.DataFrame) -> Dict[str, Any]:
+def compute_volcan_metodos_numericos(df_lotes: pd.DataFrame) -> dict[str, Any]:
     """Perform numerical methods battery: drying kinetics, root finding, integration."""
     # 1. Moisture loss kinetics: M(t) = M0 * exp(-k * t) with experimental measurement noise
     t_samples = np.array([0.0, 24.0, 48.0, 72.0, 96.0, 120.0])
@@ -140,7 +139,7 @@ def compute_volcan_metodos_numericos(df_lotes: pd.DataFrame) -> Dict[str, Any]:
     }
 
 
-def compute_volcan_optimizacion() -> Dict[str, Any]:
+def compute_volcan_optimizacion() -> dict[str, Any]:
     """Solve transportation model, Knapsack 0/1 Cup of Excellence, and CPM/PERT."""
     # 1. Critical Path Method (12 activities)
     activities = {

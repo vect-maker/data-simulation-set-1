@@ -9,7 +9,6 @@ Supports both:
 import argparse
 import sys
 from pathlib import Path
-from typing import List, Optional
 from pydantic import BaseModel, Field
 from rich.panel import Panel
 
@@ -37,40 +36,40 @@ DEFAULT_SEEDS_DIR = BASE_DIR / "src" / "volcan_sim" / "seeds"
 
 # Pydantic Container Schemas
 class TastingNotesTemplates(BaseModel):
-    notas_catacion_altas: List[str] = Field(description="Notas de cata SCAA para lotes de especialidad sobresalientes (88+ pts, perfil Cup of Excellence)")
-    notas_catacion_medias: List[str] = Field(description="Notas de cata SCAA para cafés de alta calidad de origen (85 a 87.9 pts)")
-    notas_estandar: List[str] = Field(description="Notas de cata SCAA para cafés de especialidad balanceados (80 a 84.9 pts)")
-    defectos_proceso: List[str] = Field(description="Defectos o anomalías técnicas de fermentación o secado")
-    observaciones_proceso: List[str] = Field(description="Observaciones técnicas de procesamiento en beneficio")
+    notas_catacion_altas: list[str] = Field(description="Notas de cata SCAA para lotes de especialidad sobresalientes (88+ pts, perfil Cup of Excellence)")
+    notas_catacion_medias: list[str] = Field(description="Notas de cata SCAA para cafés de alta calidad de origen (85 a 87.9 pts)")
+    notas_estandar: list[str] = Field(description="Notas de cata SCAA para cafés de especialidad balanceados (80 a 84.9 pts)")
+    defectos_proceso: list[str] = Field(description="Defectos o anomalías técnicas de fermentación o secado")
+    observaciones_proceso: list[str] = Field(description="Observaciones técnicas de procesamiento en beneficio")
 
 
 class FincaCatalog(BaseModel):
-    fincas: List[Finca]
+    fincas: list[Finca]
 
 
 class VariedadCatalog(BaseModel):
-    variedades: List[VariedadCafe]
+    variedades: list[VariedadCafe]
 
 
 class BeneficioCatalog(BaseModel):
-    beneficios: List[Beneficio]
+    beneficios: list[Beneficio]
 
 
 class CuadrillaCatalog(BaseModel):
-    cuadrillas: List[CuadrillaCorte]
+    cuadrillas: list[CuadrillaCorte]
 
 
 class SubastaCatalog(BaseModel):
-    subastas: List[SubastaEspecial]
+    subastas: list[SubastaEspecial]
 
 
 class VolcanSeedBundle(BaseModel):
     """Consolidated schema to generate all dimensional catalogs in a single API request."""
-    fincas: List[Finca]
-    variedades: List[VariedadCafe]
-    beneficios: List[Beneficio]
-    cuadrillas: List[CuadrillaCorte]
-    subastas: List[SubastaEspecial]
+    fincas: list[Finca]
+    variedades: list[VariedadCafe]
+    beneficios: list[Beneficio]
+    cuadrillas: list[CuadrillaCorte]
+    subastas: list[SubastaEspecial]
     tasting_notes: TastingNotesTemplates
 
 
@@ -122,38 +121,38 @@ def generate_volcan_granular(seeds_dir: Path, target: str = "all", dry_run: bool
     if target in ("all", "fincas"):
         console.print("[yellow]Generando Fincas Cafetaleras (30)...[/yellow]")
         prompt = "Genera exactamente 30 fincas cafetaleras de Nicaragua con id_finca enteros del 1 al 30 e id_productor enteros del 1 al 30 en Jinotega, Matagalpa, Nueva Segovia (Dipilto) y Madriz."
-        data = generate_structured_data(client, prompt, FincaCatalog)
-        save_json_file([f.model_dump() for f in data.fincas], seeds_dir / "fincas_nicaragua.json", dry_run)
+        finca_data = generate_structured_data(client, prompt, FincaCatalog)
+        save_json_file([f.model_dump() for f in finca_data.fincas], seeds_dir / "fincas_nicaragua.json", dry_run)
 
     if target in ("all", "variedades"):
         console.print("[yellow]Generando Variedades de Café (7)...[/yellow]")
         prompt = "Genera 7 variedades botánicas con id_variedad enteros del 1 al 7: Geisha, Pacamara, Bourbon, Maragogipe, Caturra, Catuaí Rojo, Catuaí Amarillo."
-        data = generate_structured_data(client, prompt, VariedadCatalog)
-        save_json_file([v.model_dump() for v in data.variedades], seeds_dir / "variedades_cafe.json", dry_run)
+        var_data = generate_structured_data(client, prompt, VariedadCatalog)
+        save_json_file([v.model_dump() for v in var_data.variedades], seeds_dir / "variedades_cafe.json", dry_run)
 
     if target in ("all", "beneficios"):
         console.print("[yellow]Generando Beneficios de Café (5)...[/yellow]")
         prompt = "Genera 5 beneficios de café con id_beneficio enteros del 1 al 5: Pantasma, Selva Negra, Dipilto, Somoto Río Coco, y Beneficio Seco Central Sébaco."
-        data = generate_structured_data(client, prompt, BeneficioCatalog)
-        save_json_file([b.model_dump() for b in data.beneficios], seeds_dir / "beneficios.json", dry_run)
+        ben_data = generate_structured_data(client, prompt, BeneficioCatalog)
+        save_json_file([b.model_dump() for b in ben_data.beneficios], seeds_dir / "beneficios.json", dry_run)
 
     if target in ("all", "cuadrillas"):
         console.print("[yellow]Generando Cuadrillas de Corte (12)...[/yellow]")
         prompt = "Genera 12 cuadrillas de cortadores con id_cuadrilla enteros del 1 al 12 con 12-35 jornaleros."
-        data = generate_structured_data(client, prompt, CuadrillaCatalog)
-        save_json_file([c.model_dump() for c in data.cuadrillas], seeds_dir / "cuadrillas.json", dry_run)
+        cuad_data = generate_structured_data(client, prompt, CuadrillaCatalog)
+        save_json_file([c.model_dump() for c in cuad_data.cuadrillas], seeds_dir / "cuadrillas.json", dry_run)
 
     if target in ("all", "subastas"):
         console.print("[yellow]Generando Micro-lotes para Subasta Knapsack (12)...[/yellow]")
         prompt = "Genera 12 micro-lotes para subasta internacional con id_subasta enteros del 1 al 12 año 2024."
-        data = generate_structured_data(client, prompt, SubastaCatalog)
-        save_json_file([s.model_dump(mode="json") for s in data.subastas], seeds_dir / "subastas_knapsack.json", dry_run)
+        sub_data = generate_structured_data(client, prompt, SubastaCatalog)
+        save_json_file([s.model_dump(mode="json") for s in sub_data.subastas], seeds_dir / "subastas_knapsack.json", dry_run)
 
     if target in ("all", "tasting"):
         console.print("[yellow]Generando Notas de Cata SCAA...[/yellow]")
         prompt = "Genera notas de cata SCAA para cafés de alta calidad, defectos de proceso y registros técnicos."
-        data = generate_structured_data(client, prompt, TastingNotesTemplates)
-        save_json_file(data.model_dump(), seeds_dir / "tasting_notes.json", dry_run)
+        tasting_data = generate_structured_data(client, prompt, TastingNotesTemplates)
+        save_json_file(tasting_data.model_dump(), seeds_dir / "tasting_notes.json", dry_run)
 
     tracker.print_status()
 

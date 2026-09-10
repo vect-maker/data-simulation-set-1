@@ -1,7 +1,7 @@
 """Semantic enrichment module for MoviGo ride-hailing simulation."""
 
 import logging
-from typing import List, Dict, Any, Tuple
+from typing import Any
 import numpy as np
 
 from movigo_sim.models import Viaje
@@ -14,7 +14,7 @@ class MoviGoSemanticEnricher:
 
     def __init__(
         self,
-        templates: Dict[str, Any] | None = None,
+        templates: dict[str, Any] | None = None,
         use_llm: bool = False,
         random_seed: int = 42,
     ):
@@ -28,7 +28,7 @@ class MoviGoSemanticEnricher:
             or ["Tranque en rotonda Centroamérica", "Lluvia torrencial inundó la vía", "Pasajero no apareció"]
         )
 
-    def enrich_trips(self, viajes: List[Viaje]) -> List[Viaje]:
+    def enrich_trips(self, viajes: list[Viaje]) -> list[Viaje]:
         """Ensure all canceled trips have descriptive Managua cancellation notes."""
         logger.info(f"Enriching {len(viajes)} rides with semantic cancellation reasons...")
         for viaje in viajes:

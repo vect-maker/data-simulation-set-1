@@ -2,7 +2,8 @@
 
 import logging
 from contextlib import contextmanager
-from typing import Any, Dict, Generator, List, Optional, Tuple
+from typing import Any
+from collections.abc import Generator
 import psycopg2
 from psycopg2 import pool
 from psycopg2.extras import RealDictCursor
@@ -11,7 +12,7 @@ from src.api.config import settings
 
 logger = logging.getLogger("api.database")
 
-_pool: Optional[pool.ThreadedConnectionPool] = None
+_pool: pool.ThreadedConnectionPool | None = None
 
 
 def get_pool() -> pool.ThreadedConnectionPool:
@@ -52,7 +53,7 @@ def get_db_connection() -> Generator[psycopg2.extensions.connection, None, None]
         conn_pool.putconn(conn)
 
 
-def check_db_health() -> Tuple[bool, Optional[str]]:
+def check_db_health() -> tuple[bool, str | None]:
     """Verify connectivity to PostgreSQL."""
     try:
         with get_db_connection() as conn:
@@ -65,7 +66,7 @@ def check_db_health() -> Tuple[bool, Optional[str]]:
         return False, str(exc)
 
 
-def fetch_all(query: str, params: Optional[Tuple[Any, ...]] = None) -> List[Dict[str, Any]]:
+def fetch_all(query: str, params: tuple[Any, ...] | None = None) -> list[dict[str, Any]]:
     """Execute a SELECT query and return all rows as dictionaries."""
     with get_db_connection() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -74,7 +75,7 @@ def fetch_all(query: str, params: Optional[Tuple[Any, ...]] = None) -> List[Dict
             return [dict(row) for row in rows]
 
 
-def fetch_one(query: str, params: Optional[Tuple[Any, ...]] = None) -> Optional[Dict[str, Any]]:
+def fetch_one(query: str, params: tuple[Any, ...] | None = None) -> dict[str, Any] | None:
     """Execute a SELECT query and return a single row or None."""
     with get_db_connection() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -83,7 +84,7 @@ def fetch_one(query: str, params: Optional[Tuple[Any, ...]] = None) -> Optional[
             return dict(row) if row else None
 
 
-def fetch_count(query: str, params: Optional[Tuple[Any, ...]] = None) -> int:
+def fetch_count(query: str, params: tuple[Any, ...] | None = None) -> int:
     """Execute a SELECT COUNT query and return integer count."""
     with get_db_connection() as conn:
         with conn.cursor() as cur:

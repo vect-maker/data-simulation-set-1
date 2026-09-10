@@ -9,18 +9,18 @@ Provides canonical implementations and solvers for:
 - Critical Path Method (CPM / PERT) with project slack calculations
 """
 
-from typing import List, Dict, Any, Tuple, Optional
+from typing import Any
 import heapq
 import numpy as np
 from scipy.optimize import linprog, linear_sum_assignment
 
 
 def knapsack_01(
-    item_names: List[str],
-    weights: List[int],
-    values: List[float],
+    item_names: list[str],
+    weights: list[int],
+    values: list[float],
     capacity: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Solve 0/1 Knapsack Problem using Dynamic Programming with full backtracking."""
     n = len(weights)
     if n == 0 or capacity <= 0:
@@ -62,7 +62,7 @@ def knapsack_01(
     }
 
 
-def solve_hungarian_assignment(cost_matrix: np.ndarray) -> Dict[str, Any]:
+def solve_hungarian_assignment(cost_matrix: np.ndarray) -> dict[str, Any]:
     """Solve optimal bipartite assignment problem minimizing total cost/time."""
     costs = np.asarray(cost_matrix, dtype=float)
     row_ind, col_ind = linear_sum_assignment(costs)
@@ -77,10 +77,10 @@ def solve_hungarian_assignment(cost_matrix: np.ndarray) -> Dict[str, Any]:
 
 
 def dijkstra_shortest_path(
-    graph: Dict[str, Dict[str, float]],
+    graph: dict[str, dict[str, float]],
     source: str,
     target: str,
-) -> Tuple[List[str], float]:
+) -> tuple[list[str], float]:
     """Find the shortest path on a weighted graph using Dijkstra's algorithm.
 
     Args:
@@ -91,8 +91,8 @@ def dijkstra_shortest_path(
     Returns:
         (path_list, total_cost)
     """
-    distances: Dict[str, float] = {node: float("inf") for node in graph}
-    previous: Dict[str, Optional[str]] = {node: None for node in graph}
+    distances: dict[str, float] = {node: float("inf") for node in graph}
+    previous: dict[str, str | None] = {node: None for node in graph}
     distances[source] = 0.0
 
     pq = [(0.0, source)]
@@ -115,7 +115,7 @@ def dijkstra_shortest_path(
 
     # Reconstruct path
     path = []
-    curr: Optional[str] = target
+    curr: str | None = target
     while curr is not None:
         path.append(curr)
         curr = previous.get(curr)
@@ -132,9 +132,9 @@ def solve_simplex_lp(
     c: np.ndarray,
     A_ub: np.ndarray,
     b_ub: np.ndarray,
-    bounds: Optional[List[Tuple[Optional[float], Optional[float]]]] = None,
+    bounds: list[tuple[float | None, float | None]] | None = None,
     maximize: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Solve continuous Linear Programming problem using HiGHS Simplex/Interior point.
 
     Returns optimal quantities, objective value, and dual shadow prices.
@@ -172,8 +172,8 @@ def solve_simplex_lp(
 
 
 def compute_critical_path_method(
-    activities: Dict[str, Dict[str, Any]],
-) -> Dict[str, Any]:
+    activities: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
     """Compute Critical Path Method (CPM / PERT) with ES, EF, LS, LF, and total float/slack.
 
     Args:
@@ -184,8 +184,8 @@ def compute_critical_path_method(
         }
     """
     # 1. Forward Pass (ES, EF)
-    es: Dict[str, float] = {}
-    ef: Dict[str, float] = {}
+    es: dict[str, float] = {}
+    ef: dict[str, float] = {}
 
     for act, data in activities.items():
         preds = data.get("predecesores", [])
@@ -198,11 +198,11 @@ def compute_critical_path_method(
     project_duration = max(ef.values()) if ef else 0.0
 
     # 2. Backward Pass (LS, LF)
-    lf: Dict[str, float] = {}
-    ls: Dict[str, float] = {}
+    lf: dict[str, float] = {}
+    ls: dict[str, float] = {}
 
     # Identify successors
-    successors: Dict[str, List[str]] = {act: [] for act in activities}
+    successors: dict[str, list[str]] = {act: [] for act in activities}
     for act, data in activities.items():
         for p in data.get("predecesores", []):
             if p in successors:

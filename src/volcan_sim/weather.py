@@ -3,7 +3,7 @@
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Dict, Any, Tuple
+from typing import Any
 import pandas as pd
 import numpy as np
 
@@ -34,7 +34,7 @@ def map_coffee_weather_condition(precip_mm: float, weather_code: int) -> str:
         return "soleado"
 
 
-def generate_synthetic_jinotega_weather(start_date: str = START_DATE, end_date: str = END_DATE) -> Dict[str, Any]:
+def generate_synthetic_jinotega_weather(start_date: str = START_DATE, end_date: str = END_DATE) -> dict[str, Any]:
     """Generate realistic coffee agro-weather if network is unavailable."""
     start = datetime.strptime(start_date, "%Y-%m-%d").date()
     end = datetime.strptime(end_date, "%Y-%m-%d").date()
@@ -95,9 +95,9 @@ def generate_synthetic_jinotega_weather(start_date: str = START_DATE, end_date: 
 def fetch_jinotega_weather_archive(
     start_date: str = START_DATE,
     end_date: str = END_DATE,
-    cache_path: Path = None,
+    cache_path: Path | None = None,
     force_refresh: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Fetch daily agro-weather for Jinotega highlands from Open-Meteo or local cache."""
     if cache_path is None:
         RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -117,7 +117,7 @@ def fetch_jinotega_weather_archive(
     )
 
 
-def parse_jinotega_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
+def parse_jinotega_weather_dataframe(raw_json: dict[str, Any]) -> pd.DataFrame:
     """Transform Open-Meteo payload into ClimaZonasCafetaleras DataFrame."""
     daily = raw_json["daily"]
     df = pd.DataFrame({
@@ -131,7 +131,7 @@ def parse_jinotega_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
 
     df["condicion_clima"] = [
         map_coffee_weather_condition(p, code)
-        for p, code in zip(df["precipitacion_mm"], df["weather_code"])
+        for p, code in zip(df["precipitacion_mm"], df["weather_code"], strict=True)
     ]
     df["region"] = "Jinotega"
     df["humedad_relativa_pct"] = [
@@ -145,7 +145,7 @@ def parse_jinotega_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
     ]]
 
 
-def get_jinotega_weather_series(force_refresh: bool = False) -> Tuple[pd.DataFrame, List[ClimaZonasCafetaleras]]:
+def get_jinotega_weather_series(force_refresh: bool = False) -> tuple[pd.DataFrame, list[ClimaZonasCafetaleras]]:
     """Retrieve structured DataFrame and Pydantic records for 2024."""
     raw = fetch_jinotega_weather_archive(force_refresh=force_refresh)
     df = parse_jinotega_weather_dataframe(raw)

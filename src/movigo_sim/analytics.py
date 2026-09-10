@@ -6,7 +6,7 @@ Delegates core computations to data_sim.core:
 - Optimizacion: Hungarian driver dispatch algorithm, Dijkstra shortest path network
 """
 
-from typing import Dict, Any, List
+from typing import Any
 import numpy as np
 import pandas as pd
 
@@ -30,7 +30,7 @@ def compute_movigo_estadistica_ii(
     df_viajes: pd.DataFrame,
     df_clima: pd.DataFrame,
     df_zonas: pd.DataFrame,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Perform formal Estadistica II inferential battery on MoviGo urban mobility."""
     df_viajes["fecha"] = pd.to_datetime(df_viajes["fecha_hora_solicitud"]).dt.date
     daily_trips = df_viajes.groupby("fecha").size().reset_index(name="num_viajes")
@@ -102,7 +102,7 @@ def compute_movigo_estadistica_ii(
     }
 
 
-def compute_movigo_metodos_numericos() -> Dict[str, Any]:
+def compute_movigo_metodos_numericos() -> dict[str, Any]:
     """Calculate non-linear equilibrium equations and numerical differentiation."""
     market_clearing_fun = lambda s: 280.0 * np.exp(-0.65 * (s - 1.0)) - (110.0 + 95.0 * np.log(s))
     market_clearing_deriv = lambda s: -0.65 * 280.0 * np.exp(-0.65 * (s - 1.0)) - (95.0 / s)
@@ -133,7 +133,7 @@ def compute_movigo_metodos_numericos() -> Dict[str, Any]:
     }
 
 
-def compute_movigo_optimizacion() -> Dict[str, Any]:
+def compute_movigo_optimizacion() -> dict[str, Any]:
     """Solve Hungarian Dispatch and Shortest Path Network."""
     cost_matrix = np.array([
         [4.2, 8.5, 6.1, 11.0, 9.4],

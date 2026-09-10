@@ -4,12 +4,10 @@ Generates CSV files, SQL dump with academic database objects (SPs, Triggers, MVs
 and statistical/numerical summary reports.
 """
 
-import json
 import logging
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any
 import pandas as pd
-import numpy as np
 
 from data_sim.core.exporter import export_models_to_csv, write_json_summary, build_sql_dump
 from data_sim.core.stats import compute_contingency_chi2
@@ -43,17 +41,17 @@ logger = logging.getLogger(__name__)
 
 
 def export_volcan_to_csv(
-    fincas: List[Finca],
-    variedades: List[VariedadCafe],
-    beneficios: List[Beneficio],
-    cuadrillas: List[CuadrillaCorte],
-    clima: List[ClimaZonasCafetaleras],
-    lotes: List[LoteAcopio],
-    procesos: List[ProcesamientoBeneficio],
-    subastas: List[SubastaEspecial],
-    embarques: List[EmbarqueExportacion],
+    fincas: list[Finca],
+    variedades: list[VariedadCafe],
+    beneficios: list[Beneficio],
+    cuadrillas: list[CuadrillaCorte],
+    clima: list[ClimaZonasCafetaleras],
+    lotes: list[LoteAcopio],
+    procesos: list[ProcesamientoBeneficio],
+    subastas: list[SubastaEspecial],
+    embarques: list[EmbarqueExportacion],
     output_dir: Path = CSV_ARTIFACTS_DIR,
-) -> Dict[str, Path]:
+) -> dict[str, Path]:
     """Export all relational tables to CSV format."""
     tables = {
         "fincas": fincas,
@@ -289,7 +287,7 @@ GRANT SELECT ON mv_resumen_exportacion_pais TO rol_analista_datos;
 
 
 def export_volcan_to_sql_dump(
-    csv_paths: Dict[str, Path],
+    csv_paths: dict[str, Path],
     output_file: Path = SQL_ARTIFACTS_DIR / "schema_and_data.sql",
 ) -> Path:
     """Generate consolidated SQL file with DDL and COPY commands."""
@@ -315,12 +313,12 @@ def export_volcan_to_sql_dump(
 
 
 def compute_volcan_simulation_summary(
-    fincas: List[Finca],
-    variedades: List[VariedadCafe],
-    lotes: List[LoteAcopio],
-    embarques: List[EmbarqueExportacion],
-    subastas: List[SubastaEspecial],
-) -> Dict[str, Any]:
+    fincas: list[Finca],
+    variedades: list[VariedadCafe],
+    lotes: list[LoteAcopio],
+    embarques: list[EmbarqueExportacion],
+    subastas: list[SubastaEspecial],
+) -> dict[str, Any]:
     """Compute mathematical, inferential, and optimization properties of the dataset."""
     df_lotes = pd.DataFrame([l.model_dump() for l in lotes])
     df_fincas = pd.DataFrame([f.model_dump() for f in fincas])

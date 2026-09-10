@@ -11,13 +11,12 @@ Generates realistic urban mobility facts with strict mathematical guarantees:
 import json
 import logging
 from datetime import datetime, date, timedelta, time
-from typing import List, Dict, Any, Tuple
+from typing import Any
 import numpy as np
 import pandas as pd
 
 from movigo_sim.config import (
     SEEDS_DIR,
-    BASE_FLAG_DROP_NIO,
     BASE_PER_KM_NIO,
     BASE_PER_MINUTE_NIO,
     SURGE_RAIN_FACTOR,
@@ -39,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 # Chi-Square Conditional Probability Matrix: P(Payment Method | Socioeconomic Stratum)
 # Order: ['efectivo', 'tarjeta', 'billetera_digital']
-STRATUM_PAYMENT_PROBABILITIES: Dict[str, List[float]] = {
+STRATUM_PAYMENT_PROBABILITIES: dict[str, list[float]] = {
     "alto":      [0.10, 0.65, 0.25], # High stratum: heavily credit/debit card
     "medio":     [0.30, 0.42, 0.28], # Middle stratum: balanced
     "comercial": [0.20, 0.48, 0.32], # Commercial hubs & universities: cards & wallets
@@ -59,27 +58,27 @@ HOURLY_TRIP_WEIGHTS = np.array([
 HOURLY_TRIP_WEIGHTS /= HOURLY_TRIP_WEIGHTS.sum()
 
 
-def load_movigo_seed_catalogs() -> Tuple[
-    List[ZonaUrbana],
-    List[Usuario],
-    List[Conductor],
-    List[CampanaIncentivo],
-    Dict[str, Any],
+def load_movigo_seed_catalogs() -> tuple[
+    list[ZonaUrbana],
+    list[Usuario],
+    list[Conductor],
+    list[CampanaIncentivo],
+    dict[str, Any],
 ]:
     """Load dimensional seed catalogs from JSON fixtures."""
-    with open(SEEDS_DIR / "zonas_urbanas.json", "r", encoding="utf-8") as f:
+    with open(SEEDS_DIR / "zonas_urbanas.json", encoding="utf-8") as f:
         zonas = [ZonaUrbana(**z) for z in json.load(f)]
 
-    with open(SEEDS_DIR / "usuarios.json", "r", encoding="utf-8") as f:
+    with open(SEEDS_DIR / "usuarios.json", encoding="utf-8") as f:
         usuarios = [Usuario(**u) for u in json.load(f)]
 
-    with open(SEEDS_DIR / "conductores.json", "r", encoding="utf-8") as f:
+    with open(SEEDS_DIR / "conductores.json", encoding="utf-8") as f:
         conductores = [Conductor(**c) for c in json.load(f)]
 
-    with open(SEEDS_DIR / "campanas_incentivos.json", "r", encoding="utf-8") as f:
+    with open(SEEDS_DIR / "campanas_incentivos.json", encoding="utf-8") as f:
         campanas = [CampanaIncentivo(**cmp) for cmp in json.load(f)]
 
-    with open(SEEDS_DIR / "semantic_templates.json", "r", encoding="utf-8") as f:
+    with open(SEEDS_DIR / "semantic_templates.json", encoding="utf-8") as f:
         templates = json.load(f)
 
     return zonas, usuarios, conductores, campanas, templates
@@ -170,7 +169,7 @@ class MoviGoSimulationEngine:
         zona_o: ZonaUrbana,
         zona_d: ZonaUrbana,
         congestion_idx: float,
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         """Estimate driving distance and duration over Managua road grid with realistic traffic noise and outliers."""
         # Euclidean / Manhattan distance approximation for Managua
         d_lat = abs(zona_o.latitud - zona_d.latitud) * 111.0 # 1 deg lat ~ 111 km
@@ -204,12 +203,12 @@ class MoviGoSimulationEngine:
     def run_simulation(
         self,
         weather_df: pd.DataFrame,
-    ) -> Tuple[List[Viaje], List[TelemetriaConductor]]:
+    ) -> tuple[list[Viaje], list[TelemetriaConductor]]:
         """Run full year MoviGo simulation."""
         logger.info(f"Starting MoviGo simulation across {len(weather_df)} days...")
 
-        viajes: List[Viaje] = []
-        telemetria: List[TelemetriaConductor] = []
+        viajes: list[Viaje] = []
+        telemetria: list[TelemetriaConductor] = []
         trip_counter = 1
         telemetry_counter = 1
 

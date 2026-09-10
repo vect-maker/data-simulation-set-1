@@ -3,7 +3,7 @@
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Dict, Any, Tuple
+from typing import Any
 import pandas as pd
 import numpy as np
 
@@ -34,7 +34,7 @@ def map_weather_condition(weather_code: int, precip_mm: float) -> str:
         return "despejado"
 
 
-def generate_synthetic_weather_fallback(start_date: str = START_DATE, end_date: str = END_DATE) -> Dict[str, Any]:
+def generate_synthetic_weather_fallback(start_date: str = START_DATE, end_date: str = END_DATE) -> dict[str, Any]:
     """Generate realistic tropical weather for Managua if network fails."""
     start = datetime.strptime(start_date, "%Y-%m-%d").date()
     end = datetime.strptime(end_date, "%Y-%m-%d").date()
@@ -90,9 +90,9 @@ def generate_synthetic_weather_fallback(start_date: str = START_DATE, end_date: 
 def fetch_open_meteo_archive(
     start_date: str = START_DATE,
     end_date: str = END_DATE,
-    cache_path: Path = None,
+    cache_path: Path | None = None,
     force_refresh: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Fetch daily historical weather for Managua from Open-Meteo Archive API or cache."""
     if cache_path is None:
         RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -112,7 +112,7 @@ def fetch_open_meteo_archive(
     )
 
 
-def parse_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
+def parse_weather_dataframe(raw_json: dict[str, Any]) -> pd.DataFrame:
     """Parse Open-Meteo response into structured DataFrame matching clima_diario schema."""
     daily = raw_json["daily"]
     df = pd.DataFrame({
@@ -124,13 +124,13 @@ def parse_weather_dataframe(raw_json: Dict[str, Any]) -> pd.DataFrame:
 
     df["condicion_cielo"] = [
         map_weather_condition(code, p)
-        for code, p in zip(df["weather_code"], df["precipitacion_mm"])
+        for code, p in zip(df["weather_code"], df["precipitacion_mm"], strict=True)
     ]
 
     return df[["fecha", "precipitacion_mm", "temperatura_c", "condicion_cielo"]]
 
 
-def get_daily_weather_series(force_refresh: bool = False) -> Tuple[pd.DataFrame, List[ClimaDiario]]:
+def get_daily_weather_series(force_refresh: bool = False) -> tuple[pd.DataFrame, list[ClimaDiario]]:
     """Retrieve full 2024 weather DataFrame and Pydantic records."""
     raw = fetch_open_meteo_archive(force_refresh=force_refresh)
     df = parse_weather_dataframe(raw)

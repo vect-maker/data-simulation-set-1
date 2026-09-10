@@ -7,7 +7,7 @@ Provides reusable, mathematically rigorous implementations for:
 - Chi-Square test of independence on categorical contingency tables
 """
 
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Any
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -18,7 +18,7 @@ def compute_ols_regression(
     y: np.ndarray,
     x_label: str = "Regresor",
     y_label: str = "Respuesta",
-) -> Tuple[Dict[str, Any], np.ndarray, np.ndarray, float, float]:
+) -> tuple[dict[str, Any], np.ndarray, np.ndarray, float, float]:
     """Calculate OLS regression and complete ANOVA decomposition table.
 
     Returns:
@@ -82,7 +82,7 @@ def compute_ols_regression(
     return anova_table, residuals, y_pred, slope, intercept
 
 
-def verify_gauss_markov(x: np.ndarray, residuals: np.ndarray) -> Dict[str, Any]:
+def verify_gauss_markov(x: np.ndarray, residuals: np.ndarray) -> dict[str, Any]:
     """Verify OLS Gauss-Markov assumptions: Normality, Homoscedasticity, Independence.
 
     - Normality: Shapiro-Wilk test on residuals (W-stat and p-value)
@@ -151,7 +151,7 @@ def compute_contingency_chi2(
     df: pd.DataFrame,
     col_a: str,
     col_b: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compute contingency table and Pearson Chi-Square test of independence."""
     if df.empty or col_a not in df or col_b not in df:
         return {
@@ -188,7 +188,7 @@ def welch_ttest(
     conclusion_true: str,
     conclusion_false: str = "No se encontro diferencia significativa entre los grupos.",
     alpha: float = 0.01,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Perform Welch independent 2-sample t-test (unequal variances)."""
     s1 = sample_a.dropna()
     s2 = sample_b.dropna()
@@ -227,7 +227,7 @@ def two_proportion_ztest(
     conclusion_true: str,
     conclusion_false: str = "No se encontro diferencia significativa en las proporciones.",
     alpha: float = 0.01,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Perform pooled 2-sample z-test for difference in proportions."""
     if n_1 >= 5 and n_2 >= 5:
         p1 = count_1 / n_1
@@ -254,13 +254,13 @@ def two_proportion_ztest(
 
 
 def one_way_anova_test(
-    groups: List[Tuple[str, pd.Series]],
+    groups: list[tuple[str, pd.Series]],
     test_id: str,
     name: str,
     conclusion_true: str,
     conclusion_false: str = "No se encontraron diferencias significativas entre los grupos.",
     alpha: float = 0.01,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Perform one-way ANOVA F-test across multiple independent groups."""
     valid_groups = [(lbl, s.dropna()) for lbl, s in groups if len(s.dropna()) >= 2]
 

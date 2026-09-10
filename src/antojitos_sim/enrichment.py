@@ -7,10 +7,10 @@ Supports offline deterministic templates as well as optional live Gemini LLM enr
 
 import logging
 import os
-from typing import List, Dict, Any, Optional
+from typing import Any
 import numpy as np
 
-from antojitos_sim.config import GEMINI_API_KEY, GEMINI_MODEL
+from antojitos_sim.config import GEMINI_API_KEY
 from antojitos_sim.models import Orden
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ class SemanticEnricher:
 
     def __init__(
         self,
-        templates: Dict[str, Any],
+        templates: dict[str, Any],
         use_llm: bool = False,
         random_seed: int = 42,
     ):
@@ -30,10 +30,10 @@ class SemanticEnricher:
         self.random_seed = random_seed
         np.random.seed(random_seed)
 
-        self.notas_pool: List[str] = templates.get("notas_entrega", [])
-        self.motivos_pool: List[str] = templates.get("motivos_cancelacion", [])
-        self.comentarios_retraso: List[str] = templates.get("comentarios_retraso", [])
-        self.comentarios_exito: List[str] = templates.get("comentarios_exitosos", [])
+        self.notas_pool: list[str] = templates.get("notas_entrega", [])
+        self.motivos_pool: list[str] = templates.get("motivos_cancelacion", [])
+        self.comentarios_retraso: list[str] = templates.get("comentarios_retraso", [])
+        self.comentarios_exito: list[str] = templates.get("comentarios_exitosos", [])
 
         self.gemini_client = None
         if self.use_llm:
@@ -48,7 +48,7 @@ class SemanticEnricher:
             else:
                 logger.warning("No GEMINI_API_KEY provided. Falling back to offline templates.")
 
-    def enrich_orders(self, orders: List[Orden]) -> List[Orden]:
+    def enrich_orders(self, orders: list[Orden]) -> list[Orden]:
         """Iterate through orders and enrich qualitative fields based on simulated state."""
         logger.info(f"Enriching {len(orders)} orders with semantic notes and edge cases...")
 
