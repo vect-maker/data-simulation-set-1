@@ -176,7 +176,7 @@ db-psql:
 load-antojitos:
 	@if [ -f artifacts/antojitos/sql/schema_and_data.sql ]; then \
 		if command -v psql >/dev/null 2>&1; then \
-			cd artifacts/antojitos/csv && PGPASSWORD=postgres psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
+			cd artifacts/antojitos/csv && PGPASSWORD=postgres psql -h localhost -p ${POSTGRES_PORT:-5433} -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
 		else \
 			{{ COMPOSE }} exec -w /workspace/artifacts/antojitos/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
 		fi \
@@ -188,7 +188,7 @@ load-antojitos:
 load-volcan:
 	@if [ -f artifacts/volcan/sql/schema_and_data.sql ]; then \
 		if command -v psql >/dev/null 2>&1; then \
-			cd artifacts/volcan/csv && PGPASSWORD=postgres psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
+			cd artifacts/volcan/csv && PGPASSWORD=postgres psql -h localhost -p ${POSTGRES_PORT:-5433} -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
 		else \
 			{{ COMPOSE }} exec -w /workspace/artifacts/volcan/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
 		fi \
@@ -200,7 +200,7 @@ load-volcan:
 load-movigo:
 	@if [ -f artifacts/movigo/sql/schema_and_data.sql ]; then \
 		if command -v psql >/dev/null 2>&1; then \
-			cd artifacts/movigo/csv && PGPASSWORD=postgres psql -h localhost -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
+			cd artifacts/movigo/csv && PGPASSWORD=postgres psql -h localhost -p ${POSTGRES_PORT:-5433} -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
 		else \
 			{{ COMPOSE }} exec -w /workspace/artifacts/movigo/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
 		fi \
@@ -239,7 +239,7 @@ pipeline days="":
     @just clean
     @just generate-all {{ days }}
     @just inspect-all
-    @if {{ COMPOSE }} ps -q postgres 2>/dev/null | grep -q . || pg_isready -h localhost -p 5432 >/dev/null 2>&1; then \
+    @if {{ COMPOSE }} ps -q postgres 2>/dev/null | grep -q . || pg_isready -h localhost -p ${POSTGRES_PORT:-5433} >/dev/null 2>&1; then \
         just load-all; \
     else \
         echo "ℹ PostgreSQL is not running. Start it with 'just db-up' and run 'just load-all' to populate DB."; \

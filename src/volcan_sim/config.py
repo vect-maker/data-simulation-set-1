@@ -69,7 +69,7 @@ MOISTURE_TARGET_EXPORT = 11.5 # 11.5% optimal parchment moisture for export
 
 # PostgreSQL Database Configuration
 POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
-POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
+POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", "5433"))
 POSTGRES_DB = os.getenv("POSTGRES_DB", "integrador_db")
 POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")

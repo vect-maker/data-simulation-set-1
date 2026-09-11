@@ -15,7 +15,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 DEFAULT_POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
-DEFAULT_POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", 5432))
+DEFAULT_POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", "5433"))
 DEFAULT_POSTGRES_DB = os.getenv("POSTGRES_DB", "integrador_db")
 DEFAULT_POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
 DEFAULT_POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
