@@ -122,6 +122,13 @@ def get_variedades(
             examples=["alta", "media", "susceptible"],
         ),
     ] = None,
+    sort: Annotated[
+        str | None,
+        Query(
+            description="Campo de ordenamiento (ej. 'id_variedad', '-rendimiento_promedio_qq_mz').",
+            examples=["id_variedad", "-rendimiento_promedio_qq_mz"],
+        ),
+    ] = None,
     offset: Annotated[
         int,
         Query(ge=0, description="Desplazamiento para paginación.", examples=[0]),
@@ -143,6 +150,7 @@ def get_variedades(
         filters=filters,
         allowed_sort_columns=allowed,
         default_sort="id_variedad",
+        sort=sort,
         offset=offset,
         limit=limit,
     )
@@ -171,6 +179,13 @@ def get_beneficios(
             examples=["humedo", "seco"],
         ),
     ] = None,
+    sort: Annotated[
+        str | None,
+        Query(
+            description="Campo de ordenamiento (ej. 'id_beneficio', '-capacidad_quintales_dia', 'costo_procesamiento_qq').",
+            examples=["id_beneficio", "-capacidad_quintales_dia", "costo_procesamiento_qq"],
+        ),
+    ] = None,
     offset: Annotated[
         int,
         Query(ge=0, description="Desplazamiento para paginación.", examples=[0]),
@@ -185,13 +200,20 @@ def get_beneficios(
     if tipo_beneficio:
         filters.append(("tipo_beneficio", "=", tipo_beneficio))
 
-    allowed = {"id_beneficio", "nombre_beneficio", "tipo_beneficio", "capacidad_quintales_dia"}
+    allowed = {
+        "id_beneficio",
+        "nombre_beneficio",
+        "tipo_beneficio",
+        "capacidad_quintales_dia",
+        "costo_procesamiento_qq",
+    }
     return execute_paginated_query(
         schema=SCHEMA,
         table="beneficios",
         filters=filters,
         allowed_sort_columns=allowed,
         default_sort="id_beneficio",
+        sort=sort,
         offset=offset,
         limit=limit,
     )
@@ -220,6 +242,13 @@ def get_cuadrillas(
             examples=["activa", "descanso", "asignada"],
         ),
     ] = None,
+    sort: Annotated[
+        str | None,
+        Query(
+            description="Campo de ordenamiento (ej. 'id_cuadrilla', '-rendimiento_latas_dia', 'costo_jornal_dia').",
+            examples=["id_cuadrilla", "-rendimiento_latas_dia", "costo_jornal_dia"],
+        ),
+    ] = None,
     offset: Annotated[
         int,
         Query(ge=0, description="Desplazamiento para paginación.", examples=[0]),
@@ -241,6 +270,7 @@ def get_cuadrillas(
         filters=filters,
         allowed_sort_columns=allowed,
         default_sort="id_cuadrilla",
+        sort=sort,
         offset=offset,
         limit=limit,
     )
@@ -541,6 +571,13 @@ def get_subastas(
             examples=["programada", "adjudicada", "desierta"],
         ),
     ] = None,
+    sort: Annotated[
+        str | None,
+        Query(
+            description="Campo de ordenamiento (ej. '-fecha_subasta', '-puntaje_taza', '-retorno_esperado_usd').",
+            examples=["-fecha_subasta", "-puntaje_taza", "-retorno_esperado_usd"],
+        ),
+    ] = None,
     offset: Annotated[
         int,
         Query(ge=0, description="Desplazamiento para paginación.", examples=[0]),
@@ -555,13 +592,22 @@ def get_subastas(
     if estado_subasta:
         filters.append(("estado_subasta", "=", estado_subasta))
 
-    allowed = {"id_subasta", "nombre_lote_especial", "peso_quintales", "puntaje_taza", "fecha_subasta"}
+    allowed = {
+        "id_subasta",
+        "nombre_lote_especial",
+        "peso_quintales",
+        "costo_certificacion_usd",
+        "retorno_esperado_usd",
+        "puntaje_taza",
+        "fecha_subasta",
+    }
     return execute_paginated_query(
         schema=SCHEMA,
         table="subastas_especiales",
         filters=filters,
         allowed_sort_columns=allowed,
         default_sort="-fecha_subasta",
+        sort=sort,
         offset=offset,
         limit=limit,
     )

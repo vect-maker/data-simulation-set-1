@@ -174,6 +174,13 @@ def get_repartidores(
     },
 )
 def get_categorias(
+    sort: Annotated[
+        str | None,
+        Query(
+            description="Campo de ordenamiento (ej. '-margen_contribucion_pct', 'nombre_categoria').",
+            examples=["id_categoria", "-margen_contribucion_pct"],
+        ),
+    ] = None,
     offset: Annotated[
         int,
         Query(ge=0, description="Desplazamiento para paginación.", examples=[0]),
@@ -190,6 +197,7 @@ def get_categorias(
         table="categorias_platillo",
         allowed_sort_columns=allowed,
         default_sort="id_categoria",
+        sort=sort,
         offset=offset,
         limit=limit,
     )
@@ -293,6 +301,13 @@ def get_platillos(
     },
 )
 def get_promociones(
+    sort: Annotated[
+        str | None,
+        Query(
+            description="Campo de ordenamiento (ej. '-retorno_esperado', 'costo_campana', '-descuento_pct').",
+            examples=["id_promocion", "-retorno_esperado", "costo_campana"],
+        ),
+    ] = None,
     offset: Annotated[
         int,
         Query(ge=0, description="Desplazamiento para paginación.", examples=[0]),
@@ -303,12 +318,20 @@ def get_promociones(
     ] = 50,
 ):
     """Campañas de promociones, presupuesto de marketing y descuentos aplicados."""
-    allowed = {"id_promocion", "fecha_inicio", "fecha_fin", "descuento_pct"}
+    allowed = {
+        "id_promocion",
+        "costo_campana",
+        "retorno_esperado",
+        "descuento_pct",
+        "fecha_inicio",
+        "fecha_fin",
+    }
     return execute_paginated_query(
         schema=SCHEMA,
         table="promociones",
         allowed_sort_columns=allowed,
         default_sort="id_promocion",
+        sort=sort,
         offset=offset,
         limit=limit,
     )
@@ -535,6 +558,13 @@ def get_detalles_orden(
         int | None,
         Query(description="Filtrar líneas que contengan un platillo específico.", examples=[101]),
     ] = None,
+    sort: Annotated[
+        str | None,
+        Query(
+            description="Campo de ordenamiento (ej. 'id_detalle', '-subtotal', '-cantidad').",
+            examples=["id_detalle", "-subtotal", "-cantidad"],
+        ),
+    ] = None,
     offset: Annotated[
         int,
         Query(ge=0, description="Desplazamiento para paginación.", examples=[0]),
@@ -546,18 +576,19 @@ def get_detalles_orden(
 ):
     """Consulta las líneas de detalle de platillos ordenados."""
     filters: list[tuple[str, str, Any]] = []
-    if id_orden:
+    if id_orden is not None:
         filters.append(("id_orden", "=", id_orden))
-    if id_platillo:
+    if id_platillo is not None:
         filters.append(("id_platillo", "=", id_platillo))
 
-    allowed = {"id_detalle", "id_orden", "id_platillo", "cantidad", "subtotal"}
+    allowed = {"id_detalle", "id_orden", "id_platillo", "cantidad", "precio_unitario", "subtotal"}
     return execute_paginated_query(
         schema=SCHEMA,
         table="detalle_ordenes",
         filters=filters,
         allowed_sort_columns=allowed,
         default_sort="id_detalle",
+        sort=sort,
         offset=offset,
         limit=limit,
     )

@@ -361,6 +361,10 @@ def get_vehicles(
     },
 )
 def get_campaigns(
+    target_zone_id: Annotated[
+        int | None,
+        Query(ge=1, le=12, description="Filtrar por zona urbana objetivo (1 a 12).", examples=[2]),
+    ] = None,
     incentive_type: Annotated[
         str | None,
         Query(
@@ -371,6 +375,13 @@ def get_campaigns(
     status: Annotated[
         str | None,
         Query(description="Filtrar por vigencia del programa.", examples=["activa", "finalizada"]),
+    ] = None,
+    sort: Annotated[
+        str | None,
+        Query(
+            description="Campo de ordenamiento (ej. 'campaign_id', '-online_hours_increase', '-budget_cost_nio', 'start_date').",
+            examples=["campaign_id", "-online_hours_increase", "-budget_cost_nio", "start_date"],
+        ),
     ] = None,
     offset: Annotated[
         int,
@@ -383,18 +394,30 @@ def get_campaigns(
 ):
     """Consulta los programas de incentivos y bonos para conductores."""
     filters: list[tuple[str, str, Any]] = []
+    if target_zone_id is not None:
+        filters.append(("target_zone_id", "=", target_zone_id))
     if incentive_type:
         filters.append(("incentive_type", "=", incentive_type))
     if status:
         filters.append(("status", "=", status))
 
-    allowed = {"campaign_id", "target_zone_id", "budget_cost_nio", "incentive_type", "start_date", "end_date", "status"}
+    allowed = {
+        "campaign_id",
+        "target_zone_id",
+        "budget_cost_nio",
+        "online_hours_increase",
+        "incentive_type",
+        "start_date",
+        "end_date",
+        "status",
+    }
     return execute_paginated_query(
         schema=SCHEMA,
         table="incentive_campaigns",
         filters=filters,
         allowed_sort_columns=allowed,
         default_sort="campaign_id",
+        sort=sort,
         offset=offset,
         limit=limit,
     )

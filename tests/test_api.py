@@ -39,23 +39,58 @@ class TestAPIService(unittest.TestCase):
         self.assertEqual(response.headers.get("access-control-allow-origin"), "*")
 
     def test_openapi_spec(self):
-        """Verify OpenAPI 3.x schema contains expected route groups."""
+        """Verify OpenAPI 3.x schema contains all 29 table collection routes and 3 detail routes across all cases."""
         response = self.client.get("/openapi.json")
         self.assertEqual(response.status_code, 200)
         spec = response.json()
         paths = spec.get("paths", {})
 
-        # Verify endpoints for each case exist in spec
-        self.assertIn("/antojitos/ordenes", paths)
-        self.assertIn("/antojitos/zonas", paths)
-        self.assertIn("/volcan/fincas", paths)
-        self.assertIn("/volcan/lotes", paths)
-        self.assertIn("/movigo/quadrants", paths)
-        self.assertIn("/movigo/zones", paths)
-        self.assertIn("/movigo/trips", paths)
+        expected_collection_paths = [
+            # Caso 1: Antojitos Express (8 tables)
+            "/antojitos/zonas",
+            "/antojitos/repartidores",
+            "/antojitos/categorias",
+            "/antojitos/platillos",
+            "/antojitos/promociones",
+            "/antojitos/clima",
+            "/antojitos/ordenes",
+            "/antojitos/detalles",
+            # Caso 2: Cooperativa El Volcán (9 tables)
+            "/volcan/fincas",
+            "/volcan/variedades",
+            "/volcan/beneficios",
+            "/volcan/cuadrillas",
+            "/volcan/clima",
+            "/volcan/lotes",
+            "/volcan/procesamiento",
+            "/volcan/subastas",
+            "/volcan/embarques",
+            # Caso 3: MoviGo (12 tables)
+            "/movigo/quadrants",
+            "/movigo/zones",
+            "/movigo/users",
+            "/movigo/drivers",
+            "/movigo/vehicles",
+            "/movigo/campaigns",
+            "/movigo/weather",
+            "/movigo/trips",
+            "/movigo/payments",
+            "/movigo/ratings",
+            "/movigo/cancellations",
+            "/movigo/telemetry",
+        ]
+        for path in expected_collection_paths:
+            self.assertIn(path, paths, f"Missing collection endpoint {path} in OpenAPI spec")
+            params = {p["name"] for p in paths[path]["get"].get("parameters", [])}
+            self.assertIn("sort", params, f"Endpoint {path} is missing 'sort' query parameter")
+            self.assertIn("offset", params, f"Endpoint {path} is missing 'offset' query parameter")
+            self.assertIn("limit", params, f"Endpoint {path} is missing 'limit' query parameter")
+
+        for detail_path in ["/antojitos/ordenes/{id_orden}", "/volcan/lotes/{id_lote}", "/movigo/trips/{trip_id}"]:
+            self.assertIn(detail_path, paths, f"Missing detail endpoint {detail_path} in OpenAPI spec")
 
     def test_openapi_spanish_documentation(self):
-        """Verify OpenAPI schema contains rich Spanish documentation, tags, and field descriptions."""
+        """Verify OpenAPI schema contains rich Spanish documentation, tags, and field descriptions for all 30 schemas."""
         response = self.client.get("/openapi.json")
         self.assertEqual(response.status_code, 200)
         spec = response.json()
@@ -88,10 +123,45 @@ class TestAPIService(unittest.TestCase):
         self.assertIn("404", orden_detail.get("responses", {}))
         self.assertIn("422", orden_detail.get("responses", {}))
 
-        # 4. Pydantic schema field descriptions in Spanish
+        # 4. Pydantic schema field descriptions in Spanish across all 30 output models
         schemas = spec.get("components", {}).get("schemas", {})
-        for model_name in ["ZonaOut", "PlatilloOut", "FincaOut", "LoteAcopioOut", "QuadrantOut", "QuadrantWeatherOut", "TripOut"]:
-            self.assertIn(model_name, schemas)
+        all_model_names = [
+            # Caso 1
+            "ZonaOut",
+            "RepartidorOut",
+            "CategoriaPlatilloOut",
+            "PlatilloOut",
+            "PromocionOut",
+            "ClimaDiarioOut",
+            "DetalleOrdenOut",
+            "OrdenOut",
+            "OrdenDetailOut",
+            # Caso 2
+            "FincaOut",
+            "VariedadCafeOut",
+            "BeneficioOut",
+            "CuadrillaCorteOut",
+            "ClimaCafetaleroOut",
+            "LoteAcopioOut",
+            "ProcesamientoBeneficioOut",
+            "SubastaEspecialOut",
+            "EmbarqueExportacionOut",
+            # Caso 3
+            "QuadrantOut",
+            "UrbanZoneOut",
+            "UserOut",
+            "DriverOut",
+            "VehicleOut",
+            "IncentiveCampaignOut",
+            "QuadrantWeatherOut",
+            "TripOut",
+            "TripPaymentOut",
+            "TripRatingOut",
+            "TripCancellationOut",
+            "DriverTelemetryOut",
+        ]
+        for model_name in all_model_names:
+            self.assertIn(model_name, schemas, f"Missing schema '{model_name}' in OpenAPI components")
             properties = schemas[model_name].get("properties", {})
             for prop_name, prop_meta in properties.items():
                 self.assertIn(
@@ -99,6 +169,52 @@ class TestAPIService(unittest.TestCase):
                     prop_meta,
                     f"Property '{prop_name}' in schema '{model_name}' is missing description.",
                 )
+
+    @patch("src.api.utils.fetch_all", return_value=[])
+    @patch("src.api.utils.fetch_count", return_value=0)
+    def test_all_29_table_endpoints_route_to_expected_tables(self, mock_count, mock_all):
+        """Verify all 29 collection endpoints execute paginated queries against their exact database schema and table."""
+        endpoint_table_map = [
+            # Caso 1: Antojitos Express (raw_staging)
+            ("/antojitos/zonas", "raw_staging", "zonas"),
+            ("/antojitos/repartidores", "raw_staging", "repartidores"),
+            ("/antojitos/categorias", "raw_staging", "categorias_platillo"),
+            ("/antojitos/platillos", "raw_staging", "platillos"),
+            ("/antojitos/promociones", "raw_staging", "promociones"),
+            ("/antojitos/clima", "raw_staging", "clima_diario"),
+            ("/antojitos/ordenes", "raw_staging", "ordenes"),
+            ("/antojitos/detalles", "raw_staging", "detalle_ordenes"),
+            # Caso 2: Cooperativa El Volcán (raw_staging_volcan)
+            ("/volcan/fincas", "raw_staging_volcan", "fincas"),
+            ("/volcan/variedades", "raw_staging_volcan", "variedades_cafe"),
+            ("/volcan/beneficios", "raw_staging_volcan", "beneficios"),
+            ("/volcan/cuadrillas", "raw_staging_volcan", "cuadrillas_corte"),
+            ("/volcan/clima", "raw_staging_volcan", "clima_zonas_cafetaleras"),
+            ("/volcan/lotes", "raw_staging_volcan", "lotes_acopio"),
+            ("/volcan/procesamiento", "raw_staging_volcan", "procesamiento_beneficio"),
+            ("/volcan/subastas", "raw_staging_volcan", "subastas_especiales"),
+            ("/volcan/embarques", "raw_staging_volcan", "embarques_exportacion"),
+            # Caso 3: MoviGo (raw_staging_movigo)
+            ("/movigo/quadrants", "raw_staging_movigo", "quadrants"),
+            ("/movigo/zones", "raw_staging_movigo", "urban_zones"),
+            ("/movigo/users", "raw_staging_movigo", "users"),
+            ("/movigo/drivers", "raw_staging_movigo", "drivers"),
+            ("/movigo/vehicles", "raw_staging_movigo", "vehicles"),
+            ("/movigo/campaigns", "raw_staging_movigo", "incentive_campaigns"),
+            ("/movigo/weather", "raw_staging_movigo", "quadrant_weather"),
+            ("/movigo/trips", "raw_staging_movigo", "trips"),
+            ("/movigo/payments", "raw_staging_movigo", "trip_payments"),
+            ("/movigo/ratings", "raw_staging_movigo", "trip_ratings"),
+            ("/movigo/cancellations", "raw_staging_movigo", "trip_cancellations"),
+            ("/movigo/telemetry", "raw_staging_movigo", "driver_telemetry"),
+        ]
+        for route, expected_schema, expected_table in endpoint_table_map:
+            mock_count.reset_mock()
+            mock_all.reset_mock()
+            response = self.client.get(f"{route}?limit=5&offset=0")
+            self.assertEqual(response.status_code, 200, f"GET {route} failed with {response.status_code}")
+            count_sql = mock_count.call_args[0][0]
+            self.assertIn(f"FROM {expected_schema}.{expected_table}", count_sql)
 
     def test_health_check_ok(self):
         """Verify /health returns 200 when database check succeeds."""

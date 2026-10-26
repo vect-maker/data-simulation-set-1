@@ -53,11 +53,13 @@ TAGS_METADATA = [
     {
         "name": "Caso 3: MoviGo",
         "description": (
-            "### Plataforma Tecnológica de Movilidad Urbana y Transporte por App (Managua)\n\n"
-            "Simulación de viajes urbanos bajo demanda en los cuadrantes de Managua. Incluye perfiles de usuarios y flota "
-            "de socios conductores (`movigo_estandar`, `movigo_comfort`, `movigo_moto`), histórico de viajes con cálculo de tarifa dinámica "
-            "(*surge pricing* 1.0x a 2.8x), eventos de lluvia e índice de congestión vial, telemetría GPS vehicular en tiempo real "
-            "y programas de bonos e incentivos de horas de conexión."
+            "### Plataforma Tecnológica de Movilidad Urbana y Transporte por App (Managua - Esquema 3NF)\n\n"
+            "Simulación de viajes urbanos bajo demanda en la grilla de 92 cuadrantes y 12 zonas urbanas de Managua. "
+            "Incluye perfiles de pasajeros (`users`), socios conductores (`drivers`) y unidades vehiculares (`vehicles`: "
+            "`movigo_estandar`, `movigo_comfort`, `movigo_moto`), cabecera transaccional de viajes (`trips`), liquidación de pagos "
+            "con tarifa dinámica (`trip_payments`, *surge pricing* 1.00x a 3.20x), calificaciones (`trip_ratings`), cancelaciones "
+            "(`trip_cancellations`), microclima horario y escorrentía de cauces (`quadrant_weather`), telemetría GPS (`driver_telemetry`) "
+            "y campañas estacionales de incentivos (`incentive_campaigns`)."
         ),
     },
 ]
