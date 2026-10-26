@@ -1,0 +1,6402 @@
+[
+  {
+    "user_id": 1,
+    "name": "Gustavo Pineda",
+    "phone": "+505 8116-8528",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.74,
+    "registration_date": "2023-06-01"
+  },
+  {
+    "user_id": 2,
+    "name": "Marisol Gómez Gutiérrez",
+    "phone": "+505 8578-9177",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.58,
+    "registration_date": "2023-07-28"
+  },
+  {
+    "user_id": 3,
+    "name": "Donald Calero",
+    "phone": "+505 8172-4013",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.5,
+    "registration_date": "2022-10-28"
+  },
+  {
+    "user_id": 4,
+    "name": "Brenda Lisseth Montenegro Solís",
+    "phone": "+505 8917-8817",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.88,
+    "registration_date": "2023-01-28"
+  },
+  {
+    "user_id": 5,
+    "name": "Álvaro Zeledón Vado",
+    "phone": "+505 8190-2005",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.88,
+    "registration_date": "2022-09-11"
+  },
+  {
+    "user_id": 6,
+    "name": "Silvio Téllez Zeledón",
+    "phone": "+505 7846-3670",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.89,
+    "registration_date": "2023-06-28"
+  },
+  {
+    "user_id": 7,
+    "name": "Rosaura Ruiz",
+    "phone": "+505 7361-8887",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.7,
+    "registration_date": "2023-06-22"
+  },
+  {
+    "user_id": 8,
+    "name": "Carlos Ruiz Sobalvarro",
+    "phone": "+505 8677-4098",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.51,
+    "registration_date": "2022-06-06"
+  },
+  {
+    "user_id": 9,
+    "name": "Lester Alemán",
+    "phone": "+505 8292-5697",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.71,
+    "registration_date": "2023-08-11"
+  },
+  {
+    "user_id": 10,
+    "name": "Bismarck Cajina Morales",
+    "phone": "+505 8867-8739",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.78,
+    "registration_date": "2022-09-19"
+  },
+  {
+    "user_id": 11,
+    "name": "Ramón Emilio Gutiérrez",
+    "phone": "+505 8883-9525",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.97,
+    "registration_date": "2022-05-18"
+  },
+  {
+    "user_id": 12,
+    "name": "Milton Rizo",
+    "phone": "+505 7976-6900",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2022-04-15"
+  },
+  {
+    "user_id": 13,
+    "name": "Claudia Sánchez Cajina",
+    "phone": "+505 7729-4105",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.74,
+    "registration_date": "2022-11-29"
+  },
+  {
+    "user_id": 14,
+    "name": "Gustavo Sobalvarro",
+    "phone": "+505 8138-2187",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.75,
+    "registration_date": "2023-12-12"
+  },
+  {
+    "user_id": 15,
+    "name": "Claudia Urbina",
+    "phone": "+505 8915-7410",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.64,
+    "registration_date": "2022-05-28"
+  },
+  {
+    "user_id": 16,
+    "name": "Humberto Montenegro",
+    "phone": "+505 8367-2166",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.61,
+    "registration_date": "2023-09-26"
+  },
+  {
+    "user_id": 17,
+    "name": "Luis Fernando Vado",
+    "phone": "+505 8451-2992",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.85,
+    "registration_date": "2022-03-22"
+  },
+  {
+    "user_id": 18,
+    "name": "Karelia Argüello Téllez",
+    "phone": "+505 8818-2313",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.94,
+    "registration_date": "2022-08-20"
+  },
+  {
+    "user_id": 19,
+    "name": "Noel Cajina",
+    "phone": "+505 8283-7674",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.92,
+    "registration_date": "2022-04-07"
+  },
+  {
+    "user_id": 20,
+    "name": "Sofía Ruiz Gadea",
+    "phone": "+505 8587-9188",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.62,
+    "registration_date": "2022-03-25"
+  },
+  {
+    "user_id": 21,
+    "name": "Xochilt Larios Blandón",
+    "phone": "+505 8477-4959",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.86,
+    "registration_date": "2022-04-25"
+  },
+  {
+    "user_id": 22,
+    "name": "Marisol Duarte",
+    "phone": "+505 8916-8584",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.94,
+    "registration_date": "2023-07-29"
+  },
+  {
+    "user_id": 23,
+    "name": "Heydi Calero",
+    "phone": "+505 7160-9428",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.93,
+    "registration_date": "2022-12-11"
+  },
+  {
+    "user_id": 24,
+    "name": "Daniela Orozco",
+    "phone": "+505 8943-1911",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2022-07-04"
+  },
+  {
+    "user_id": 25,
+    "name": "Sofía Bermúdez",
+    "phone": "+505 8744-2826",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.86,
+    "registration_date": "2022-09-09"
+  },
+  {
+    "user_id": 26,
+    "name": "Carlos Altamirano",
+    "phone": "+505 7739-7764",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.61,
+    "registration_date": "2023-08-25"
+  },
+  {
+    "user_id": 27,
+    "name": "Karelia Solís Téllez",
+    "phone": "+505 7218-9273",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.84,
+    "registration_date": "2022-07-20"
+  },
+  {
+    "user_id": 28,
+    "name": "Xiomara Lacayo Jirón",
+    "phone": "+505 8528-1856",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.87,
+    "registration_date": "2023-08-04"
+  },
+  {
+    "user_id": 29,
+    "name": "Oscar Danilo Palacios",
+    "phone": "+505 8682-7803",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.65,
+    "registration_date": "2023-06-11"
+  },
+  {
+    "user_id": 30,
+    "name": "Mauricio Cajina Chamorro",
+    "phone": "+505 8901-2919",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.78,
+    "registration_date": "2022-11-16"
+  },
+  {
+    "user_id": 31,
+    "name": "Ricardo Gómez",
+    "phone": "+505 7608-2817",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.55,
+    "registration_date": "2022-06-12"
+  },
+  {
+    "user_id": 32,
+    "name": "Rosaura Argüello",
+    "phone": "+505 8345-1479",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2022-06-11"
+  },
+  {
+    "user_id": 33,
+    "name": "Wilber López",
+    "phone": "+505 8887-1253",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.56,
+    "registration_date": "2023-08-28"
+  },
+  {
+    "user_id": 34,
+    "name": "Valeria Gadea",
+    "phone": "+505 8490-2748",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.98,
+    "registration_date": "2022-11-22"
+  },
+  {
+    "user_id": 35,
+    "name": "Luis Fernando Urbina",
+    "phone": "+505 8637-2278",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.61,
+    "registration_date": "2022-10-13"
+  },
+  {
+    "user_id": 36,
+    "name": "Yahoska Ruiz Morales",
+    "phone": "+505 8547-6548",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.84,
+    "registration_date": "2023-04-22"
+  },
+  {
+    "user_id": 37,
+    "name": "Jairo Larios Larios",
+    "phone": "+505 8139-7344",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.67,
+    "registration_date": "2022-06-28"
+  },
+  {
+    "user_id": 38,
+    "name": "Mauricio Vado Duarte",
+    "phone": "+505 8551-1298",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.88,
+    "registration_date": "2022-07-15"
+  },
+  {
+    "user_id": 39,
+    "name": "Byron Sobalvarro Salmerón",
+    "phone": "+505 8670-8649",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.71,
+    "registration_date": "2022-02-27"
+  },
+  {
+    "user_id": 40,
+    "name": "Denis Rostrán",
+    "phone": "+505 8702-9490",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.75,
+    "registration_date": "2023-04-25"
+  },
+  {
+    "user_id": 41,
+    "name": "Marbely Lacayo Montenegro",
+    "phone": "+505 8294-1572",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.63,
+    "registration_date": "2023-09-03"
+  },
+  {
+    "user_id": 42,
+    "name": "Lester Mairena Espinoza",
+    "phone": "+505 8571-5100",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.87,
+    "registration_date": "2022-04-02"
+  },
+  {
+    "user_id": 43,
+    "name": "Mauricio Pineda",
+    "phone": "+505 8918-2163",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.9,
+    "registration_date": "2022-02-14"
+  },
+  {
+    "user_id": 44,
+    "name": "Brenda Lisseth Bolaños Mairena",
+    "phone": "+505 7500-1552",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.84,
+    "registration_date": "2022-03-05"
+  },
+  {
+    "user_id": 45,
+    "name": "Brenda Lisseth Pineda Zeledón",
+    "phone": "+505 8653-8994",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2022-06-18"
+  },
+  {
+    "user_id": 46,
+    "name": "Xiomara Salmerón",
+    "phone": "+505 8188-7755",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.8,
+    "registration_date": "2022-03-08"
+  },
+  {
+    "user_id": 47,
+    "name": "Marbely Rizo",
+    "phone": "+505 8841-5524",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.7,
+    "registration_date": "2023-06-13"
+  },
+  {
+    "user_id": 48,
+    "name": "Rosaura Gutiérrez",
+    "phone": "+505 8715-9187",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.77,
+    "registration_date": "2022-11-24"
+  },
+  {
+    "user_id": 49,
+    "name": "Denis Duarte Lacayo",
+    "phone": "+505 7163-4558",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.54,
+    "registration_date": "2022-03-20"
+  },
+  {
+    "user_id": 50,
+    "name": "María Elena Pineda",
+    "phone": "+505 8117-4132",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.94,
+    "registration_date": "2023-12-01"
+  },
+  {
+    "user_id": 51,
+    "name": "Jairo Sobalvarro",
+    "phone": "+505 8193-3809",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.75,
+    "registration_date": "2023-10-06"
+  },
+  {
+    "user_id": 52,
+    "name": "Meyling Duarte Solís",
+    "phone": "+505 8214-5414",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.85,
+    "registration_date": "2023-10-17"
+  },
+  {
+    "user_id": 53,
+    "name": "Silvio Mairena",
+    "phone": "+505 8513-6529",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.92,
+    "registration_date": "2022-12-22"
+  },
+  {
+    "user_id": 54,
+    "name": "Meyling Baltodano",
+    "phone": "+505 8923-5310",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.81,
+    "registration_date": "2023-04-05"
+  },
+  {
+    "user_id": 55,
+    "name": "Verónica Téllez",
+    "phone": "+505 7251-5027",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.91,
+    "registration_date": "2022-12-08"
+  },
+  {
+    "user_id": 56,
+    "name": "Ricardo Lacayo Sequeira",
+    "phone": "+505 8519-2923",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.73,
+    "registration_date": "2022-08-21"
+  },
+  {
+    "user_id": 57,
+    "name": "Xochilt Rizo Altamirano",
+    "phone": "+505 8127-1143",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.98,
+    "registration_date": "2022-05-03"
+  },
+  {
+    "user_id": 58,
+    "name": "Ana Patricia Ruiz Larios",
+    "phone": "+505 8623-4649",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.95,
+    "registration_date": "2022-03-15"
+  },
+  {
+    "user_id": 59,
+    "name": "Marisol Jarquín Guadamuz",
+    "phone": "+505 8820-5122",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.93,
+    "registration_date": "2023-10-02"
+  },
+  {
+    "user_id": 60,
+    "name": "Noel Pérez",
+    "phone": "+505 8291-9411",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.84,
+    "registration_date": "2022-01-26"
+  },
+  {
+    "user_id": 61,
+    "name": "Auxiliadora López Chamorro",
+    "phone": "+505 8925-3709",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.83,
+    "registration_date": "2023-07-19"
+  },
+  {
+    "user_id": 62,
+    "name": "Karla Vanessa Altamirano Guadamuz",
+    "phone": "+505 8908-3502",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.5,
+    "registration_date": "2022-10-15"
+  },
+  {
+    "user_id": 63,
+    "name": "Marisol Calero",
+    "phone": "+505 8877-1118",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.72,
+    "registration_date": "2023-07-14"
+  },
+  {
+    "user_id": 64,
+    "name": "Scarleth Centeno",
+    "phone": "+505 7431-4523",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.59,
+    "registration_date": "2023-04-06"
+  },
+  {
+    "user_id": 65,
+    "name": "Wendy Rizo",
+    "phone": "+505 7537-6393",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.72,
+    "registration_date": "2022-10-12"
+  },
+  {
+    "user_id": 66,
+    "name": "Ernesto Pérez Espinoza",
+    "phone": "+505 8145-7465",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.69,
+    "registration_date": "2022-02-25"
+  },
+  {
+    "user_id": 67,
+    "name": "Carlos Sobalvarro Membreño",
+    "phone": "+505 8808-4320",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.69,
+    "registration_date": "2022-02-25"
+  },
+  {
+    "user_id": 68,
+    "name": "José Miguel Sánchez",
+    "phone": "+505 8839-4358",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.77,
+    "registration_date": "2023-05-17"
+  },
+  {
+    "user_id": 69,
+    "name": "Rigoberto Cajina",
+    "phone": "+505 8232-8741",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.73,
+    "registration_date": "2023-04-06"
+  },
+  {
+    "user_id": 70,
+    "name": "Ana Patricia Ruiz",
+    "phone": "+505 7109-6453",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.71,
+    "registration_date": "2023-09-01"
+  },
+  {
+    "user_id": 71,
+    "name": "Rosaura Baltodano Sequeira",
+    "phone": "+505 8536-9177",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.67,
+    "registration_date": "2022-09-09"
+  },
+  {
+    "user_id": 72,
+    "name": "Wilber Larios",
+    "phone": "+505 8660-7150",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.6,
+    "registration_date": "2022-10-05"
+  },
+  {
+    "user_id": 73,
+    "name": "Alejandro Alemán",
+    "phone": "+505 8338-1218",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.65,
+    "registration_date": "2022-08-03"
+  },
+  {
+    "user_id": 74,
+    "name": "María Elena Jarquín",
+    "phone": "+505 7442-3836",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.94,
+    "registration_date": "2023-06-22"
+  },
+  {
+    "user_id": 75,
+    "name": "Xiomara Urbina",
+    "phone": "+505 8466-3614",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2023-12-29"
+  },
+  {
+    "user_id": 76,
+    "name": "Massiel Urbina Morales",
+    "phone": "+505 8847-8998",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.89,
+    "registration_date": "2022-03-20"
+  },
+  {
+    "user_id": 77,
+    "name": "Rigoberto Gómez Membreño",
+    "phone": "+505 7438-1929",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.71,
+    "registration_date": "2023-06-10"
+  },
+  {
+    "user_id": 78,
+    "name": "Meyling Palacios",
+    "phone": "+505 8218-6439",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.75,
+    "registration_date": "2023-08-07"
+  },
+  {
+    "user_id": 79,
+    "name": "Indiana Bolaños",
+    "phone": "+505 8733-6820",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.53,
+    "registration_date": "2022-09-08"
+  },
+  {
+    "user_id": 80,
+    "name": "Byron Sequeira",
+    "phone": "+505 8682-1364",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2023-08-13"
+  },
+  {
+    "user_id": 81,
+    "name": "Alejandro Argüello Orozco",
+    "phone": "+505 8590-3614",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.8,
+    "registration_date": "2023-11-04"
+  },
+  {
+    "user_id": 82,
+    "name": "Valeria Centeno Ruiz",
+    "phone": "+505 7938-5646",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.7,
+    "registration_date": "2023-06-30"
+  },
+  {
+    "user_id": 83,
+    "name": "Denis Salmerón Baltodano",
+    "phone": "+505 7152-6419",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.57,
+    "registration_date": "2022-10-30"
+  },
+  {
+    "user_id": 84,
+    "name": "Claudia Duarte",
+    "phone": "+505 8360-6030",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.69,
+    "registration_date": "2023-08-15"
+  },
+  {
+    "user_id": 85,
+    "name": "Melvin Calero",
+    "phone": "+505 8209-3542",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2023-10-20"
+  },
+  {
+    "user_id": 86,
+    "name": "Marcos Antonio Rostrán",
+    "phone": "+505 8147-8857",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.72,
+    "registration_date": "2023-01-20"
+  },
+  {
+    "user_id": 87,
+    "name": "Álvaro Cajina",
+    "phone": "+505 8967-8512",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.67,
+    "registration_date": "2022-12-02"
+  },
+  {
+    "user_id": 88,
+    "name": "Eddy Argüello",
+    "phone": "+505 8469-5895",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.85,
+    "registration_date": "2023-12-23"
+  },
+  {
+    "user_id": 89,
+    "name": "Abner Duarte",
+    "phone": "+505 8140-7225",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.77,
+    "registration_date": "2022-01-29"
+  },
+  {
+    "user_id": 90,
+    "name": "Xiomara Centeno Cajina",
+    "phone": "+505 8657-4932",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2023-01-08"
+  },
+  {
+    "user_id": 91,
+    "name": "Xiomara Solís Chamorro",
+    "phone": "+505 8482-8090",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.71,
+    "registration_date": "2022-01-14"
+  },
+  {
+    "user_id": 92,
+    "name": "Marcos Antonio Alemán Larios",
+    "phone": "+505 8857-7343",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.85,
+    "registration_date": "2023-02-15"
+  },
+  {
+    "user_id": 93,
+    "name": "Abner Calero",
+    "phone": "+505 8649-2388",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.6,
+    "registration_date": "2022-04-12"
+  },
+  {
+    "user_id": 94,
+    "name": "Brenda Lisseth Guadamuz",
+    "phone": "+505 7573-4898",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2023-02-06"
+  },
+  {
+    "user_id": 95,
+    "name": "Mauricio Pérez",
+    "phone": "+505 8825-1184",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.83,
+    "registration_date": "2023-05-18"
+  },
+  {
+    "user_id": 96,
+    "name": "Arlen Bolaños Pineda",
+    "phone": "+505 8466-1740",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.74,
+    "registration_date": "2023-08-23"
+  },
+  {
+    "user_id": 97,
+    "name": "Bayardo Guadamuz Sánchez",
+    "phone": "+505 8285-3724",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.96,
+    "registration_date": "2023-04-11"
+  },
+  {
+    "user_id": 98,
+    "name": "Fabiola Duarte",
+    "phone": "+505 8768-7234",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.77,
+    "registration_date": "2022-03-16"
+  },
+  {
+    "user_id": 99,
+    "name": "Verónica Sequeira",
+    "phone": "+505 7883-9793",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.82,
+    "registration_date": "2023-10-20"
+  },
+  {
+    "user_id": 100,
+    "name": "Verónica Altamirano Salmerón",
+    "phone": "+505 8278-1155",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2023-12-12"
+  },
+  {
+    "user_id": 101,
+    "name": "Jairo Pineda",
+    "phone": "+505 7387-2873",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.99,
+    "registration_date": "2023-01-26"
+  },
+  {
+    "user_id": 102,
+    "name": "Verónica Morales Palacios",
+    "phone": "+505 7894-7355",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.73,
+    "registration_date": "2022-08-14"
+  },
+  {
+    "user_id": 103,
+    "name": "Marisol Orozco",
+    "phone": "+505 8789-8508",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2022-04-19"
+  },
+  {
+    "user_id": 104,
+    "name": "Francisco Javier Morales",
+    "phone": "+505 7877-1930",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.63,
+    "registration_date": "2023-09-26"
+  },
+  {
+    "user_id": 105,
+    "name": "Daniela Baltodano Cajina",
+    "phone": "+505 8361-8950",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.78,
+    "registration_date": "2023-08-15"
+  },
+  {
+    "user_id": 106,
+    "name": "Kenia Calero",
+    "phone": "+505 8732-6512",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.96,
+    "registration_date": "2022-01-22"
+  },
+  {
+    "user_id": 107,
+    "name": "Donald Zeledón Salmerón",
+    "phone": "+505 7190-4935",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2023-06-18"
+  },
+  {
+    "user_id": 108,
+    "name": "Xochilt Baltodano Altamirano",
+    "phone": "+505 8649-1305",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2023-09-15"
+  },
+  {
+    "user_id": 109,
+    "name": "María Elena Mendoza",
+    "phone": "+505 7246-6049",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.9,
+    "registration_date": "2022-02-22"
+  },
+  {
+    "user_id": 110,
+    "name": "Milton Guadamuz Chamorro",
+    "phone": "+505 8591-5324",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.59,
+    "registration_date": "2023-07-23"
+  },
+  {
+    "user_id": 111,
+    "name": "María Elena Sobalvarro Salmerón",
+    "phone": "+505 7715-9491",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.7,
+    "registration_date": "2022-12-29"
+  },
+  {
+    "user_id": 112,
+    "name": "Donald Téllez",
+    "phone": "+505 8252-5648",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.55,
+    "registration_date": "2022-07-05"
+  },
+  {
+    "user_id": 113,
+    "name": "Mauricio Orozco",
+    "phone": "+505 8701-5678",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.76,
+    "registration_date": "2023-08-26"
+  },
+  {
+    "user_id": 114,
+    "name": "Reynaldo Chamorro",
+    "phone": "+505 7697-4399",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.75,
+    "registration_date": "2023-02-19"
+  },
+  {
+    "user_id": 115,
+    "name": "Ligia Palacios",
+    "phone": "+505 8438-4170",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.89,
+    "registration_date": "2023-09-02"
+  },
+  {
+    "user_id": 116,
+    "name": "Heydi Talavera Corea",
+    "phone": "+505 8487-1118",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.88,
+    "registration_date": "2022-03-19"
+  },
+  {
+    "user_id": 117,
+    "name": "Kenia Téllez",
+    "phone": "+505 8735-3126",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2023-11-04"
+  },
+  {
+    "user_id": 118,
+    "name": "Marvin Sánchez Palacios",
+    "phone": "+505 8842-2431",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.9,
+    "registration_date": "2022-10-31"
+  },
+  {
+    "user_id": 119,
+    "name": "Abner Palacios Sequeira",
+    "phone": "+505 8383-6118",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.77,
+    "registration_date": "2022-11-10"
+  },
+  {
+    "user_id": 120,
+    "name": "Humberto Calero",
+    "phone": "+505 8496-1793",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.97,
+    "registration_date": "2022-01-23"
+  },
+  {
+    "user_id": 121,
+    "name": "Scarleth Sequeira Mairena",
+    "phone": "+505 7900-1934",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.63,
+    "registration_date": "2022-09-16"
+  },
+  {
+    "user_id": 122,
+    "name": "María Elena Sobalvarro Lacayo",
+    "phone": "+505 8992-8275",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.29,
+    "registration_date": "2022-06-18"
+  },
+  {
+    "user_id": 123,
+    "name": "Valeria Zeledón",
+    "phone": "+505 8515-9969",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.85,
+    "registration_date": "2022-07-25"
+  },
+  {
+    "user_id": 124,
+    "name": "Gabriela Orozco Palacios",
+    "phone": "+505 8246-3333",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.59,
+    "registration_date": "2023-07-22"
+  },
+  {
+    "user_id": 125,
+    "name": "María Elena Chamorro Solís",
+    "phone": "+505 8890-3602",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.76,
+    "registration_date": "2023-11-08"
+  },
+  {
+    "user_id": 126,
+    "name": "Marvin Duarte",
+    "phone": "+505 7843-2886",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.75,
+    "registration_date": "2023-10-21"
+  },
+  {
+    "user_id": 127,
+    "name": "Rigoberto Montenegro Solís",
+    "phone": "+505 8260-9354",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.61,
+    "registration_date": "2022-10-17"
+  },
+  {
+    "user_id": 128,
+    "name": "Mauricio Rostrán Montenegro",
+    "phone": "+505 7125-4213",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.85,
+    "registration_date": "2022-06-23"
+  },
+  {
+    "user_id": 129,
+    "name": "Arlen Solís Bermúdez",
+    "phone": "+505 8305-8678",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.36,
+    "registration_date": "2022-03-04"
+  },
+  {
+    "user_id": 130,
+    "name": "Arlen Calero",
+    "phone": "+505 8629-9220",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.42,
+    "registration_date": "2022-06-28"
+  },
+  {
+    "user_id": 131,
+    "name": "María Elena Urbina",
+    "phone": "+505 8725-1925",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.77,
+    "registration_date": "2022-12-29"
+  },
+  {
+    "user_id": 132,
+    "name": "Luis Fernando Mendoza",
+    "phone": "+505 7870-4463",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.55,
+    "registration_date": "2022-01-25"
+  },
+  {
+    "user_id": 133,
+    "name": "Xochilt Gutiérrez",
+    "phone": "+505 8540-2869",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.72,
+    "registration_date": "2022-10-04"
+  },
+  {
+    "user_id": 134,
+    "name": "Daniela Blandón",
+    "phone": "+505 8443-9127",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.61,
+    "registration_date": "2022-07-20"
+  },
+  {
+    "user_id": 135,
+    "name": "Lester Sequeira",
+    "phone": "+505 8186-7753",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.75,
+    "registration_date": "2023-08-15"
+  },
+  {
+    "user_id": 136,
+    "name": "Daniela Argüello",
+    "phone": "+505 8699-5652",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.81,
+    "registration_date": "2022-07-11"
+  },
+  {
+    "user_id": 137,
+    "name": "Meyling Morales",
+    "phone": "+505 8330-6448",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.75,
+    "registration_date": "2022-07-19"
+  },
+  {
+    "user_id": 138,
+    "name": "Yahoska Duarte Solís",
+    "phone": "+505 8775-2520",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.73,
+    "registration_date": "2023-07-25"
+  },
+  {
+    "user_id": 139,
+    "name": "Oswaldo Bolaños",
+    "phone": "+505 8578-7758",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.76,
+    "registration_date": "2022-09-11"
+  },
+  {
+    "user_id": 140,
+    "name": "Marvin Montenegro",
+    "phone": "+505 7209-4402",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.82,
+    "registration_date": "2023-10-17"
+  },
+  {
+    "user_id": 141,
+    "name": "Donald Narváez",
+    "phone": "+505 8163-2009",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.83,
+    "registration_date": "2023-04-10"
+  },
+  {
+    "user_id": 142,
+    "name": "Bismarck Jarquín",
+    "phone": "+505 8565-9592",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.71,
+    "registration_date": "2022-10-08"
+  },
+  {
+    "user_id": 143,
+    "name": "Reynaldo Centeno Calero",
+    "phone": "+505 8571-1251",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.57,
+    "registration_date": "2023-03-08"
+  },
+  {
+    "user_id": 144,
+    "name": "Noel Gutiérrez Bermúdez",
+    "phone": "+505 7930-8881",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2023-02-13"
+  },
+  {
+    "user_id": 145,
+    "name": "Yahoska Mairena Calero",
+    "phone": "+505 8136-6643",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.77,
+    "registration_date": "2022-03-26"
+  },
+  {
+    "user_id": 146,
+    "name": "Xochilt Rostrán",
+    "phone": "+505 7936-2465",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.66,
+    "registration_date": "2022-08-15"
+  },
+  {
+    "user_id": 147,
+    "name": "Francisco Javier Bolaños Lacayo",
+    "phone": "+505 7155-1051",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.72,
+    "registration_date": "2023-09-30"
+  },
+  {
+    "user_id": 148,
+    "name": "Noel Cajina",
+    "phone": "+505 7943-3992",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.84,
+    "registration_date": "2023-04-11"
+  },
+  {
+    "user_id": 149,
+    "name": "Ramón Emilio Centeno",
+    "phone": "+505 7504-3214",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.65,
+    "registration_date": "2022-07-16"
+  },
+  {
+    "user_id": 150,
+    "name": "Carlos Altamirano Urbina",
+    "phone": "+505 7575-9752",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.71,
+    "registration_date": "2022-04-05"
+  },
+  {
+    "user_id": 151,
+    "name": "Gabriela Cajina",
+    "phone": "+505 8308-7578",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.95,
+    "registration_date": "2023-06-01"
+  },
+  {
+    "user_id": 152,
+    "name": "Byron López Altamirano",
+    "phone": "+505 8601-2197",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2022-05-28"
+  },
+  {
+    "user_id": 153,
+    "name": "Bayardo Baltodano López",
+    "phone": "+505 7634-8884",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2023-04-05"
+  },
+  {
+    "user_id": 154,
+    "name": "Álvaro Bermúdez Rizo",
+    "phone": "+505 8322-3103",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.26,
+    "registration_date": "2023-03-04"
+  },
+  {
+    "user_id": 155,
+    "name": "Roberto Sequeira",
+    "phone": "+505 8674-3714",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.8,
+    "registration_date": "2023-01-08"
+  },
+  {
+    "user_id": 156,
+    "name": "Tatiana Alejandra Corea Calero",
+    "phone": "+505 8913-8740",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.96,
+    "registration_date": "2023-08-12"
+  },
+  {
+    "user_id": 157,
+    "name": "Jairo Orozco",
+    "phone": "+505 8285-1012",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.6,
+    "registration_date": "2023-01-16"
+  },
+  {
+    "user_id": 158,
+    "name": "Indiana Centeno",
+    "phone": "+505 8432-6750",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.55,
+    "registration_date": "2022-11-18"
+  },
+  {
+    "user_id": 159,
+    "name": "Eddy Centeno",
+    "phone": "+505 8400-3868",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.88,
+    "registration_date": "2022-03-02"
+  },
+  {
+    "user_id": 160,
+    "name": "Reynaldo Argüello",
+    "phone": "+505 8273-3538",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.62,
+    "registration_date": "2023-08-30"
+  },
+  {
+    "user_id": 161,
+    "name": "Brenda Lisseth Morales",
+    "phone": "+505 8123-2081",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.88,
+    "registration_date": "2023-02-09"
+  },
+  {
+    "user_id": 162,
+    "name": "Silvio Guadamuz",
+    "phone": "+505 8497-3662",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.76,
+    "registration_date": "2023-05-09"
+  },
+  {
+    "user_id": 163,
+    "name": "Marbely Bolaños Lacayo",
+    "phone": "+505 8670-7382",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.81,
+    "registration_date": "2022-12-06"
+  },
+  {
+    "user_id": 164,
+    "name": "Bismarck Narváez",
+    "phone": "+505 8816-7498",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.69,
+    "registration_date": "2022-12-18"
+  },
+  {
+    "user_id": 165,
+    "name": "Arlen Picado",
+    "phone": "+505 7102-3842",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.75,
+    "registration_date": "2023-05-17"
+  },
+  {
+    "user_id": 166,
+    "name": "Juan Carlos Pérez Montenegro",
+    "phone": "+505 8211-3899",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.84,
+    "registration_date": "2022-06-01"
+  },
+  {
+    "user_id": 167,
+    "name": "Ernesto Vanegas",
+    "phone": "+505 8581-4389",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.42,
+    "registration_date": "2022-06-29"
+  },
+  {
+    "user_id": 168,
+    "name": "María Elena Larios",
+    "phone": "+505 8424-2107",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.88,
+    "registration_date": "2023-03-05"
+  },
+  {
+    "user_id": 169,
+    "name": "Rosaura Ruiz",
+    "phone": "+505 7108-7840",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.53,
+    "registration_date": "2023-06-03"
+  },
+  {
+    "user_id": 170,
+    "name": "Rigoberto Zeledón",
+    "phone": "+505 7685-9759",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.71,
+    "registration_date": "2023-08-12"
+  },
+  {
+    "user_id": 171,
+    "name": "Marcos Antonio Centeno",
+    "phone": "+505 7185-6596",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.66,
+    "registration_date": "2023-11-26"
+  },
+  {
+    "user_id": 172,
+    "name": "Milton Vanegas Rostrán",
+    "phone": "+505 8648-9949",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.55,
+    "registration_date": "2023-06-01"
+  },
+  {
+    "user_id": 173,
+    "name": "Xiomara Picado Palacios",
+    "phone": "+505 8337-8518",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.86,
+    "registration_date": "2023-07-18"
+  },
+  {
+    "user_id": 174,
+    "name": "Rosaura Solís Gadea",
+    "phone": "+505 8832-5986",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.44,
+    "registration_date": "2022-03-10"
+  },
+  {
+    "user_id": 175,
+    "name": "Scarleth Gadea",
+    "phone": "+505 7417-3948",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.99,
+    "registration_date": "2022-05-16"
+  },
+  {
+    "user_id": 176,
+    "name": "Marbely Rizo",
+    "phone": "+505 8688-4458",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.8,
+    "registration_date": "2023-05-14"
+  },
+  {
+    "user_id": 177,
+    "name": "Sofía Sequeira Jirón",
+    "phone": "+505 7234-6187",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.66,
+    "registration_date": "2022-01-16"
+  },
+  {
+    "user_id": 178,
+    "name": "Rosaura Mairena",
+    "phone": "+505 8567-5475",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.88,
+    "registration_date": "2023-09-16"
+  },
+  {
+    "user_id": 179,
+    "name": "Kenia Narváez Rostrán",
+    "phone": "+505 7976-7601",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.55,
+    "registration_date": "2023-02-25"
+  },
+  {
+    "user_id": 180,
+    "name": "Tatiana Alejandra Sánchez",
+    "phone": "+505 8498-7027",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.58,
+    "registration_date": "2023-10-05"
+  },
+  {
+    "user_id": 181,
+    "name": "José Miguel Narváez",
+    "phone": "+505 8189-1983",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2022-11-10"
+  },
+  {
+    "user_id": 182,
+    "name": "Marisol Sánchez Jarquín",
+    "phone": "+505 8889-1321",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.77,
+    "registration_date": "2022-12-23"
+  },
+  {
+    "user_id": 183,
+    "name": "Marisol Talavera Membreño",
+    "phone": "+505 7288-8891",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.96,
+    "registration_date": "2023-04-23"
+  },
+  {
+    "user_id": 184,
+    "name": "Kenia Picado Vado",
+    "phone": "+505 8424-4415",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.61,
+    "registration_date": "2022-09-14"
+  },
+  {
+    "user_id": 185,
+    "name": "Marvin Pérez Jirón",
+    "phone": "+505 8554-1795",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.61,
+    "registration_date": "2023-01-08"
+  },
+  {
+    "user_id": 186,
+    "name": "Byron Gutiérrez",
+    "phone": "+505 8233-6991",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2023-12-03"
+  },
+  {
+    "user_id": 187,
+    "name": "Roberto Lacayo",
+    "phone": "+505 8216-6020",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.96,
+    "registration_date": "2022-10-13"
+  },
+  {
+    "user_id": 188,
+    "name": "Marvin Baltodano",
+    "phone": "+505 8809-3593",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.64,
+    "registration_date": "2023-07-07"
+  },
+  {
+    "user_id": 189,
+    "name": "Rosaura Membreño Jirón",
+    "phone": "+505 8504-6703",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.88,
+    "registration_date": "2022-12-02"
+  },
+  {
+    "user_id": 190,
+    "name": "Karelia Blandón Vanegas",
+    "phone": "+505 8397-3300",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.6,
+    "registration_date": "2022-09-30"
+  },
+  {
+    "user_id": 191,
+    "name": "Donald Narváez",
+    "phone": "+505 8924-8870",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.69,
+    "registration_date": "2022-07-25"
+  },
+  {
+    "user_id": 192,
+    "name": "Verónica Gadea",
+    "phone": "+505 8686-8721",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.89,
+    "registration_date": "2023-03-23"
+  },
+  {
+    "user_id": 193,
+    "name": "Denis Sánchez",
+    "phone": "+505 8803-1040",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.65,
+    "registration_date": "2022-09-04"
+  },
+  {
+    "user_id": 194,
+    "name": "Jairo Palacios Talavera",
+    "phone": "+505 8190-2423",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.75,
+    "registration_date": "2023-06-03"
+  },
+  {
+    "user_id": 195,
+    "name": "Oswaldo Rizo Chamorro",
+    "phone": "+505 8993-1394",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2022-06-25"
+  },
+  {
+    "user_id": 196,
+    "name": "Donald Picado",
+    "phone": "+505 8967-2928",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.55,
+    "registration_date": "2022-08-17"
+  },
+  {
+    "user_id": 197,
+    "name": "Silvio Mairena Duarte",
+    "phone": "+505 7737-6033",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.58,
+    "registration_date": "2022-04-12"
+  },
+  {
+    "user_id": 198,
+    "name": "Milton Lacayo Larios",
+    "phone": "+505 7760-5067",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2023-04-17"
+  },
+  {
+    "user_id": 199,
+    "name": "Melvin Mendoza",
+    "phone": "+505 8309-5787",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.81,
+    "registration_date": "2023-10-09"
+  },
+  {
+    "user_id": 200,
+    "name": "Juan Carlos Blandón Talavera",
+    "phone": "+505 8279-7895",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.36,
+    "registration_date": "2022-05-11"
+  },
+  {
+    "user_id": 201,
+    "name": "Abner Membreño Rostrán",
+    "phone": "+505 8621-8844",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.67,
+    "registration_date": "2022-09-02"
+  },
+  {
+    "user_id": 202,
+    "name": "Alejandro Pérez",
+    "phone": "+505 7413-6783",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.78,
+    "registration_date": "2023-03-29"
+  },
+  {
+    "user_id": 203,
+    "name": "Mauricio Centeno Duarte",
+    "phone": "+505 8133-1580",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.79,
+    "registration_date": "2022-09-14"
+  },
+  {
+    "user_id": 204,
+    "name": "Scarleth Vanegas",
+    "phone": "+505 7294-9408",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.98,
+    "registration_date": "2023-04-24"
+  },
+  {
+    "user_id": 205,
+    "name": "Abner Baltodano Urbina",
+    "phone": "+505 8486-7948",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.93,
+    "registration_date": "2022-03-09"
+  },
+  {
+    "user_id": 206,
+    "name": "Luis Fernando Zeledón",
+    "phone": "+505 8498-6036",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.95,
+    "registration_date": "2022-07-26"
+  },
+  {
+    "user_id": 207,
+    "name": "Ligia Corea Calero",
+    "phone": "+505 8628-6686",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2023-06-25"
+  },
+  {
+    "user_id": 208,
+    "name": "Bismarck Sequeira Urbina",
+    "phone": "+505 8650-7844",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.83,
+    "registration_date": "2022-11-03"
+  },
+  {
+    "user_id": 209,
+    "name": "Verónica Mendoza",
+    "phone": "+505 7707-3385",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.82,
+    "registration_date": "2022-03-20"
+  },
+  {
+    "user_id": 210,
+    "name": "Marisol Lacayo Larios",
+    "phone": "+505 7659-3064",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.75,
+    "registration_date": "2023-06-23"
+  },
+  {
+    "user_id": 211,
+    "name": "Ernesto Lacayo",
+    "phone": "+505 7650-3142",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.58,
+    "registration_date": "2023-03-15"
+  },
+  {
+    "user_id": 212,
+    "name": "Abner Pineda",
+    "phone": "+505 7515-3342",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.64,
+    "registration_date": "2022-10-16"
+  },
+  {
+    "user_id": 213,
+    "name": "Silvio Talavera",
+    "phone": "+505 8826-9692",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.77,
+    "registration_date": "2023-07-21"
+  },
+  {
+    "user_id": 214,
+    "name": "Silvio Alemán Bolaños",
+    "phone": "+505 8537-4799",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.98,
+    "registration_date": "2023-08-20"
+  },
+  {
+    "user_id": 215,
+    "name": "Ernesto Pineda Vado",
+    "phone": "+505 8991-9501",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.72,
+    "registration_date": "2022-01-19"
+  },
+  {
+    "user_id": 216,
+    "name": "Denis Alemán Narváez",
+    "phone": "+505 8753-1468",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.58,
+    "registration_date": "2022-06-18"
+  },
+  {
+    "user_id": 217,
+    "name": "Donald Baltodano Vanegas",
+    "phone": "+505 8493-1258",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.76,
+    "registration_date": "2022-05-13"
+  },
+  {
+    "user_id": 218,
+    "name": "Carlos Altamirano",
+    "phone": "+505 8642-5798",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.71,
+    "registration_date": "2023-07-28"
+  },
+  {
+    "user_id": 219,
+    "name": "Ernesto Mendoza",
+    "phone": "+505 8989-2568",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.99,
+    "registration_date": "2022-11-22"
+  },
+  {
+    "user_id": 220,
+    "name": "Massiel Vado",
+    "phone": "+505 8887-7651",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.8,
+    "registration_date": "2022-02-11"
+  },
+  {
+    "user_id": 221,
+    "name": "Bayardo Lacayo Picado",
+    "phone": "+505 8793-8890",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.72,
+    "registration_date": "2022-09-19"
+  },
+  {
+    "user_id": 222,
+    "name": "Jairo Corea Zeledón",
+    "phone": "+505 8689-7071",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.49,
+    "registration_date": "2022-03-18"
+  },
+  {
+    "user_id": 223,
+    "name": "Marcos Antonio Espinoza Rostrán",
+    "phone": "+505 8702-2315",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.67,
+    "registration_date": "2022-09-18"
+  },
+  {
+    "user_id": 224,
+    "name": "Abner Guadamuz Lacayo",
+    "phone": "+505 8606-1763",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.79,
+    "registration_date": "2023-10-13"
+  },
+  {
+    "user_id": 225,
+    "name": "Álvaro Pérez",
+    "phone": "+505 8598-6514",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.88,
+    "registration_date": "2023-08-27"
+  },
+  {
+    "user_id": 226,
+    "name": "Ernesto Picado Bolaños",
+    "phone": "+505 8683-4924",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.83,
+    "registration_date": "2022-12-10"
+  },
+  {
+    "user_id": 227,
+    "name": "Silvio Pineda Sequeira",
+    "phone": "+505 8210-4102",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.8,
+    "registration_date": "2022-09-24"
+  },
+  {
+    "user_id": 228,
+    "name": "Daniela Espinoza Jirón",
+    "phone": "+505 8314-5303",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2023-11-05"
+  },
+  {
+    "user_id": 229,
+    "name": "Arlen Palacios",
+    "phone": "+505 7962-1624",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.62,
+    "registration_date": "2022-11-26"
+  },
+  {
+    "user_id": 230,
+    "name": "Valeria Rizo Rizo",
+    "phone": "+505 8156-3501",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.97,
+    "registration_date": "2022-03-27"
+  },
+  {
+    "user_id": 231,
+    "name": "Álvaro Urbina",
+    "phone": "+505 7667-8987",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.55,
+    "registration_date": "2022-07-12"
+  },
+  {
+    "user_id": 232,
+    "name": "Rosaura Mendoza",
+    "phone": "+505 7710-5942",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.6,
+    "registration_date": "2023-02-05"
+  },
+  {
+    "user_id": 233,
+    "name": "Bayardo Centeno",
+    "phone": "+505 7213-1496",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.78,
+    "registration_date": "2023-11-21"
+  },
+  {
+    "user_id": 234,
+    "name": "Xiomara Sánchez Rizo",
+    "phone": "+505 8286-6283",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.83,
+    "registration_date": "2022-09-24"
+  },
+  {
+    "user_id": 235,
+    "name": "Wilber Montenegro Morales",
+    "phone": "+505 7495-7966",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.76,
+    "registration_date": "2022-05-02"
+  },
+  {
+    "user_id": 236,
+    "name": "Marbely Sequeira",
+    "phone": "+505 8875-3335",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.72,
+    "registration_date": "2022-10-23"
+  },
+  {
+    "user_id": 237,
+    "name": "Valeria Palacios",
+    "phone": "+505 8754-8004",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.68,
+    "registration_date": "2023-07-05"
+  },
+  {
+    "user_id": 238,
+    "name": "Marvin Picado Palacios",
+    "phone": "+505 7421-8333",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.76,
+    "registration_date": "2022-05-19"
+  },
+  {
+    "user_id": 239,
+    "name": "Denis Montenegro",
+    "phone": "+505 7931-9022",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.91,
+    "registration_date": "2022-02-21"
+  },
+  {
+    "user_id": 240,
+    "name": "Ligia Gadea Chamorro",
+    "phone": "+505 7402-5223",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.76,
+    "registration_date": "2022-02-11"
+  },
+  {
+    "user_id": 241,
+    "name": "Sofía Salmerón",
+    "phone": "+505 7904-4755",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.8,
+    "registration_date": "2022-09-07"
+  },
+  {
+    "user_id": 242,
+    "name": "Marcos Antonio Gutiérrez",
+    "phone": "+505 8230-8377",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.9,
+    "registration_date": "2023-10-31"
+  },
+  {
+    "user_id": 243,
+    "name": "Marbely Bermúdez",
+    "phone": "+505 8350-5451",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.61,
+    "registration_date": "2023-11-12"
+  },
+  {
+    "user_id": 244,
+    "name": "Noel Alemán",
+    "phone": "+505 8993-7139",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.79,
+    "registration_date": "2023-01-01"
+  },
+  {
+    "user_id": 245,
+    "name": "Donald Argüello Blandón",
+    "phone": "+505 7730-8841",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.63,
+    "registration_date": "2023-07-11"
+  },
+  {
+    "user_id": 246,
+    "name": "Meyling Corea Jirón",
+    "phone": "+505 7940-2677",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.71,
+    "registration_date": "2022-07-24"
+  },
+  {
+    "user_id": 247,
+    "name": "Lester Talavera",
+    "phone": "+505 7828-9959",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.88,
+    "registration_date": "2022-01-08"
+  },
+  {
+    "user_id": 248,
+    "name": "Wilber Bermúdez Gutiérrez",
+    "phone": "+505 8741-1495",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.65,
+    "registration_date": "2022-02-09"
+  },
+  {
+    "user_id": 249,
+    "name": "Daniela Vanegas",
+    "phone": "+505 8274-6296",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.61,
+    "registration_date": "2022-04-10"
+  },
+  {
+    "user_id": 250,
+    "name": "Gustavo Larios Vado",
+    "phone": "+505 8475-7082",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.71,
+    "registration_date": "2023-09-20"
+  },
+  {
+    "user_id": 251,
+    "name": "Karelia Vanegas Baltodano",
+    "phone": "+505 8788-1241",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.74,
+    "registration_date": "2022-05-30"
+  },
+  {
+    "user_id": 252,
+    "name": "Auxiliadora Morales",
+    "phone": "+505 8185-1225",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.81,
+    "registration_date": "2022-08-24"
+  },
+  {
+    "user_id": 253,
+    "name": "Reynaldo Pérez",
+    "phone": "+505 8608-8399",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.66,
+    "registration_date": "2022-05-23"
+  },
+  {
+    "user_id": 254,
+    "name": "Alejandro Montenegro",
+    "phone": "+505 7333-6353",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2023-03-11"
+  },
+  {
+    "user_id": 255,
+    "name": "Humberto Palacios",
+    "phone": "+505 8541-4016",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.58,
+    "registration_date": "2023-10-27"
+  },
+  {
+    "user_id": 256,
+    "name": "Yaoska Urbina Argüello",
+    "phone": "+505 8875-7149",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.8,
+    "registration_date": "2022-04-03"
+  },
+  {
+    "user_id": 257,
+    "name": "Ligia Morales Baltodano",
+    "phone": "+505 8806-2552",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.81,
+    "registration_date": "2022-07-12"
+  },
+  {
+    "user_id": 258,
+    "name": "Lester Montenegro",
+    "phone": "+505 8820-5008",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.61,
+    "registration_date": "2022-02-28"
+  },
+  {
+    "user_id": 259,
+    "name": "Jairo Centeno",
+    "phone": "+505 7790-1251",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.82,
+    "registration_date": "2023-01-29"
+  },
+  {
+    "user_id": 260,
+    "name": "Yaoska Guadamuz Alemán",
+    "phone": "+505 7521-1157",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.76,
+    "registration_date": "2023-04-10"
+  },
+  {
+    "user_id": 261,
+    "name": "Jairo Chamorro",
+    "phone": "+505 7676-5919",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.5,
+    "registration_date": "2022-02-19"
+  },
+  {
+    "user_id": 262,
+    "name": "Alejandro Urbina",
+    "phone": "+505 7905-3085",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2023-01-28"
+  },
+  {
+    "user_id": 263,
+    "name": "Mauricio Mairena",
+    "phone": "+505 7924-7520",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.98,
+    "registration_date": "2023-03-10"
+  },
+  {
+    "user_id": 264,
+    "name": "Mauricio Blandón Solís",
+    "phone": "+505 8602-6765",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.77,
+    "registration_date": "2023-09-18"
+  },
+  {
+    "user_id": 265,
+    "name": "Lester Larios",
+    "phone": "+505 8470-1593",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.74,
+    "registration_date": "2023-09-28"
+  },
+  {
+    "user_id": 266,
+    "name": "Ricardo Bermúdez Solís",
+    "phone": "+505 7140-7847",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2023-06-09"
+  },
+  {
+    "user_id": 267,
+    "name": "Kenia Guadamuz Mendoza",
+    "phone": "+505 7220-8267",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.87,
+    "registration_date": "2023-05-08"
+  },
+  {
+    "user_id": 268,
+    "name": "Yaoska Téllez",
+    "phone": "+505 8794-2075",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.97,
+    "registration_date": "2023-08-19"
+  },
+  {
+    "user_id": 269,
+    "name": "Álvaro Morales",
+    "phone": "+505 8165-7200",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.63,
+    "registration_date": "2023-07-15"
+  },
+  {
+    "user_id": 270,
+    "name": "Brenda Lisseth Lacayo",
+    "phone": "+505 8286-6439",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.75,
+    "registration_date": "2023-06-17"
+  },
+  {
+    "user_id": 271,
+    "name": "José Miguel Pineda Guadamuz",
+    "phone": "+505 7133-3023",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.65,
+    "registration_date": "2022-09-16"
+  },
+  {
+    "user_id": 272,
+    "name": "Eddy Talavera",
+    "phone": "+505 8468-7329",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.7,
+    "registration_date": "2022-12-16"
+  },
+  {
+    "user_id": 273,
+    "name": "Auxiliadora Urbina Jirón",
+    "phone": "+505 8126-3848",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.69,
+    "registration_date": "2022-08-10"
+  },
+  {
+    "user_id": 274,
+    "name": "Scarleth Rizo",
+    "phone": "+505 8704-7184",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.87,
+    "registration_date": "2023-06-01"
+  },
+  {
+    "user_id": 275,
+    "name": "Bayardo Argüello Lacayo",
+    "phone": "+505 8158-3826",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.71,
+    "registration_date": "2023-03-21"
+  },
+  {
+    "user_id": 276,
+    "name": "Juan Carlos Pérez",
+    "phone": "+505 8597-3602",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.96,
+    "registration_date": "2023-11-11"
+  },
+  {
+    "user_id": 277,
+    "name": "Eddy López",
+    "phone": "+505 8332-3032",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.89,
+    "registration_date": "2022-06-20"
+  },
+  {
+    "user_id": 278,
+    "name": "Donald Duarte Sobalvarro",
+    "phone": "+505 8165-4510",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.8,
+    "registration_date": "2022-04-11"
+  },
+  {
+    "user_id": 279,
+    "name": "Luis Fernando Ruiz Altamirano",
+    "phone": "+505 8902-2891",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.84,
+    "registration_date": "2023-09-16"
+  },
+  {
+    "user_id": 280,
+    "name": "Carlos Calero",
+    "phone": "+505 8686-9936",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.65,
+    "registration_date": "2023-01-05"
+  },
+  {
+    "user_id": 281,
+    "name": "Mauricio Sánchez Mendoza",
+    "phone": "+505 8665-7359",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.43,
+    "registration_date": "2022-11-22"
+  },
+  {
+    "user_id": 282,
+    "name": "Yaoska Corea",
+    "phone": "+505 8388-6072",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.56,
+    "registration_date": "2022-06-04"
+  },
+  {
+    "user_id": 283,
+    "name": "Bismarck Palacios Sobalvarro",
+    "phone": "+505 8535-9043",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.66,
+    "registration_date": "2023-11-24"
+  },
+  {
+    "user_id": 284,
+    "name": "Indiana Zeledón Larios",
+    "phone": "+505 8925-9083",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.76,
+    "registration_date": "2022-08-16"
+  },
+  {
+    "user_id": 285,
+    "name": "Ana Patricia Cajina",
+    "phone": "+505 7619-2032",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.63,
+    "registration_date": "2022-11-30"
+  },
+  {
+    "user_id": 286,
+    "name": "Gabriela Argüello",
+    "phone": "+505 8504-6035",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.75,
+    "registration_date": "2023-11-11"
+  },
+  {
+    "user_id": 287,
+    "name": "Arlen Altamirano",
+    "phone": "+505 8184-3185",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.78,
+    "registration_date": "2022-04-12"
+  },
+  {
+    "user_id": 288,
+    "name": "José Miguel Urbina",
+    "phone": "+505 8230-3947",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.97,
+    "registration_date": "2022-12-27"
+  },
+  {
+    "user_id": 289,
+    "name": "José Miguel Vado",
+    "phone": "+505 8882-7454",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.57,
+    "registration_date": "2022-05-30"
+  },
+  {
+    "user_id": 290,
+    "name": "Xochilt Ruiz",
+    "phone": "+505 8332-8625",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.56,
+    "registration_date": "2023-08-19"
+  },
+  {
+    "user_id": 291,
+    "name": "Luis Fernando Corea Zeledón",
+    "phone": "+505 7540-8909",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.55,
+    "registration_date": "2023-03-25"
+  },
+  {
+    "user_id": 292,
+    "name": "Ana Patricia Blandón Palacios",
+    "phone": "+505 8970-2970",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.61,
+    "registration_date": "2023-05-25"
+  },
+  {
+    "user_id": 293,
+    "name": "Xochilt Lacayo",
+    "phone": "+505 8963-3145",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.82,
+    "registration_date": "2023-11-20"
+  },
+  {
+    "user_id": 294,
+    "name": "Oswaldo Bolaños",
+    "phone": "+505 8979-9595",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.3,
+    "registration_date": "2022-11-21"
+  },
+  {
+    "user_id": 295,
+    "name": "Daniela Sobalvarro Narváez",
+    "phone": "+505 8402-2901",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.73,
+    "registration_date": "2022-10-05"
+  },
+  {
+    "user_id": 296,
+    "name": "Roberto Vado",
+    "phone": "+505 8855-1932",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.68,
+    "registration_date": "2022-03-22"
+  },
+  {
+    "user_id": 297,
+    "name": "María Elena Urbina",
+    "phone": "+505 8737-3180",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.62,
+    "registration_date": "2023-10-14"
+  },
+  {
+    "user_id": 298,
+    "name": "Karla Vanessa Espinoza",
+    "phone": "+505 8800-6291",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2023-09-18"
+  },
+  {
+    "user_id": 299,
+    "name": "Alejandro Guadamuz",
+    "phone": "+505 7875-4098",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.61,
+    "registration_date": "2023-12-05"
+  },
+  {
+    "user_id": 300,
+    "name": "Daniela Pineda",
+    "phone": "+505 8649-5797",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.69,
+    "registration_date": "2023-07-19"
+  },
+  {
+    "user_id": 301,
+    "name": "Denis Altamirano",
+    "phone": "+505 8185-1116",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.35,
+    "registration_date": "2023-08-03"
+  },
+  {
+    "user_id": 302,
+    "name": "Humberto Argüello",
+    "phone": "+505 8683-6242",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.53,
+    "registration_date": "2023-05-02"
+  },
+  {
+    "user_id": 303,
+    "name": "Alejandro Picado Urbina",
+    "phone": "+505 8440-5536",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.83,
+    "registration_date": "2023-12-13"
+  },
+  {
+    "user_id": 304,
+    "name": "José Miguel Centeno",
+    "phone": "+505 8317-9928",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.54,
+    "registration_date": "2023-09-21"
+  },
+  {
+    "user_id": 305,
+    "name": "Mauricio Rizo",
+    "phone": "+505 7781-6216",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.87,
+    "registration_date": "2022-04-30"
+  },
+  {
+    "user_id": 306,
+    "name": "Yaoska Rizo",
+    "phone": "+505 7775-3079",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.55,
+    "registration_date": "2022-03-03"
+  },
+  {
+    "user_id": 307,
+    "name": "Roberto Sánchez",
+    "phone": "+505 8872-7003",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2022-05-08"
+  },
+  {
+    "user_id": 308,
+    "name": "Denis Bolaños Solís",
+    "phone": "+505 8277-5217",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.75,
+    "registration_date": "2023-12-27"
+  },
+  {
+    "user_id": 309,
+    "name": "Roberto Lacayo Corea",
+    "phone": "+505 8790-8779",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.84,
+    "registration_date": "2022-07-20"
+  },
+  {
+    "user_id": 310,
+    "name": "Tatiana Alejandra Gadea Chamorro",
+    "phone": "+505 8555-7515",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.75,
+    "registration_date": "2023-12-21"
+  },
+  {
+    "user_id": 311,
+    "name": "Jairo Salmerón",
+    "phone": "+505 7905-9346",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.85,
+    "registration_date": "2023-11-03"
+  },
+  {
+    "user_id": 312,
+    "name": "Ernesto Zeledón",
+    "phone": "+505 8291-1487",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.64,
+    "registration_date": "2022-10-25"
+  },
+  {
+    "user_id": 313,
+    "name": "Karelia Espinoza Altamirano",
+    "phone": "+505 8425-9611",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.82,
+    "registration_date": "2022-03-23"
+  },
+  {
+    "user_id": 314,
+    "name": "Humberto Salmerón",
+    "phone": "+505 7985-8703",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.69,
+    "registration_date": "2023-08-09"
+  },
+  {
+    "user_id": 315,
+    "name": "Karelia Guadamuz Jarquín",
+    "phone": "+505 8758-8240",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.86,
+    "registration_date": "2023-06-08"
+  },
+  {
+    "user_id": 316,
+    "name": "Indiana Gadea",
+    "phone": "+505 8994-5184",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.96,
+    "registration_date": "2022-11-26"
+  },
+  {
+    "user_id": 317,
+    "name": "Melvin Gadea López",
+    "phone": "+505 7598-9684",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.64,
+    "registration_date": "2022-03-05"
+  },
+  {
+    "user_id": 318,
+    "name": "Bayardo Picado",
+    "phone": "+505 8141-2218",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.54,
+    "registration_date": "2023-10-03"
+  },
+  {
+    "user_id": 319,
+    "name": "Karla Vanessa Calero",
+    "phone": "+505 7982-2170",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.59,
+    "registration_date": "2023-12-12"
+  },
+  {
+    "user_id": 320,
+    "name": "Carlos López",
+    "phone": "+505 8811-9899",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2023-06-02"
+  },
+  {
+    "user_id": 321,
+    "name": "Rigoberto Centeno Cajina",
+    "phone": "+505 8287-1404",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.65,
+    "registration_date": "2023-05-06"
+  },
+  {
+    "user_id": 322,
+    "name": "Rosaura Lacayo",
+    "phone": "+505 8587-5108",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.72,
+    "registration_date": "2023-08-10"
+  },
+  {
+    "user_id": 323,
+    "name": "Carlos Bolaños",
+    "phone": "+505 8146-2782",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.73,
+    "registration_date": "2023-05-06"
+  },
+  {
+    "user_id": 324,
+    "name": "Brenda Lisseth Solís Cajina",
+    "phone": "+505 8827-8669",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2023-04-14"
+  },
+  {
+    "user_id": 325,
+    "name": "Marcos Antonio Salmerón Guadamuz",
+    "phone": "+505 8209-6941",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.85,
+    "registration_date": "2023-07-24"
+  },
+  {
+    "user_id": 326,
+    "name": "Gustavo Sánchez Pérez",
+    "phone": "+505 8863-6511",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.68,
+    "registration_date": "2023-09-18"
+  },
+  {
+    "user_id": 327,
+    "name": "Byron Sánchez Solís",
+    "phone": "+505 8638-6258",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.91,
+    "registration_date": "2022-09-07"
+  },
+  {
+    "user_id": 328,
+    "name": "Donald Urbina Calero",
+    "phone": "+505 8989-6746",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.93,
+    "registration_date": "2023-03-08"
+  },
+  {
+    "user_id": 329,
+    "name": "Wilber Ruiz",
+    "phone": "+505 7686-3958",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.84,
+    "registration_date": "2022-02-20"
+  },
+  {
+    "user_id": 330,
+    "name": "Kenia Membreño",
+    "phone": "+505 8557-3858",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.88,
+    "registration_date": "2022-11-17"
+  },
+  {
+    "user_id": 331,
+    "name": "Yaoska Chamorro",
+    "phone": "+505 8728-1532",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.84,
+    "registration_date": "2023-04-01"
+  },
+  {
+    "user_id": 332,
+    "name": "Rigoberto Talavera",
+    "phone": "+505 7604-3861",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.79,
+    "registration_date": "2023-03-28"
+  },
+  {
+    "user_id": 333,
+    "name": "Scarleth Centeno",
+    "phone": "+505 8662-2046",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.73,
+    "registration_date": "2023-07-26"
+  },
+  {
+    "user_id": 334,
+    "name": "Gustavo Pérez",
+    "phone": "+505 8273-8802",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.86,
+    "registration_date": "2022-08-17"
+  },
+  {
+    "user_id": 335,
+    "name": "Sofía Gadea Sobalvarro",
+    "phone": "+505 8828-9386",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.64,
+    "registration_date": "2022-06-06"
+  },
+  {
+    "user_id": 336,
+    "name": "Arlen Téllez",
+    "phone": "+505 7584-7256",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.67,
+    "registration_date": "2023-07-20"
+  },
+  {
+    "user_id": 337,
+    "name": "Scarleth Duarte Larios",
+    "phone": "+505 8195-2058",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.88,
+    "registration_date": "2022-04-23"
+  },
+  {
+    "user_id": 338,
+    "name": "Donald Mendoza",
+    "phone": "+505 8759-1751",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.8,
+    "registration_date": "2022-11-14"
+  },
+  {
+    "user_id": 339,
+    "name": "Tatiana Alejandra Palacios Montenegro",
+    "phone": "+505 7431-8641",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.5,
+    "registration_date": "2023-04-23"
+  },
+  {
+    "user_id": 340,
+    "name": "Eddy Salmerón Orozco",
+    "phone": "+505 7875-4529",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.61,
+    "registration_date": "2023-03-12"
+  },
+  {
+    "user_id": 341,
+    "name": "Reynaldo Picado",
+    "phone": "+505 8368-1344",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.99,
+    "registration_date": "2023-03-16"
+  },
+  {
+    "user_id": 342,
+    "name": "Rosaura Blandón",
+    "phone": "+505 8588-8110",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.61,
+    "registration_date": "2022-04-10"
+  },
+  {
+    "user_id": 343,
+    "name": "Roberto Salmerón",
+    "phone": "+505 7765-9949",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.83,
+    "registration_date": "2023-11-28"
+  },
+  {
+    "user_id": 344,
+    "name": "Valeria Jarquín Rizo",
+    "phone": "+505 8508-8698",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.94,
+    "registration_date": "2022-12-22"
+  },
+  {
+    "user_id": 345,
+    "name": "Abner Mairena",
+    "phone": "+505 8907-1758",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.91,
+    "registration_date": "2022-08-15"
+  },
+  {
+    "user_id": 346,
+    "name": "Valeria Ruiz Duarte",
+    "phone": "+505 8347-5076",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2023-11-03"
+  },
+  {
+    "user_id": 347,
+    "name": "Jairo Gómez Mairena",
+    "phone": "+505 7426-6314",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.62,
+    "registration_date": "2022-03-10"
+  },
+  {
+    "user_id": 348,
+    "name": "Marisol Palacios",
+    "phone": "+505 8213-9498",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.64,
+    "registration_date": "2022-11-16"
+  },
+  {
+    "user_id": 349,
+    "name": "Rigoberto Talavera",
+    "phone": "+505 7482-9106",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.78,
+    "registration_date": "2023-11-02"
+  },
+  {
+    "user_id": 350,
+    "name": "Marcos Antonio Larios",
+    "phone": "+505 8595-5824",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.57,
+    "registration_date": "2022-07-06"
+  },
+  {
+    "user_id": 351,
+    "name": "Mauricio Bermúdez Calero",
+    "phone": "+505 8961-4369",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.62,
+    "registration_date": "2022-10-30"
+  },
+  {
+    "user_id": 352,
+    "name": "Valeria Calero",
+    "phone": "+505 8989-5044",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2022-10-15"
+  },
+  {
+    "user_id": 353,
+    "name": "Yaoska Téllez",
+    "phone": "+505 8189-5929",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.65,
+    "registration_date": "2023-06-13"
+  },
+  {
+    "user_id": 354,
+    "name": "Ana Patricia Orozco",
+    "phone": "+505 7787-3063",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.67,
+    "registration_date": "2023-09-19"
+  },
+  {
+    "user_id": 355,
+    "name": "Álvaro Rostrán Morales",
+    "phone": "+505 8999-6978",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.8,
+    "registration_date": "2023-04-01"
+  },
+  {
+    "user_id": 356,
+    "name": "Juan Carlos Larios",
+    "phone": "+505 8956-5074",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.72,
+    "registration_date": "2023-11-10"
+  },
+  {
+    "user_id": 357,
+    "name": "Noel Sobalvarro Calero",
+    "phone": "+505 8749-5457",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2022-08-27"
+  },
+  {
+    "user_id": 358,
+    "name": "Abner Calero Pérez",
+    "phone": "+505 8844-3510",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.71,
+    "registration_date": "2022-05-01"
+  },
+  {
+    "user_id": 359,
+    "name": "Abner López",
+    "phone": "+505 8277-3301",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.71,
+    "registration_date": "2023-01-09"
+  },
+  {
+    "user_id": 360,
+    "name": "Xiomara Zeledón Morales",
+    "phone": "+505 8281-7737",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.24,
+    "registration_date": "2023-01-22"
+  },
+  {
+    "user_id": 361,
+    "name": "Melvin Jarquín Calero",
+    "phone": "+505 8302-5564",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2022-07-25"
+  },
+  {
+    "user_id": 362,
+    "name": "Kenia Vanegas",
+    "phone": "+505 7654-3733",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.67,
+    "registration_date": "2022-05-27"
+  },
+  {
+    "user_id": 363,
+    "name": "Alejandro Solís Montenegro",
+    "phone": "+505 8728-5897",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.57,
+    "registration_date": "2023-07-01"
+  },
+  {
+    "user_id": 364,
+    "name": "Bayardo Salmerón",
+    "phone": "+505 8880-1300",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.8,
+    "registration_date": "2022-02-04"
+  },
+  {
+    "user_id": 365,
+    "name": "Reynaldo Sánchez Altamirano",
+    "phone": "+505 8611-8447",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.78,
+    "registration_date": "2023-03-06"
+  },
+  {
+    "user_id": 366,
+    "name": "Karelia Gómez",
+    "phone": "+505 8291-1232",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.41,
+    "registration_date": "2023-10-07"
+  },
+  {
+    "user_id": 367,
+    "name": "Ramón Emilio Vanegas Chamorro",
+    "phone": "+505 8736-6759",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2023-05-23"
+  },
+  {
+    "user_id": 368,
+    "name": "Meyling Vado",
+    "phone": "+505 7234-2931",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.65,
+    "registration_date": "2022-06-01"
+  },
+  {
+    "user_id": 369,
+    "name": "Kenia Picado",
+    "phone": "+505 8664-5700",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.98,
+    "registration_date": "2023-09-07"
+  },
+  {
+    "user_id": 370,
+    "name": "Sofía Chamorro Zeledón",
+    "phone": "+505 8808-8082",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.88,
+    "registration_date": "2022-06-19"
+  },
+  {
+    "user_id": 371,
+    "name": "Xochilt Pérez Montenegro",
+    "phone": "+505 7440-7719",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.91,
+    "registration_date": "2022-06-22"
+  },
+  {
+    "user_id": 372,
+    "name": "Rosaura Mendoza Téllez",
+    "phone": "+505 8661-7245",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.72,
+    "registration_date": "2022-08-03"
+  },
+  {
+    "user_id": 373,
+    "name": "Xochilt Larios",
+    "phone": "+505 7853-1811",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.86,
+    "registration_date": "2023-09-23"
+  },
+  {
+    "user_id": 374,
+    "name": "Kenia Mendoza Duarte",
+    "phone": "+505 7281-1187",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.79,
+    "registration_date": "2022-11-15"
+  },
+  {
+    "user_id": 375,
+    "name": "Indiana Cajina",
+    "phone": "+505 7287-6982",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.77,
+    "registration_date": "2022-07-15"
+  },
+  {
+    "user_id": 376,
+    "name": "Silvio Gómez Duarte",
+    "phone": "+505 8922-4962",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.85,
+    "registration_date": "2023-02-15"
+  },
+  {
+    "user_id": 377,
+    "name": "Indiana Gadea Montenegro",
+    "phone": "+505 7718-6899",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.79,
+    "registration_date": "2022-11-23"
+  },
+  {
+    "user_id": 378,
+    "name": "Fabiola López Larios",
+    "phone": "+505 7156-6932",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.92,
+    "registration_date": "2023-05-01"
+  },
+  {
+    "user_id": 379,
+    "name": "Byron Gómez",
+    "phone": "+505 8380-3402",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.5,
+    "registration_date": "2023-10-02"
+  },
+  {
+    "user_id": 380,
+    "name": "Reynaldo Vado",
+    "phone": "+505 8294-7247",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.5,
+    "registration_date": "2022-11-20"
+  },
+  {
+    "user_id": 381,
+    "name": "Ernesto Orozco Lacayo",
+    "phone": "+505 7804-5585",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.44,
+    "registration_date": "2022-12-14"
+  },
+  {
+    "user_id": 382,
+    "name": "Ernesto Sobalvarro",
+    "phone": "+505 8790-6793",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.88,
+    "registration_date": "2023-01-07"
+  },
+  {
+    "user_id": 383,
+    "name": "Scarleth Centeno",
+    "phone": "+505 7317-5642",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2022-12-05"
+  },
+  {
+    "user_id": 384,
+    "name": "Noel Sobalvarro",
+    "phone": "+505 8552-3217",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.92,
+    "registration_date": "2022-01-19"
+  },
+  {
+    "user_id": 385,
+    "name": "Verónica Vanegas",
+    "phone": "+505 8676-3092",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.76,
+    "registration_date": "2022-12-25"
+  },
+  {
+    "user_id": 386,
+    "name": "Milton Argüello Sequeira",
+    "phone": "+505 8414-2172",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.92,
+    "registration_date": "2023-07-01"
+  },
+  {
+    "user_id": 387,
+    "name": "Wendy Picado",
+    "phone": "+505 8507-8602",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.9,
+    "registration_date": "2023-08-30"
+  },
+  {
+    "user_id": 388,
+    "name": "Reynaldo Guadamuz",
+    "phone": "+505 7946-1596",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2022-04-26"
+  },
+  {
+    "user_id": 389,
+    "name": "Wendy Rostrán Zeledón",
+    "phone": "+505 8480-6641",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.69,
+    "registration_date": "2023-12-23"
+  },
+  {
+    "user_id": 390,
+    "name": "Sofía Sánchez",
+    "phone": "+505 7805-5727",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.97,
+    "registration_date": "2022-06-22"
+  },
+  {
+    "user_id": 391,
+    "name": "Verónica Lacayo Bermúdez",
+    "phone": "+505 8675-1545",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.78,
+    "registration_date": "2022-12-06"
+  },
+  {
+    "user_id": 392,
+    "name": "Noel Mairena Orozco",
+    "phone": "+505 7375-1299",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.61,
+    "registration_date": "2022-10-18"
+  },
+  {
+    "user_id": 393,
+    "name": "Oscar Danilo Sobalvarro",
+    "phone": "+505 7513-5660",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.92,
+    "registration_date": "2023-06-19"
+  },
+  {
+    "user_id": 394,
+    "name": "Reynaldo Membreño Argüello",
+    "phone": "+505 8518-4076",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.47,
+    "registration_date": "2022-03-07"
+  },
+  {
+    "user_id": 395,
+    "name": "Alejandro Vanegas",
+    "phone": "+505 7482-7688",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.82,
+    "registration_date": "2022-05-06"
+  },
+  {
+    "user_id": 396,
+    "name": "Fabiola Palacios",
+    "phone": "+505 8446-8085",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2023-01-06"
+  },
+  {
+    "user_id": 397,
+    "name": "Humberto Sequeira Bermúdez",
+    "phone": "+505 8277-3100",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.61,
+    "registration_date": "2023-10-08"
+  },
+  {
+    "user_id": 398,
+    "name": "José Miguel Urbina Urbina",
+    "phone": "+505 8587-4096",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.49,
+    "registration_date": "2023-07-10"
+  },
+  {
+    "user_id": 399,
+    "name": "Yaoska Sánchez",
+    "phone": "+505 8210-2026",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.95,
+    "registration_date": "2022-03-09"
+  },
+  {
+    "user_id": 400,
+    "name": "Meyling Vanegas Cajina",
+    "phone": "+505 7553-3155",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.79,
+    "registration_date": "2022-07-14"
+  },
+  {
+    "user_id": 401,
+    "name": "Verónica Talavera",
+    "phone": "+505 8442-8088",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.89,
+    "registration_date": "2022-04-26"
+  },
+  {
+    "user_id": 402,
+    "name": "Noel Zeledón",
+    "phone": "+505 8946-6203",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.8,
+    "registration_date": "2022-04-17"
+  },
+  {
+    "user_id": 403,
+    "name": "Xiomara Sánchez Rostrán",
+    "phone": "+505 8205-4179",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.38,
+    "registration_date": "2022-11-26"
+  },
+  {
+    "user_id": 404,
+    "name": "Milton Solís",
+    "phone": "+505 8626-5288",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.81,
+    "registration_date": "2023-03-22"
+  },
+  {
+    "user_id": 405,
+    "name": "Rosaura Altamirano Cajina",
+    "phone": "+505 8919-7858",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.71,
+    "registration_date": "2023-12-10"
+  },
+  {
+    "user_id": 406,
+    "name": "Ana Patricia Pineda",
+    "phone": "+505 8474-3099",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.83,
+    "registration_date": "2022-08-11"
+  },
+  {
+    "user_id": 407,
+    "name": "Sofía Sánchez",
+    "phone": "+505 8667-9517",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.56,
+    "registration_date": "2023-06-09"
+  },
+  {
+    "user_id": 408,
+    "name": "Auxiliadora Larios Pérez",
+    "phone": "+505 8886-8206",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.83,
+    "registration_date": "2022-05-03"
+  },
+  {
+    "user_id": 409,
+    "name": "Milton Argüello",
+    "phone": "+505 8394-5952",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2023-11-02"
+  },
+  {
+    "user_id": 410,
+    "name": "Xiomara Membreño",
+    "phone": "+505 7760-9016",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.97,
+    "registration_date": "2022-06-08"
+  },
+  {
+    "user_id": 411,
+    "name": "Luis Fernando Pineda Centeno",
+    "phone": "+505 7365-4880",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.93,
+    "registration_date": "2022-06-18"
+  },
+  {
+    "user_id": 412,
+    "name": "Auxiliadora Corea Pineda",
+    "phone": "+505 8697-7766",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.65,
+    "registration_date": "2023-06-17"
+  },
+  {
+    "user_id": 413,
+    "name": "Oscar Danilo Orozco Alemán",
+    "phone": "+505 7643-1426",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.55,
+    "registration_date": "2022-08-21"
+  },
+  {
+    "user_id": 414,
+    "name": "Francisco Javier Mendoza Jarquín",
+    "phone": "+505 8825-3040",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.4,
+    "registration_date": "2022-05-20"
+  },
+  {
+    "user_id": 415,
+    "name": "Wilber Zeledón",
+    "phone": "+505 8768-4223",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.86,
+    "registration_date": "2022-10-26"
+  },
+  {
+    "user_id": 416,
+    "name": "Xochilt Baltodano Jirón",
+    "phone": "+505 7420-5021",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.62,
+    "registration_date": "2023-07-02"
+  },
+  {
+    "user_id": 417,
+    "name": "Abner Jirón Alemán",
+    "phone": "+505 8434-5738",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.79,
+    "registration_date": "2023-01-24"
+  },
+  {
+    "user_id": 418,
+    "name": "José Miguel Gutiérrez Centeno",
+    "phone": "+505 8533-9942",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2022-04-11"
+  },
+  {
+    "user_id": 419,
+    "name": "Alejandro Pérez Urbina",
+    "phone": "+505 8864-4528",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.3,
+    "registration_date": "2022-10-16"
+  },
+  {
+    "user_id": 420,
+    "name": "Ernesto Bolaños",
+    "phone": "+505 8844-1936",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.68,
+    "registration_date": "2023-07-12"
+  },
+  {
+    "user_id": 421,
+    "name": "Byron Salmerón Sequeira",
+    "phone": "+505 8589-2862",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.89,
+    "registration_date": "2023-11-13"
+  },
+  {
+    "user_id": 422,
+    "name": "Karelia Urbina",
+    "phone": "+505 7751-3582",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.56,
+    "registration_date": "2023-11-29"
+  },
+  {
+    "user_id": 423,
+    "name": "Oswaldo Jirón",
+    "phone": "+505 8255-1257",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.8,
+    "registration_date": "2022-09-26"
+  },
+  {
+    "user_id": 424,
+    "name": "Luis Fernando Alemán Ruiz",
+    "phone": "+505 7425-4568",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.59,
+    "registration_date": "2023-04-08"
+  },
+  {
+    "user_id": 425,
+    "name": "Oscar Danilo Urbina Membreño",
+    "phone": "+505 7180-4867",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2023-11-12"
+  },
+  {
+    "user_id": 426,
+    "name": "Rigoberto Palacios",
+    "phone": "+505 8143-6950",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.8,
+    "registration_date": "2022-03-12"
+  },
+  {
+    "user_id": 427,
+    "name": "Denis Calero Sánchez",
+    "phone": "+505 8658-6308",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.93,
+    "registration_date": "2022-03-13"
+  },
+  {
+    "user_id": 428,
+    "name": "Ligia Mendoza Sequeira",
+    "phone": "+505 8192-2815",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.77,
+    "registration_date": "2022-11-13"
+  },
+  {
+    "user_id": 429,
+    "name": "Massiel Guadamuz",
+    "phone": "+505 7847-7229",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.8,
+    "registration_date": "2022-10-31"
+  },
+  {
+    "user_id": 430,
+    "name": "Sofía Argüello",
+    "phone": "+505 8308-2768",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.61,
+    "registration_date": "2023-07-04"
+  },
+  {
+    "user_id": 431,
+    "name": "Ricardo Morales Téllez",
+    "phone": "+505 8215-3683",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2022-03-14"
+  },
+  {
+    "user_id": 432,
+    "name": "María Elena Lacayo Cajina",
+    "phone": "+505 8902-3970",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.67,
+    "registration_date": "2023-07-27"
+  },
+  {
+    "user_id": 433,
+    "name": "Reynaldo Téllez",
+    "phone": "+505 8201-6912",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.73,
+    "registration_date": "2023-10-02"
+  },
+  {
+    "user_id": 434,
+    "name": "Wilber Rizo",
+    "phone": "+505 7303-2911",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.65,
+    "registration_date": "2022-03-14"
+  },
+  {
+    "user_id": 435,
+    "name": "Yahoska Palacios",
+    "phone": "+505 8628-7284",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.82,
+    "registration_date": "2022-03-21"
+  },
+  {
+    "user_id": 436,
+    "name": "María Elena Bolaños Baltodano",
+    "phone": "+505 8539-7526",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.64,
+    "registration_date": "2023-03-27"
+  },
+  {
+    "user_id": 437,
+    "name": "Melvin Sánchez Rizo",
+    "phone": "+505 7186-2750",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.39,
+    "registration_date": "2023-07-17"
+  },
+  {
+    "user_id": 438,
+    "name": "Álvaro Jarquín",
+    "phone": "+505 8175-3765",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.73,
+    "registration_date": "2022-12-10"
+  },
+  {
+    "user_id": 439,
+    "name": "Karelia Sobalvarro",
+    "phone": "+505 8371-2667",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2022-03-29"
+  },
+  {
+    "user_id": 440,
+    "name": "Xochilt Gutiérrez",
+    "phone": "+505 8755-3841",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.76,
+    "registration_date": "2022-02-09"
+  },
+  {
+    "user_id": 441,
+    "name": "Marbely Orozco",
+    "phone": "+505 7827-1558",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.57,
+    "registration_date": "2022-02-04"
+  },
+  {
+    "user_id": 442,
+    "name": "Indiana Ruiz",
+    "phone": "+505 8474-3017",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.44,
+    "registration_date": "2022-06-22"
+  },
+  {
+    "user_id": 443,
+    "name": "Abner Rizo",
+    "phone": "+505 8353-2696",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.97,
+    "registration_date": "2022-11-18"
+  },
+  {
+    "user_id": 444,
+    "name": "Francisco Javier Sánchez",
+    "phone": "+505 8777-1198",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.53,
+    "registration_date": "2022-05-24"
+  },
+  {
+    "user_id": 445,
+    "name": "José Miguel Espinoza Picado",
+    "phone": "+505 7820-8287",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.6,
+    "registration_date": "2022-09-17"
+  },
+  {
+    "user_id": 446,
+    "name": "Kenia Argüello",
+    "phone": "+505 8652-3022",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.62,
+    "registration_date": "2022-10-11"
+  },
+  {
+    "user_id": 447,
+    "name": "Scarleth Narváez Ruiz",
+    "phone": "+505 8178-5802",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2023-06-01"
+  },
+  {
+    "user_id": 448,
+    "name": "Silvio Jarquín Gutiérrez",
+    "phone": "+505 8363-1065",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.86,
+    "registration_date": "2022-08-13"
+  },
+  {
+    "user_id": 449,
+    "name": "Ernesto Pineda Sánchez",
+    "phone": "+505 8573-7119",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.69,
+    "registration_date": "2022-05-21"
+  },
+  {
+    "user_id": 450,
+    "name": "Ana Patricia Ruiz Bolaños",
+    "phone": "+505 8964-5734",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.7,
+    "registration_date": "2023-02-21"
+  },
+  {
+    "user_id": 451,
+    "name": "Milton Membreño Urbina",
+    "phone": "+505 8353-4803",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.95,
+    "registration_date": "2023-04-20"
+  },
+  {
+    "user_id": 452,
+    "name": "Roberto Centeno",
+    "phone": "+505 7487-5322",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.77,
+    "registration_date": "2022-10-12"
+  },
+  {
+    "user_id": 453,
+    "name": "Massiel Rizo",
+    "phone": "+505 8170-9866",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.9,
+    "registration_date": "2023-03-02"
+  },
+  {
+    "user_id": 454,
+    "name": "Scarleth Gómez Calero",
+    "phone": "+505 8502-9433",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.85,
+    "registration_date": "2023-10-01"
+  },
+  {
+    "user_id": 455,
+    "name": "Denis Espinoza",
+    "phone": "+505 8477-2980",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.81,
+    "registration_date": "2022-05-27"
+  },
+  {
+    "user_id": 456,
+    "name": "Kenia Calero",
+    "phone": "+505 7428-3028",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.7,
+    "registration_date": "2022-03-28"
+  },
+  {
+    "user_id": 457,
+    "name": "Verónica Bermúdez",
+    "phone": "+505 8292-5585",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.92,
+    "registration_date": "2023-05-23"
+  },
+  {
+    "user_id": 458,
+    "name": "Ernesto Vado",
+    "phone": "+505 7685-9140",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.84,
+    "registration_date": "2022-06-04"
+  },
+  {
+    "user_id": 459,
+    "name": "Juan Carlos López",
+    "phone": "+505 8738-2997",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.72,
+    "registration_date": "2023-09-20"
+  },
+  {
+    "user_id": 460,
+    "name": "Karelia Jarquín",
+    "phone": "+505 8171-7354",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.7,
+    "registration_date": "2022-03-09"
+  },
+  {
+    "user_id": 461,
+    "name": "José Miguel López",
+    "phone": "+505 7322-2907",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.67,
+    "registration_date": "2023-01-01"
+  },
+  {
+    "user_id": 462,
+    "name": "Verónica Mairena",
+    "phone": "+505 7533-3706",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.64,
+    "registration_date": "2022-04-29"
+  },
+  {
+    "user_id": 463,
+    "name": "Auxiliadora Baltodano Centeno",
+    "phone": "+505 8780-5159",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.9,
+    "registration_date": "2023-01-29"
+  },
+  {
+    "user_id": 464,
+    "name": "Ernesto Calero Gómez",
+    "phone": "+505 8958-1704",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.62,
+    "registration_date": "2023-08-03"
+  },
+  {
+    "user_id": 465,
+    "name": "Kenia Lacayo",
+    "phone": "+505 8799-5139",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.57,
+    "registration_date": "2023-01-14"
+  },
+  {
+    "user_id": 466,
+    "name": "Donald Pérez",
+    "phone": "+505 8163-6427",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.82,
+    "registration_date": "2022-09-27"
+  },
+  {
+    "user_id": 467,
+    "name": "Ricardo Duarte Blandón",
+    "phone": "+505 8479-3436",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2022-07-27"
+  },
+  {
+    "user_id": 468,
+    "name": "Denis Morales",
+    "phone": "+505 8512-6007",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.93,
+    "registration_date": "2022-08-20"
+  },
+  {
+    "user_id": 469,
+    "name": "Fabiola Solís",
+    "phone": "+505 7241-3239",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.9,
+    "registration_date": "2023-09-11"
+  },
+  {
+    "user_id": 470,
+    "name": "Yahoska Centeno Sequeira",
+    "phone": "+505 7885-9754",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.92,
+    "registration_date": "2022-04-23"
+  },
+  {
+    "user_id": 471,
+    "name": "Brenda Lisseth Argüello",
+    "phone": "+505 8193-7387",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.49,
+    "registration_date": "2023-07-13"
+  },
+  {
+    "user_id": 472,
+    "name": "Carlos Altamirano",
+    "phone": "+505 8380-6719",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.84,
+    "registration_date": "2022-09-01"
+  },
+  {
+    "user_id": 473,
+    "name": "Ligia Zeledón López",
+    "phone": "+505 7128-6285",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.91,
+    "registration_date": "2022-12-01"
+  },
+  {
+    "user_id": 474,
+    "name": "Humberto Rizo Gómez",
+    "phone": "+505 7505-1503",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.28,
+    "registration_date": "2023-08-27"
+  },
+  {
+    "user_id": 475,
+    "name": "Juan Carlos Baltodano",
+    "phone": "+505 8888-7219",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.69,
+    "registration_date": "2023-08-20"
+  },
+  {
+    "user_id": 476,
+    "name": "Marisol Gómez",
+    "phone": "+505 8553-9037",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.8,
+    "registration_date": "2023-08-28"
+  },
+  {
+    "user_id": 477,
+    "name": "Marbely Gómez",
+    "phone": "+505 8101-3643",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.6,
+    "registration_date": "2022-02-24"
+  },
+  {
+    "user_id": 478,
+    "name": "José Miguel Alemán Pineda",
+    "phone": "+505 7865-4762",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.98,
+    "registration_date": "2022-03-29"
+  },
+  {
+    "user_id": 479,
+    "name": "Francisco Javier Sequeira Sobalvarro",
+    "phone": "+505 8108-9143",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.74,
+    "registration_date": "2022-11-08"
+  },
+  {
+    "user_id": 480,
+    "name": "Valeria Espinoza Gómez",
+    "phone": "+505 8654-5690",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.98,
+    "registration_date": "2023-04-05"
+  },
+  {
+    "user_id": 481,
+    "name": "María Elena Mendoza",
+    "phone": "+505 7124-6784",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.61,
+    "registration_date": "2022-01-27"
+  },
+  {
+    "user_id": 482,
+    "name": "Karla Vanessa Mendoza",
+    "phone": "+505 8924-2965",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.93,
+    "registration_date": "2023-03-30"
+  },
+  {
+    "user_id": 483,
+    "name": "Gabriela Altamirano",
+    "phone": "+505 8897-3278",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.87,
+    "registration_date": "2023-07-22"
+  },
+  {
+    "user_id": 484,
+    "name": "Oswaldo Blandón",
+    "phone": "+505 8425-5134",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.77,
+    "registration_date": "2022-12-07"
+  },
+  {
+    "user_id": 485,
+    "name": "Verónica Argüello Vado",
+    "phone": "+505 8808-4989",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.75,
+    "registration_date": "2022-03-13"
+  },
+  {
+    "user_id": 486,
+    "name": "Denis Calero Mairena",
+    "phone": "+505 8170-4348",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.63,
+    "registration_date": "2023-07-25"
+  },
+  {
+    "user_id": 487,
+    "name": "Xiomara Rostrán",
+    "phone": "+505 7189-4922",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.73,
+    "registration_date": "2023-12-14"
+  },
+  {
+    "user_id": 488,
+    "name": "Lester Corea",
+    "phone": "+505 8910-5356",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.56,
+    "registration_date": "2022-07-17"
+  },
+  {
+    "user_id": 489,
+    "name": "Marbely Alemán",
+    "phone": "+505 7360-9157",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.76,
+    "registration_date": "2022-06-17"
+  },
+  {
+    "user_id": 490,
+    "name": "Gustavo Sequeira Membreño",
+    "phone": "+505 8580-3623",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.79,
+    "registration_date": "2023-05-18"
+  },
+  {
+    "user_id": 491,
+    "name": "Francisco Javier Chamorro Larios",
+    "phone": "+505 8212-2112",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.46,
+    "registration_date": "2023-01-16"
+  },
+  {
+    "user_id": 492,
+    "name": "Jairo Pineda",
+    "phone": "+505 7418-1926",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.82,
+    "registration_date": "2022-01-21"
+  },
+  {
+    "user_id": 493,
+    "name": "Ricardo Baltodano Palacios",
+    "phone": "+505 8824-4731",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.62,
+    "registration_date": "2023-09-13"
+  },
+  {
+    "user_id": 494,
+    "name": "Brenda Lisseth Chamorro Baltodano",
+    "phone": "+505 8598-5332",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.7,
+    "registration_date": "2023-05-19"
+  },
+  {
+    "user_id": 495,
+    "name": "Scarleth Picado",
+    "phone": "+505 8117-9575",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.67,
+    "registration_date": "2023-06-19"
+  },
+  {
+    "user_id": 496,
+    "name": "Melvin López Talavera",
+    "phone": "+505 8963-6087",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.82,
+    "registration_date": "2022-03-21"
+  },
+  {
+    "user_id": 497,
+    "name": "Eddy Bolaños",
+    "phone": "+505 8492-6462",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2023-06-22"
+  },
+  {
+    "user_id": 498,
+    "name": "Silvio Jirón Mairena",
+    "phone": "+505 7331-7565",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.9,
+    "registration_date": "2022-01-17"
+  },
+  {
+    "user_id": 499,
+    "name": "Xiomara Membreño Chamorro",
+    "phone": "+505 7404-8081",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.62,
+    "registration_date": "2022-04-03"
+  },
+  {
+    "user_id": 500,
+    "name": "Indiana López Espinoza",
+    "phone": "+505 8485-1390",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.76,
+    "registration_date": "2022-07-31"
+  },
+  {
+    "user_id": 501,
+    "name": "Juan Carlos Blandón Jirón",
+    "phone": "+505 8369-8917",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.94,
+    "registration_date": "2022-06-15"
+  },
+  {
+    "user_id": 502,
+    "name": "Xochilt Blandón Mairena",
+    "phone": "+505 8169-2802",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.98,
+    "registration_date": "2023-12-07"
+  },
+  {
+    "user_id": 503,
+    "name": "Reynaldo Sánchez",
+    "phone": "+505 8287-7551",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.86,
+    "registration_date": "2022-06-24"
+  },
+  {
+    "user_id": 504,
+    "name": "Ernesto Blandón Gómez",
+    "phone": "+505 8593-2359",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.85,
+    "registration_date": "2022-04-22"
+  },
+  {
+    "user_id": 505,
+    "name": "Ana Patricia Membreño",
+    "phone": "+505 8257-1292",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.7,
+    "registration_date": "2022-02-17"
+  },
+  {
+    "user_id": 506,
+    "name": "Marvin Membreño Calero",
+    "phone": "+505 8783-3989",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.39,
+    "registration_date": "2023-01-07"
+  },
+  {
+    "user_id": 507,
+    "name": "Abner Gutiérrez",
+    "phone": "+505 8229-4419",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.7,
+    "registration_date": "2022-11-12"
+  },
+  {
+    "user_id": 508,
+    "name": "Gustavo Vanegas",
+    "phone": "+505 7453-1039",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.45,
+    "registration_date": "2022-09-08"
+  },
+  {
+    "user_id": 509,
+    "name": "Oswaldo Palacios",
+    "phone": "+505 8494-2710",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2022-12-08"
+  },
+  {
+    "user_id": 510,
+    "name": "Daniela Gutiérrez",
+    "phone": "+505 8292-8351",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.62,
+    "registration_date": "2022-05-24"
+  },
+  {
+    "user_id": 511,
+    "name": "Oscar Danilo Gadea",
+    "phone": "+505 8247-3287",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.76,
+    "registration_date": "2022-03-28"
+  },
+  {
+    "user_id": 512,
+    "name": "Bayardo López",
+    "phone": "+505 8373-3162",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.63,
+    "registration_date": "2023-09-28"
+  },
+  {
+    "user_id": 513,
+    "name": "Denis Pineda",
+    "phone": "+505 8782-2550",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2023-02-25"
+  },
+  {
+    "user_id": 514,
+    "name": "Massiel Sánchez",
+    "phone": "+505 8241-1255",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.62,
+    "registration_date": "2022-09-10"
+  },
+  {
+    "user_id": 515,
+    "name": "Ligia Blandón",
+    "phone": "+505 8636-4297",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.79,
+    "registration_date": "2023-11-25"
+  },
+  {
+    "user_id": 516,
+    "name": "María Elena Mairena",
+    "phone": "+505 8503-3368",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.88,
+    "registration_date": "2022-12-26"
+  },
+  {
+    "user_id": 517,
+    "name": "Jairo Mairena",
+    "phone": "+505 8107-3454",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.95,
+    "registration_date": "2022-11-08"
+  },
+  {
+    "user_id": 518,
+    "name": "Auxiliadora Alemán",
+    "phone": "+505 8290-7518",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.92,
+    "registration_date": "2023-02-02"
+  },
+  {
+    "user_id": 519,
+    "name": "Reynaldo Solís Bolaños",
+    "phone": "+505 7521-3884",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.74,
+    "registration_date": "2023-06-17"
+  },
+  {
+    "user_id": 520,
+    "name": "Wilber Gadea Corea",
+    "phone": "+505 8909-5964",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.83,
+    "registration_date": "2022-09-28"
+  },
+  {
+    "user_id": 521,
+    "name": "Oswaldo Chamorro",
+    "phone": "+505 8640-4042",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.86,
+    "registration_date": "2022-10-10"
+  },
+  {
+    "user_id": 522,
+    "name": "Lester Larios",
+    "phone": "+505 8265-9400",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.71,
+    "registration_date": "2023-01-22"
+  },
+  {
+    "user_id": 523,
+    "name": "Denis Montenegro Téllez",
+    "phone": "+505 8749-8120",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.51,
+    "registration_date": "2023-01-11"
+  },
+  {
+    "user_id": 524,
+    "name": "Denis Corea Centeno",
+    "phone": "+505 8122-5440",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.58,
+    "registration_date": "2022-12-09"
+  },
+  {
+    "user_id": 525,
+    "name": "Massiel Gutiérrez Sequeira",
+    "phone": "+505 7813-5970",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.8,
+    "registration_date": "2022-04-01"
+  },
+  {
+    "user_id": 526,
+    "name": "Ligia Membreño",
+    "phone": "+505 8296-7566",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2023-07-11"
+  },
+  {
+    "user_id": 527,
+    "name": "Denis Solís Baltodano",
+    "phone": "+505 8257-1918",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2022-04-07"
+  },
+  {
+    "user_id": 528,
+    "name": "Xochilt Guadamuz",
+    "phone": "+505 7648-8512",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.52,
+    "registration_date": "2023-07-04"
+  },
+  {
+    "user_id": 529,
+    "name": "Sofía Calero Jarquín",
+    "phone": "+505 8382-8314",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.76,
+    "registration_date": "2023-03-19"
+  },
+  {
+    "user_id": 530,
+    "name": "Bismarck Gadea",
+    "phone": "+505 8493-6833",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.71,
+    "registration_date": "2023-08-04"
+  },
+  {
+    "user_id": 531,
+    "name": "Wendy Palacios Gutiérrez",
+    "phone": "+505 8432-1293",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.72,
+    "registration_date": "2022-11-19"
+  },
+  {
+    "user_id": 532,
+    "name": "Sofía Corea Alemán",
+    "phone": "+505 8546-9492",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.82,
+    "registration_date": "2022-01-20"
+  },
+  {
+    "user_id": 533,
+    "name": "Yaoska Bermúdez",
+    "phone": "+505 7878-1468",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.66,
+    "registration_date": "2023-04-20"
+  },
+  {
+    "user_id": 534,
+    "name": "Humberto Narváez",
+    "phone": "+505 7180-3408",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2022-04-12"
+  },
+  {
+    "user_id": 535,
+    "name": "Bayardo Cajina Sequeira",
+    "phone": "+505 7778-1932",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.83,
+    "registration_date": "2023-03-29"
+  },
+  {
+    "user_id": 536,
+    "name": "Melvin Espinoza Espinoza",
+    "phone": "+505 7474-6901",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.91,
+    "registration_date": "2022-01-31"
+  },
+  {
+    "user_id": 537,
+    "name": "Marcos Antonio Salmerón",
+    "phone": "+505 8923-6239",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.62,
+    "registration_date": "2023-01-07"
+  },
+  {
+    "user_id": 538,
+    "name": "Oswaldo Narváez Vado",
+    "phone": "+505 7894-7249",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2022-05-24"
+  },
+  {
+    "user_id": 539,
+    "name": "Silvio Sobalvarro",
+    "phone": "+505 8192-3771",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.73,
+    "registration_date": "2023-03-01"
+  },
+  {
+    "user_id": 540,
+    "name": "Brenda Lisseth Sequeira",
+    "phone": "+505 7958-9792",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.85,
+    "registration_date": "2023-11-26"
+  },
+  {
+    "user_id": 541,
+    "name": "Claudia Solís",
+    "phone": "+505 7368-5791",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.67,
+    "registration_date": "2023-09-25"
+  },
+  {
+    "user_id": 542,
+    "name": "Jairo Ruiz",
+    "phone": "+505 8514-3420",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.43,
+    "registration_date": "2023-09-28"
+  },
+  {
+    "user_id": 543,
+    "name": "Fabiola Pérez",
+    "phone": "+505 7817-4630",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.73,
+    "registration_date": "2022-08-31"
+  },
+  {
+    "user_id": 544,
+    "name": "Oswaldo Alemán",
+    "phone": "+505 8791-6766",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2023-02-02"
+  },
+  {
+    "user_id": 545,
+    "name": "Oscar Danilo Mairena",
+    "phone": "+505 8155-6510",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.81,
+    "registration_date": "2023-01-07"
+  },
+  {
+    "user_id": 546,
+    "name": "Ligia López",
+    "phone": "+505 8686-7218",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.53,
+    "registration_date": "2023-02-22"
+  },
+  {
+    "user_id": 547,
+    "name": "Wendy Talavera",
+    "phone": "+505 8230-4908",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.48,
+    "registration_date": "2022-02-11"
+  },
+  {
+    "user_id": 548,
+    "name": "Rosaura Centeno Montenegro",
+    "phone": "+505 8237-1601",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.77,
+    "registration_date": "2023-09-12"
+  },
+  {
+    "user_id": 549,
+    "name": "María Elena Alemán Rostrán",
+    "phone": "+505 7650-8851",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.97,
+    "registration_date": "2023-12-08"
+  },
+  {
+    "user_id": 550,
+    "name": "Donald Zeledón Corea",
+    "phone": "+505 7405-4859",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.49,
+    "registration_date": "2022-09-06"
+  },
+  {
+    "user_id": 551,
+    "name": "Reynaldo Vanegas",
+    "phone": "+505 7740-9842",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.85,
+    "registration_date": "2023-01-04"
+  },
+  {
+    "user_id": 552,
+    "name": "Kenia Talavera Chamorro",
+    "phone": "+505 7356-5341",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.82,
+    "registration_date": "2022-01-08"
+  },
+  {
+    "user_id": 553,
+    "name": "María Elena Altamirano Duarte",
+    "phone": "+505 8410-2518",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.95,
+    "registration_date": "2023-12-17"
+  },
+  {
+    "user_id": 554,
+    "name": "Mauricio Picado Jirón",
+    "phone": "+505 8897-1390",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.49,
+    "registration_date": "2023-12-27"
+  },
+  {
+    "user_id": 555,
+    "name": "Mauricio Orozco",
+    "phone": "+505 8564-8030",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2022-01-30"
+  },
+  {
+    "user_id": 556,
+    "name": "Lester Sobalvarro Jirón",
+    "phone": "+505 8379-2577",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.67,
+    "registration_date": "2022-12-11"
+  },
+  {
+    "user_id": 557,
+    "name": "Oscar Danilo Palacios Zeledón",
+    "phone": "+505 8546-4427",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.73,
+    "registration_date": "2023-09-02"
+  },
+  {
+    "user_id": 558,
+    "name": "Rigoberto Picado",
+    "phone": "+505 7367-9485",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2023-03-27"
+  },
+  {
+    "user_id": 559,
+    "name": "Auxiliadora Altamirano Mendoza",
+    "phone": "+505 8828-8126",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.89,
+    "registration_date": "2023-05-13"
+  },
+  {
+    "user_id": 560,
+    "name": "Roberto Jirón",
+    "phone": "+505 8943-1722",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.93,
+    "registration_date": "2022-06-03"
+  },
+  {
+    "user_id": 561,
+    "name": "José Miguel Guadamuz Altamirano",
+    "phone": "+505 8863-5543",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.55,
+    "registration_date": "2023-09-19"
+  },
+  {
+    "user_id": 562,
+    "name": "Juan Carlos Bolaños",
+    "phone": "+505 8726-3228",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.85,
+    "registration_date": "2022-04-25"
+  },
+  {
+    "user_id": 563,
+    "name": "Ligia Baltodano Ruiz",
+    "phone": "+505 8412-9117",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.59,
+    "registration_date": "2023-02-12"
+  },
+  {
+    "user_id": 564,
+    "name": "Abner Duarte",
+    "phone": "+505 8486-5251",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.55,
+    "registration_date": "2022-06-06"
+  },
+  {
+    "user_id": 565,
+    "name": "Roberto Ruiz",
+    "phone": "+505 8637-9972",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.83,
+    "registration_date": "2022-12-17"
+  },
+  {
+    "user_id": 566,
+    "name": "Valeria Morales",
+    "phone": "+505 8883-6729",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2023-02-25"
+  },
+  {
+    "user_id": 567,
+    "name": "Sofía Lacayo Guadamuz",
+    "phone": "+505 7647-4515",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.9,
+    "registration_date": "2022-08-04"
+  },
+  {
+    "user_id": 568,
+    "name": "Valeria Sánchez",
+    "phone": "+505 8784-1175",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.53,
+    "registration_date": "2023-04-05"
+  },
+  {
+    "user_id": 569,
+    "name": "Tatiana Alejandra Morales",
+    "phone": "+505 8487-1864",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.5,
+    "registration_date": "2023-05-14"
+  },
+  {
+    "user_id": 570,
+    "name": "Tatiana Alejandra Chamorro",
+    "phone": "+505 7233-8316",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.6,
+    "registration_date": "2022-08-18"
+  },
+  {
+    "user_id": 571,
+    "name": "Tatiana Alejandra Salmerón Solís",
+    "phone": "+505 8720-6357",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.69,
+    "registration_date": "2022-12-07"
+  },
+  {
+    "user_id": 572,
+    "name": "Marcos Antonio Baltodano",
+    "phone": "+505 8820-4723",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.46,
+    "registration_date": "2023-04-12"
+  },
+  {
+    "user_id": 573,
+    "name": "Wilber Talavera",
+    "phone": "+505 8755-7349",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.97,
+    "registration_date": "2023-04-01"
+  },
+  {
+    "user_id": 574,
+    "name": "Karla Vanessa Bermúdez",
+    "phone": "+505 8693-1503",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.74,
+    "registration_date": "2023-03-24"
+  },
+  {
+    "user_id": 575,
+    "name": "Denis Jirón Blandón",
+    "phone": "+505 8222-5601",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.58,
+    "registration_date": "2023-01-18"
+  },
+  {
+    "user_id": 576,
+    "name": "José Miguel Chamorro Narváez",
+    "phone": "+505 7807-5350",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.69,
+    "registration_date": "2023-01-29"
+  },
+  {
+    "user_id": 577,
+    "name": "Kenia Picado",
+    "phone": "+505 8196-6244",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.64,
+    "registration_date": "2023-05-26"
+  },
+  {
+    "user_id": 578,
+    "name": "Gustavo Duarte",
+    "phone": "+505 7133-4778",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2022-05-24"
+  },
+  {
+    "user_id": 579,
+    "name": "Xiomara Pineda Jarquín",
+    "phone": "+505 8672-6958",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.49,
+    "registration_date": "2022-11-28"
+  },
+  {
+    "user_id": 580,
+    "name": "Bismarck Centeno",
+    "phone": "+505 8274-4530",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.83,
+    "registration_date": "2022-02-19"
+  },
+  {
+    "user_id": 581,
+    "name": "Auxiliadora Urbina Jirón",
+    "phone": "+505 7791-4124",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.83,
+    "registration_date": "2022-12-05"
+  },
+  {
+    "user_id": 582,
+    "name": "Yaoska Duarte",
+    "phone": "+505 7832-7249",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.95,
+    "registration_date": "2022-10-18"
+  },
+  {
+    "user_id": 583,
+    "name": "Ana Patricia Palacios",
+    "phone": "+505 8950-1658",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.83,
+    "registration_date": "2023-01-28"
+  },
+  {
+    "user_id": 584,
+    "name": "Alejandro Mairena",
+    "phone": "+505 8339-6240",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.67,
+    "registration_date": "2022-05-06"
+  },
+  {
+    "user_id": 585,
+    "name": "Yahoska Rostrán",
+    "phone": "+505 7419-3016",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.73,
+    "registration_date": "2022-06-13"
+  },
+  {
+    "user_id": 586,
+    "name": "Ana Patricia Centeno",
+    "phone": "+505 8195-1498",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.77,
+    "registration_date": "2022-07-23"
+  },
+  {
+    "user_id": 587,
+    "name": "Ligia Espinoza Sequeira",
+    "phone": "+505 8548-5384",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.92,
+    "registration_date": "2022-07-15"
+  },
+  {
+    "user_id": 588,
+    "name": "Sofía Bermúdez Altamirano",
+    "phone": "+505 7691-2004",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.85,
+    "registration_date": "2023-10-30"
+  },
+  {
+    "user_id": 589,
+    "name": "Yahoska Rizo",
+    "phone": "+505 8227-8370",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.62,
+    "registration_date": "2023-11-27"
+  },
+  {
+    "user_id": 590,
+    "name": "Brenda Lisseth Salmerón Bolaños",
+    "phone": "+505 8526-7146",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.34,
+    "registration_date": "2023-05-11"
+  },
+  {
+    "user_id": 591,
+    "name": "Luis Fernando Centeno",
+    "phone": "+505 8531-4662",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.97,
+    "registration_date": "2022-07-21"
+  },
+  {
+    "user_id": 592,
+    "name": "Brenda Lisseth Alemán",
+    "phone": "+505 8275-6924",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2022-12-17"
+  },
+  {
+    "user_id": 593,
+    "name": "Xochilt Jirón",
+    "phone": "+505 8751-8831",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.99,
+    "registration_date": "2023-04-21"
+  },
+  {
+    "user_id": 594,
+    "name": "Marbely Jarquín Calero",
+    "phone": "+505 8826-6744",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.42,
+    "registration_date": "2022-05-27"
+  },
+  {
+    "user_id": 595,
+    "name": "Humberto Jarquín Centeno",
+    "phone": "+505 8997-1877",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.66,
+    "registration_date": "2023-04-27"
+  },
+  {
+    "user_id": 596,
+    "name": "Denis Vado",
+    "phone": "+505 7701-2766",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.81,
+    "registration_date": "2023-04-20"
+  },
+  {
+    "user_id": 597,
+    "name": "Roberto Corea",
+    "phone": "+505 8105-9114",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.49,
+    "registration_date": "2023-12-22"
+  },
+  {
+    "user_id": 598,
+    "name": "Rosaura Pineda Bolaños",
+    "phone": "+505 8779-8019",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.82,
+    "registration_date": "2022-07-12"
+  },
+  {
+    "user_id": 599,
+    "name": "Sofía Sánchez Pérez",
+    "phone": "+505 7257-8276",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.65,
+    "registration_date": "2023-10-19"
+  },
+  {
+    "user_id": 600,
+    "name": "Oscar Danilo Rostrán Gadea",
+    "phone": "+505 7153-1326",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.68,
+    "registration_date": "2022-08-02"
+  },
+  {
+    "user_id": 601,
+    "name": "Marbely Picado Argüello",
+    "phone": "+505 7343-3807",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.87,
+    "registration_date": "2024-02-25"
+  },
+  {
+    "user_id": 602,
+    "name": "Gustavo Zeledón",
+    "phone": "+505 7689-5254",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.7,
+    "registration_date": "2024-05-13"
+  },
+  {
+    "user_id": 603,
+    "name": "José Miguel Chamorro",
+    "phone": "+505 7630-2803",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.79,
+    "registration_date": "2024-08-02"
+  },
+  {
+    "user_id": 604,
+    "name": "Oswaldo Montenegro",
+    "phone": "+505 8938-4405",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2024-09-11"
+  },
+  {
+    "user_id": 605,
+    "name": "Marvin Talavera Baltodano",
+    "phone": "+505 8476-1354",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.83,
+    "registration_date": "2024-03-17"
+  },
+  {
+    "user_id": 606,
+    "name": "Gustavo Cajina",
+    "phone": "+505 7380-4062",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.56,
+    "registration_date": "2024-04-23"
+  },
+  {
+    "user_id": 607,
+    "name": "Lester Corea",
+    "phone": "+505 8920-6152",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.62,
+    "registration_date": "2024-10-23"
+  },
+  {
+    "user_id": 608,
+    "name": "Xiomara Gómez Bolaños",
+    "phone": "+505 8256-4372",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.72,
+    "registration_date": "2024-03-27"
+  },
+  {
+    "user_id": 609,
+    "name": "Silvio Salmerón Jarquín",
+    "phone": "+505 8329-3363",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.81,
+    "registration_date": "2024-10-07"
+  },
+  {
+    "user_id": 610,
+    "name": "Yaoska Ruiz",
+    "phone": "+505 8958-3863",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.88,
+    "registration_date": "2024-03-20"
+  },
+  {
+    "user_id": 611,
+    "name": "Donald Rizo",
+    "phone": "+505 8978-1102",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.75,
+    "registration_date": "2024-02-22"
+  },
+  {
+    "user_id": 612,
+    "name": "Silvio Corea",
+    "phone": "+505 8729-1101",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.8,
+    "registration_date": "2024-07-03"
+  },
+  {
+    "user_id": 613,
+    "name": "Xochilt Jirón Calero",
+    "phone": "+505 8571-4662",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.95,
+    "registration_date": "2024-02-16"
+  },
+  {
+    "user_id": 614,
+    "name": "Eddy Montenegro Montenegro",
+    "phone": "+505 8769-1049",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.87,
+    "registration_date": "2024-09-12"
+  },
+  {
+    "user_id": 615,
+    "name": "José Miguel Larios Palacios",
+    "phone": "+505 7564-2615",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.7,
+    "registration_date": "2024-03-19"
+  },
+  {
+    "user_id": 616,
+    "name": "Ricardo Sánchez",
+    "phone": "+505 8460-7237",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.71,
+    "registration_date": "2024-06-04"
+  },
+  {
+    "user_id": 617,
+    "name": "Francisco Javier Palacios",
+    "phone": "+505 8759-6184",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.89,
+    "registration_date": "2024-10-29"
+  },
+  {
+    "user_id": 618,
+    "name": "Yaoska Sánchez Membreño",
+    "phone": "+505 7708-9577",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.62,
+    "registration_date": "2024-03-15"
+  },
+  {
+    "user_id": 619,
+    "name": "Noel Gómez",
+    "phone": "+505 8410-5296",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.57,
+    "registration_date": "2024-04-20"
+  },
+  {
+    "user_id": 620,
+    "name": "Milton Vanegas Alemán",
+    "phone": "+505 7692-5900",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2024-03-14"
+  },
+  {
+    "user_id": 621,
+    "name": "Scarleth Solís Salmerón",
+    "phone": "+505 8199-6824",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.7,
+    "registration_date": "2024-02-27"
+  },
+  {
+    "user_id": 622,
+    "name": "Bismarck Zeledón",
+    "phone": "+505 8783-6521",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.92,
+    "registration_date": "2024-11-13"
+  },
+  {
+    "user_id": 623,
+    "name": "Reynaldo Calero López",
+    "phone": "+505 7594-7641",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.79,
+    "registration_date": "2024-08-21"
+  },
+  {
+    "user_id": 624,
+    "name": "Scarleth Membreño",
+    "phone": "+505 8752-7717",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.91,
+    "registration_date": "2024-03-14"
+  },
+  {
+    "user_id": 625,
+    "name": "Marvin Rizo Pineda",
+    "phone": "+505 8295-5313",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.89,
+    "registration_date": "2024-02-23"
+  },
+  {
+    "user_id": 626,
+    "name": "Marcos Antonio Calero",
+    "phone": "+505 8856-6584",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.62,
+    "registration_date": "2024-02-02"
+  },
+  {
+    "user_id": 627,
+    "name": "Ligia Jirón",
+    "phone": "+505 8825-7882",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.8,
+    "registration_date": "2024-08-28"
+  },
+  {
+    "user_id": 628,
+    "name": "Donald Rostrán Sequeira",
+    "phone": "+505 8417-6107",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.68,
+    "registration_date": "2024-05-31"
+  },
+  {
+    "user_id": 629,
+    "name": "Brenda Lisseth Jirón",
+    "phone": "+505 8937-9278",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.95,
+    "registration_date": "2024-01-26"
+  },
+  {
+    "user_id": 630,
+    "name": "Tatiana Alejandra Narváez",
+    "phone": "+505 8549-8103",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.59,
+    "registration_date": "2024-09-23"
+  },
+  {
+    "user_id": 631,
+    "name": "Rigoberto Zeledón",
+    "phone": "+505 8379-2002",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.72,
+    "registration_date": "2024-08-29"
+  },
+  {
+    "user_id": 632,
+    "name": "Ramón Emilio Sobalvarro",
+    "phone": "+505 8801-9563",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.55,
+    "registration_date": "2024-06-10"
+  },
+  {
+    "user_id": 633,
+    "name": "Jairo Bermúdez Sobalvarro",
+    "phone": "+505 7530-9520",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.88,
+    "registration_date": "2024-01-04"
+  },
+  {
+    "user_id": 634,
+    "name": "Verónica Gómez",
+    "phone": "+505 7274-9901",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.84,
+    "registration_date": "2024-07-21"
+  },
+  {
+    "user_id": 635,
+    "name": "Massiel Gómez",
+    "phone": "+505 8399-5115",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.98,
+    "registration_date": "2024-02-22"
+  },
+  {
+    "user_id": 636,
+    "name": "Ricardo Téllez",
+    "phone": "+505 8872-2405",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.69,
+    "registration_date": "2024-08-09"
+  },
+  {
+    "user_id": 637,
+    "name": "Lester Cajina",
+    "phone": "+505 8770-6998",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.78,
+    "registration_date": "2024-10-18"
+  },
+  {
+    "user_id": 638,
+    "name": "Verónica Sánchez Gutiérrez",
+    "phone": "+505 8296-6981",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.83,
+    "registration_date": "2024-04-05"
+  },
+  {
+    "user_id": 639,
+    "name": "Xochilt Picado",
+    "phone": "+505 8295-1451",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.74,
+    "registration_date": "2024-05-23"
+  },
+  {
+    "user_id": 640,
+    "name": "Noel Solís Baltodano",
+    "phone": "+505 8700-2716",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.85,
+    "registration_date": "2024-04-26"
+  },
+  {
+    "user_id": 641,
+    "name": "Francisco Javier Urbina",
+    "phone": "+505 8699-5668",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.61,
+    "registration_date": "2024-04-16"
+  },
+  {
+    "user_id": 642,
+    "name": "José Miguel Gómez",
+    "phone": "+505 8711-3136",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.9,
+    "registration_date": "2024-01-03"
+  },
+  {
+    "user_id": 643,
+    "name": "Silvio Jirón Argüello",
+    "phone": "+505 8854-5586",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.6,
+    "registration_date": "2024-04-28"
+  },
+  {
+    "user_id": 644,
+    "name": "Silvio Pineda",
+    "phone": "+505 8976-4409",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.48,
+    "registration_date": "2024-06-22"
+  },
+  {
+    "user_id": 645,
+    "name": "Donald Mendoza Palacios",
+    "phone": "+505 8347-3676",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.55,
+    "registration_date": "2024-07-16"
+  },
+  {
+    "user_id": 646,
+    "name": "Wendy Palacios López",
+    "phone": "+505 8633-9161",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.67,
+    "registration_date": "2024-03-26"
+  },
+  {
+    "user_id": 647,
+    "name": "Wilber Argüello",
+    "phone": "+505 7367-6564",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.87,
+    "registration_date": "2024-08-08"
+  },
+  {
+    "user_id": 648,
+    "name": "Abner Lacayo",
+    "phone": "+505 7674-4898",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.58,
+    "registration_date": "2024-07-13"
+  },
+  {
+    "user_id": 649,
+    "name": "Abner Altamirano",
+    "phone": "+505 8878-9753",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.79,
+    "registration_date": "2024-03-17"
+  },
+  {
+    "user_id": 650,
+    "name": "Juan Carlos Mairena Narváez",
+    "phone": "+505 8888-4356",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.95,
+    "registration_date": "2024-05-21"
+  },
+  {
+    "user_id": 651,
+    "name": "Ernesto Duarte Vado",
+    "phone": "+505 8683-1527",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.56,
+    "registration_date": "2024-08-13"
+  },
+  {
+    "user_id": 652,
+    "name": "Reynaldo Bermúdez",
+    "phone": "+505 8475-5639",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2024-09-03"
+  },
+  {
+    "user_id": 653,
+    "name": "Ana Patricia Cajina",
+    "phone": "+505 7794-2611",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.63,
+    "registration_date": "2024-01-17"
+  },
+  {
+    "user_id": 654,
+    "name": "Massiel Altamirano Larios",
+    "phone": "+505 7660-3849",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.57,
+    "registration_date": "2024-01-27"
+  },
+  {
+    "user_id": 655,
+    "name": "Byron Jarquín",
+    "phone": "+505 8769-3509",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.68,
+    "registration_date": "2024-06-12"
+  },
+  {
+    "user_id": 656,
+    "name": "Alejandro Calero Palacios",
+    "phone": "+505 7426-5820",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.15,
+    "registration_date": "2024-05-07"
+  },
+  {
+    "user_id": 657,
+    "name": "Daniela Jarquín Rizo",
+    "phone": "+505 8695-6410",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.93,
+    "registration_date": "2024-09-20"
+  },
+  {
+    "user_id": 658,
+    "name": "Ana Patricia Rostrán",
+    "phone": "+505 7805-1992",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.61,
+    "registration_date": "2024-07-16"
+  },
+  {
+    "user_id": 659,
+    "name": "Kenia Calero",
+    "phone": "+505 8738-4084",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.58,
+    "registration_date": "2024-07-15"
+  },
+  {
+    "user_id": 660,
+    "name": "Gabriela Picado Altamirano",
+    "phone": "+505 8226-5043",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.82,
+    "registration_date": "2024-10-02"
+  },
+  {
+    "user_id": 661,
+    "name": "Wilber Bermúdez",
+    "phone": "+505 8685-2940",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.77,
+    "registration_date": "2024-10-28"
+  },
+  {
+    "user_id": 662,
+    "name": "José Miguel Téllez",
+    "phone": "+505 8137-1753",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.77,
+    "registration_date": "2024-10-15"
+  },
+  {
+    "user_id": 663,
+    "name": "Heydi Bermúdez",
+    "phone": "+505 8672-7579",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.75,
+    "registration_date": "2024-11-08"
+  },
+  {
+    "user_id": 664,
+    "name": "Silvio Jirón Centeno",
+    "phone": "+505 8905-2408",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.81,
+    "registration_date": "2024-06-14"
+  },
+  {
+    "user_id": 665,
+    "name": "Ricardo Rizo Ruiz",
+    "phone": "+505 8488-4210",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.88,
+    "registration_date": "2024-04-25"
+  },
+  {
+    "user_id": 666,
+    "name": "Marvin Orozco",
+    "phone": "+505 7217-9910",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.74,
+    "registration_date": "2024-09-27"
+  },
+  {
+    "user_id": 667,
+    "name": "Oswaldo López",
+    "phone": "+505 8660-4912",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.64,
+    "registration_date": "2024-08-12"
+  },
+  {
+    "user_id": 668,
+    "name": "Oscar Danilo Larios",
+    "phone": "+505 7240-6672",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2024-02-14"
+  },
+  {
+    "user_id": 669,
+    "name": "Gabriela Mendoza",
+    "phone": "+505 8781-9982",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.77,
+    "registration_date": "2024-03-24"
+  },
+  {
+    "user_id": 670,
+    "name": "José Miguel Jarquín",
+    "phone": "+505 7737-7412",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.68,
+    "registration_date": "2024-04-18"
+  },
+  {
+    "user_id": 671,
+    "name": "Bismarck Sánchez Corea",
+    "phone": "+505 8480-7492",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.54,
+    "registration_date": "2024-10-17"
+  },
+  {
+    "user_id": 672,
+    "name": "Bismarck Sequeira Sobalvarro",
+    "phone": "+505 8412-8117",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.68,
+    "registration_date": "2024-09-22"
+  },
+  {
+    "user_id": 673,
+    "name": "Humberto Narváez",
+    "phone": "+505 8499-8945",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.65,
+    "registration_date": "2024-05-11"
+  },
+  {
+    "user_id": 674,
+    "name": "Wendy Blandón Membreño",
+    "phone": "+505 8845-6970",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.45,
+    "registration_date": "2024-06-06"
+  },
+  {
+    "user_id": 675,
+    "name": "Oscar Danilo Lacayo Cajina",
+    "phone": "+505 8824-6312",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.84,
+    "registration_date": "2024-01-27"
+  },
+  {
+    "user_id": 676,
+    "name": "Arlen Pérez Zeledón",
+    "phone": "+505 7763-3423",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.66,
+    "registration_date": "2024-03-01"
+  },
+  {
+    "user_id": 677,
+    "name": "Valeria Talavera",
+    "phone": "+505 8984-5057",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.8,
+    "registration_date": "2024-06-17"
+  },
+  {
+    "user_id": 678,
+    "name": "Francisco Javier Montenegro",
+    "phone": "+505 7943-4875",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.68,
+    "registration_date": "2024-06-19"
+  },
+  {
+    "user_id": 679,
+    "name": "Ricardo Sánchez Sánchez",
+    "phone": "+505 8189-5826",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.55,
+    "registration_date": "2024-02-04"
+  },
+  {
+    "user_id": 680,
+    "name": "Ana Patricia Pineda Blandón",
+    "phone": "+505 8385-1976",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.86,
+    "registration_date": "2024-04-29"
+  },
+  {
+    "user_id": 681,
+    "name": "Ricardo Cajina",
+    "phone": "+505 7997-7666",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.6,
+    "registration_date": "2024-08-12"
+  },
+  {
+    "user_id": 682,
+    "name": "Wendy Orozco",
+    "phone": "+505 8968-4914",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.77,
+    "registration_date": "2024-11-07"
+  },
+  {
+    "user_id": 683,
+    "name": "Arlen Rizo",
+    "phone": "+505 8848-4693",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.9,
+    "registration_date": "2024-01-11"
+  },
+  {
+    "user_id": 684,
+    "name": "Donald Centeno Solís",
+    "phone": "+505 8510-7824",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.69,
+    "registration_date": "2024-05-21"
+  },
+  {
+    "user_id": 685,
+    "name": "Reynaldo Duarte Argüello",
+    "phone": "+505 8980-3156",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.68,
+    "registration_date": "2024-09-23"
+  },
+  {
+    "user_id": 686,
+    "name": "Meyling Pérez López",
+    "phone": "+505 8203-5177",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.89,
+    "registration_date": "2024-09-27"
+  },
+  {
+    "user_id": 687,
+    "name": "Byron Gadea",
+    "phone": "+505 8588-5364",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.8,
+    "registration_date": "2024-08-29"
+  },
+  {
+    "user_id": 688,
+    "name": "Valeria Guadamuz Membreño",
+    "phone": "+505 8386-5206",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.67,
+    "registration_date": "2024-03-02"
+  },
+  {
+    "user_id": 689,
+    "name": "Melvin Jarquín",
+    "phone": "+505 7602-2078",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.74,
+    "registration_date": "2024-05-09"
+  },
+  {
+    "user_id": 690,
+    "name": "Rigoberto Centeno",
+    "phone": "+505 8293-8647",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.86,
+    "registration_date": "2024-06-10"
+  },
+  {
+    "user_id": 691,
+    "name": "Denis Vanegas",
+    "phone": "+505 8208-8144",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.71,
+    "registration_date": "2024-07-18"
+  },
+  {
+    "user_id": 692,
+    "name": "Arlen Guadamuz",
+    "phone": "+505 7677-5686",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.61,
+    "registration_date": "2024-08-07"
+  },
+  {
+    "user_id": 693,
+    "name": "Milton Pérez Solís",
+    "phone": "+505 8322-7257",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.98,
+    "registration_date": "2024-03-09"
+  },
+  {
+    "user_id": 694,
+    "name": "Verónica Rizo",
+    "phone": "+505 7501-5865",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.94,
+    "registration_date": "2024-05-12"
+  },
+  {
+    "user_id": 695,
+    "name": "Verónica Membreño",
+    "phone": "+505 8698-6084",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.79,
+    "registration_date": "2024-06-01"
+  },
+  {
+    "user_id": 696,
+    "name": "Valeria Espinoza",
+    "phone": "+505 8699-3038",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.5,
+    "registration_date": "2024-02-28"
+  },
+  {
+    "user_id": 697,
+    "name": "Oswaldo Gadea",
+    "phone": "+505 7653-9390",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.57,
+    "registration_date": "2024-11-11"
+  },
+  {
+    "user_id": 698,
+    "name": "Wilber Sequeira Vado",
+    "phone": "+505 8920-2703",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2024-01-11"
+  },
+  {
+    "user_id": 699,
+    "name": "Silvio Gómez",
+    "phone": "+505 8653-2025",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.67,
+    "registration_date": "2024-04-20"
+  },
+  {
+    "user_id": 700,
+    "name": "Ricardo Jarquín",
+    "phone": "+505 7109-2810",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.76,
+    "registration_date": "2024-07-26"
+  },
+  {
+    "user_id": 701,
+    "name": "Valeria Orozco",
+    "phone": "+505 7948-7596",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.95,
+    "registration_date": "2024-09-11"
+  },
+  {
+    "user_id": 702,
+    "name": "Ernesto Membreño",
+    "phone": "+505 7202-9036",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2024-09-09"
+  },
+  {
+    "user_id": 703,
+    "name": "Tatiana Alejandra Ruiz",
+    "phone": "+505 8183-2178",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.76,
+    "registration_date": "2024-01-04"
+  },
+  {
+    "user_id": 704,
+    "name": "Álvaro Sobalvarro Salmerón",
+    "phone": "+505 8770-2179",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.92,
+    "registration_date": "2024-10-24"
+  },
+  {
+    "user_id": 705,
+    "name": "Mauricio Palacios",
+    "phone": "+505 7348-1156",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.68,
+    "registration_date": "2024-08-08"
+  },
+  {
+    "user_id": 706,
+    "name": "Noel Palacios",
+    "phone": "+505 8767-5230",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.97,
+    "registration_date": "2024-09-21"
+  },
+  {
+    "user_id": 707,
+    "name": "Byron Blandón Baltodano",
+    "phone": "+505 8907-6925",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.56,
+    "registration_date": "2024-10-15"
+  },
+  {
+    "user_id": 708,
+    "name": "Rosaura Orozco",
+    "phone": "+505 8622-4366",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2024-06-01"
+  },
+  {
+    "user_id": 709,
+    "name": "Brenda Lisseth Cajina",
+    "phone": "+505 8288-5074",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.94,
+    "registration_date": "2024-05-08"
+  },
+  {
+    "user_id": 710,
+    "name": "Ramón Emilio Sánchez",
+    "phone": "+505 7498-7866",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.87,
+    "registration_date": "2024-07-05"
+  },
+  {
+    "user_id": 711,
+    "name": "Massiel Picado",
+    "phone": "+505 8146-7942",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.86,
+    "registration_date": "2024-08-19"
+  },
+  {
+    "user_id": 712,
+    "name": "Yahoska Altamirano Montenegro",
+    "phone": "+505 8608-8615",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.8,
+    "registration_date": "2024-07-06"
+  },
+  {
+    "user_id": 713,
+    "name": "Luis Fernando Talavera Baltodano",
+    "phone": "+505 8810-3847",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.97,
+    "registration_date": "2024-02-07"
+  },
+  {
+    "user_id": 714,
+    "name": "Sofía Gutiérrez Cajina",
+    "phone": "+505 8254-7476",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.88,
+    "registration_date": "2024-07-31"
+  },
+  {
+    "user_id": 715,
+    "name": "Milton Blandón",
+    "phone": "+505 8854-7429",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.77,
+    "registration_date": "2024-08-11"
+  },
+  {
+    "user_id": 716,
+    "name": "Bismarck Corea",
+    "phone": "+505 8520-6845",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.68,
+    "registration_date": "2024-02-09"
+  },
+  {
+    "user_id": 717,
+    "name": "Tatiana Alejandra Sobalvarro",
+    "phone": "+505 8869-8460",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.9,
+    "registration_date": "2024-07-19"
+  },
+  {
+    "user_id": 718,
+    "name": "Xochilt Centeno Mairena",
+    "phone": "+505 8301-6188",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.8,
+    "registration_date": "2024-03-29"
+  },
+  {
+    "user_id": 719,
+    "name": "Verónica Guadamuz Gadea",
+    "phone": "+505 7798-6021",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.91,
+    "registration_date": "2024-08-25"
+  },
+  {
+    "user_id": 720,
+    "name": "Arlen Sequeira",
+    "phone": "+505 7618-6568",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.94,
+    "registration_date": "2024-04-21"
+  },
+  {
+    "user_id": 721,
+    "name": "Arlen Sobalvarro",
+    "phone": "+505 7812-4531",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.61,
+    "registration_date": "2024-10-04"
+  },
+  {
+    "user_id": 722,
+    "name": "Juan Carlos Espinoza Alemán",
+    "phone": "+505 7979-9803",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.76,
+    "registration_date": "2024-01-27"
+  },
+  {
+    "user_id": 723,
+    "name": "Ramón Emilio Rizo Mendoza",
+    "phone": "+505 8883-3917",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.62,
+    "registration_date": "2024-01-08"
+  },
+  {
+    "user_id": 724,
+    "name": "Kenia Vanegas Altamirano",
+    "phone": "+505 7956-1389",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.76,
+    "registration_date": "2024-05-02"
+  },
+  {
+    "user_id": 725,
+    "name": "Bayardo Talavera",
+    "phone": "+505 7277-9581",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.81,
+    "registration_date": "2024-10-06"
+  },
+  {
+    "user_id": 726,
+    "name": "Marcos Antonio Pineda",
+    "phone": "+505 8218-9478",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.86,
+    "registration_date": "2024-06-22"
+  },
+  {
+    "user_id": 727,
+    "name": "Noel Chamorro",
+    "phone": "+505 8206-6093",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.83,
+    "registration_date": "2024-06-19"
+  },
+  {
+    "user_id": 728,
+    "name": "Rigoberto Gutiérrez",
+    "phone": "+505 8364-9379",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.96,
+    "registration_date": "2024-10-04"
+  },
+  {
+    "user_id": 729,
+    "name": "Marbely Salmerón",
+    "phone": "+505 8400-7397",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2024-11-15"
+  },
+  {
+    "user_id": 730,
+    "name": "Auxiliadora Membreño Calero",
+    "phone": "+505 7982-3141",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.96,
+    "registration_date": "2024-08-21"
+  },
+  {
+    "user_id": 731,
+    "name": "Rigoberto Vanegas Altamirano",
+    "phone": "+505 8810-7359",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.7,
+    "registration_date": "2024-03-08"
+  },
+  {
+    "user_id": 732,
+    "name": "Francisco Javier Bolaños Gutiérrez",
+    "phone": "+505 8178-6848",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.79,
+    "registration_date": "2024-11-15"
+  },
+  {
+    "user_id": 733,
+    "name": "Xochilt Rizo Cajina",
+    "phone": "+505 8233-4180",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.88,
+    "registration_date": "2024-06-09"
+  },
+  {
+    "user_id": 734,
+    "name": "Milton Corea",
+    "phone": "+505 7667-6359",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.9,
+    "registration_date": "2024-10-20"
+  },
+  {
+    "user_id": 735,
+    "name": "Kenia Rizo",
+    "phone": "+505 8430-5153",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.72,
+    "registration_date": "2024-05-22"
+  },
+  {
+    "user_id": 736,
+    "name": "Silvio Altamirano Mendoza",
+    "phone": "+505 8285-9188",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.61,
+    "registration_date": "2024-10-08"
+  },
+  {
+    "user_id": 737,
+    "name": "Ricardo Urbina",
+    "phone": "+505 7837-4085",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.56,
+    "registration_date": "2024-10-18"
+  },
+  {
+    "user_id": 738,
+    "name": "Scarleth Bolaños",
+    "phone": "+505 7923-4285",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.77,
+    "registration_date": "2024-02-14"
+  },
+  {
+    "user_id": 739,
+    "name": "Melvin Jirón Gadea",
+    "phone": "+505 8950-6185",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2024-06-28"
+  },
+  {
+    "user_id": 740,
+    "name": "Denis Altamirano Pérez",
+    "phone": "+505 7546-6745",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.88,
+    "registration_date": "2024-03-05"
+  },
+  {
+    "user_id": 741,
+    "name": "Arlen Pérez",
+    "phone": "+505 8579-9279",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.9,
+    "registration_date": "2024-04-07"
+  },
+  {
+    "user_id": 742,
+    "name": "Xiomara Duarte",
+    "phone": "+505 7124-1721",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.77,
+    "registration_date": "2024-06-06"
+  },
+  {
+    "user_id": 743,
+    "name": "Indiana Picado",
+    "phone": "+505 7819-7244",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.72,
+    "registration_date": "2024-11-13"
+  },
+  {
+    "user_id": 744,
+    "name": "Valeria Altamirano",
+    "phone": "+505 8932-5991",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.69,
+    "registration_date": "2024-04-13"
+  },
+  {
+    "user_id": 745,
+    "name": "Verónica Sequeira",
+    "phone": "+505 8444-1174",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.87,
+    "registration_date": "2024-11-06"
+  },
+  {
+    "user_id": 746,
+    "name": "José Miguel Palacios Téllez",
+    "phone": "+505 7273-6152",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.75,
+    "registration_date": "2024-10-10"
+  },
+  {
+    "user_id": 747,
+    "name": "Juan Carlos Calero Calero",
+    "phone": "+505 8819-4667",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.78,
+    "registration_date": "2024-04-19"
+  },
+  {
+    "user_id": 748,
+    "name": "Karelia Duarte Sequeira",
+    "phone": "+505 8958-4512",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.83,
+    "registration_date": "2024-05-04"
+  },
+  {
+    "user_id": 749,
+    "name": "Brenda Lisseth Rostrán Larios",
+    "phone": "+505 8963-2606",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2024-07-30"
+  },
+  {
+    "user_id": 750,
+    "name": "Sofía Rostrán",
+    "phone": "+505 7699-8924",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.77,
+    "registration_date": "2024-06-20"
+  },
+  {
+    "user_id": 751,
+    "name": "Karelia Vado Picado",
+    "phone": "+505 8242-8390",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.89,
+    "registration_date": "2024-09-13"
+  },
+  {
+    "user_id": 752,
+    "name": "Francisco Javier Corea Lacayo",
+    "phone": "+505 8318-5912",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2024-03-25"
+  },
+  {
+    "user_id": 753,
+    "name": "María Elena Sequeira Pineda",
+    "phone": "+505 8107-8921",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.89,
+    "registration_date": "2024-01-31"
+  },
+  {
+    "user_id": 754,
+    "name": "Denis Palacios",
+    "phone": "+505 8388-4094",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.91,
+    "registration_date": "2024-01-02"
+  },
+  {
+    "user_id": 755,
+    "name": "Melvin Altamirano Talavera",
+    "phone": "+505 7405-1346",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.81,
+    "registration_date": "2024-01-05"
+  },
+  {
+    "user_id": 756,
+    "name": "Byron Rizo",
+    "phone": "+505 8113-8731",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.56,
+    "registration_date": "2024-07-31"
+  },
+  {
+    "user_id": 757,
+    "name": "Rigoberto Rostrán Guadamuz",
+    "phone": "+505 7818-5824",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.71,
+    "registration_date": "2024-08-03"
+  },
+  {
+    "user_id": 758,
+    "name": "Scarleth Salmerón Rostrán",
+    "phone": "+505 8784-3701",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.74,
+    "registration_date": "2024-05-18"
+  },
+  {
+    "user_id": 759,
+    "name": "Juan Carlos Zeledón Rizo",
+    "phone": "+505 8438-9833",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.95,
+    "registration_date": "2024-05-03"
+  },
+  {
+    "user_id": 760,
+    "name": "Denis Gutiérrez Chamorro",
+    "phone": "+505 8131-6278",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.73,
+    "registration_date": "2024-08-14"
+  },
+  {
+    "user_id": 761,
+    "name": "Indiana Duarte Téllez",
+    "phone": "+505 8789-4302",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.61,
+    "registration_date": "2024-02-01"
+  },
+  {
+    "user_id": 762,
+    "name": "Abner Mairena",
+    "phone": "+505 7395-8583",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.78,
+    "registration_date": "2024-07-26"
+  },
+  {
+    "user_id": 763,
+    "name": "Rigoberto Centeno",
+    "phone": "+505 8698-9847",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.64,
+    "registration_date": "2024-08-17"
+  },
+  {
+    "user_id": 764,
+    "name": "Wilber Solís",
+    "phone": "+505 8429-3481",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.66,
+    "registration_date": "2024-01-11"
+  },
+  {
+    "user_id": 765,
+    "name": "Milton Blandón",
+    "phone": "+505 8361-3128",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.98,
+    "registration_date": "2024-03-06"
+  },
+  {
+    "user_id": 766,
+    "name": "Gabriela Larios",
+    "phone": "+505 8649-4993",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.62,
+    "registration_date": "2024-10-09"
+  },
+  {
+    "user_id": 767,
+    "name": "Lester Lacayo Sequeira",
+    "phone": "+505 8747-8225",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.55,
+    "registration_date": "2024-05-30"
+  },
+  {
+    "user_id": 768,
+    "name": "Fabiola Sánchez",
+    "phone": "+505 7653-5816",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.46,
+    "registration_date": "2024-04-29"
+  },
+  {
+    "user_id": 769,
+    "name": "Humberto Palacios Orozco",
+    "phone": "+505 7308-1409",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.65,
+    "registration_date": "2024-10-23"
+  },
+  {
+    "user_id": 770,
+    "name": "Bismarck Gutiérrez Rostrán",
+    "phone": "+505 8988-7905",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.74,
+    "registration_date": "2024-06-21"
+  },
+  {
+    "user_id": 771,
+    "name": "Oscar Danilo Mendoza",
+    "phone": "+505 8667-3003",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 5.0,
+    "registration_date": "2024-04-08"
+  },
+  {
+    "user_id": 772,
+    "name": "Wendy Cajina Cajina",
+    "phone": "+505 8401-6765",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.81,
+    "registration_date": "2024-06-21"
+  },
+  {
+    "user_id": 773,
+    "name": "Arlen Blandón",
+    "phone": "+505 8692-2776",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.47,
+    "registration_date": "2024-10-26"
+  },
+  {
+    "user_id": 774,
+    "name": "Auxiliadora Talavera Chamorro",
+    "phone": "+505 7966-3478",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.55,
+    "registration_date": "2024-05-11"
+  },
+  {
+    "user_id": 775,
+    "name": "Yaoska López Narváez",
+    "phone": "+505 7654-6421",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.61,
+    "registration_date": "2024-08-21"
+  },
+  {
+    "user_id": 776,
+    "name": "Francisco Javier Gutiérrez",
+    "phone": "+505 7612-1830",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.89,
+    "registration_date": "2024-08-04"
+  },
+  {
+    "user_id": 777,
+    "name": "Carlos Bermúdez Pérez",
+    "phone": "+505 8261-5186",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.53,
+    "registration_date": "2024-01-21"
+  },
+  {
+    "user_id": 778,
+    "name": "Ricardo Morales Baltodano",
+    "phone": "+505 8645-7379",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.83,
+    "registration_date": "2024-10-15"
+  },
+  {
+    "user_id": 779,
+    "name": "Byron Urbina",
+    "phone": "+505 8308-7330",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.77,
+    "registration_date": "2024-03-29"
+  },
+  {
+    "user_id": 780,
+    "name": "Xochilt Narváez",
+    "phone": "+505 8995-4244",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.71,
+    "registration_date": "2024-06-24"
+  },
+  {
+    "user_id": 781,
+    "name": "Juan Carlos López Mendoza",
+    "phone": "+505 8667-5658",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 5.0,
+    "registration_date": "2024-02-13"
+  },
+  {
+    "user_id": 782,
+    "name": "Lester Argüello",
+    "phone": "+505 7359-4300",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.99,
+    "registration_date": "2024-09-29"
+  },
+  {
+    "user_id": 783,
+    "name": "Alejandro Gómez",
+    "phone": "+505 8545-8667",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.69,
+    "registration_date": "2024-01-27"
+  },
+  {
+    "user_id": 784,
+    "name": "Heydi Jarquín",
+    "phone": "+505 8638-7542",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.73,
+    "registration_date": "2024-06-28"
+  },
+  {
+    "user_id": 785,
+    "name": "Tatiana Alejandra Gutiérrez",
+    "phone": "+505 7471-4280",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.51,
+    "registration_date": "2024-05-12"
+  },
+  {
+    "user_id": 786,
+    "name": "Valeria Duarte Zeledón",
+    "phone": "+505 8636-2198",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.51,
+    "registration_date": "2024-07-02"
+  },
+  {
+    "user_id": 787,
+    "name": "Reynaldo Sánchez",
+    "phone": "+505 8708-8213",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.64,
+    "registration_date": "2024-03-12"
+  },
+  {
+    "user_id": 788,
+    "name": "Wendy Membreño",
+    "phone": "+505 7929-9895",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.54,
+    "registration_date": "2024-01-03"
+  },
+  {
+    "user_id": 789,
+    "name": "Álvaro Téllez",
+    "phone": "+505 8137-2127",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2024-06-21"
+  },
+  {
+    "user_id": 790,
+    "name": "Kenia Salmerón",
+    "phone": "+505 8446-5434",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.73,
+    "registration_date": "2024-01-26"
+  },
+  {
+    "user_id": 791,
+    "name": "Ana Patricia Jirón",
+    "phone": "+505 8419-8365",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 4.4,
+    "registration_date": "2024-01-05"
+  },
+  {
+    "user_id": 792,
+    "name": "Humberto López",
+    "phone": "+505 8195-2384",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.62,
+    "registration_date": "2024-05-20"
+  },
+  {
+    "user_id": 793,
+    "name": "José Miguel Gómez Bolaños",
+    "phone": "+505 8117-3303",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.76,
+    "registration_date": "2024-08-25"
+  },
+  {
+    "user_id": 794,
+    "name": "Tatiana Alejandra Jirón",
+    "phone": "+505 8635-2848",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.82,
+    "registration_date": "2024-01-31"
+  },
+  {
+    "user_id": 795,
+    "name": "Carlos Alemán Orozco",
+    "phone": "+505 7982-4990",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.74,
+    "registration_date": "2024-02-11"
+  },
+  {
+    "user_id": 796,
+    "name": "Álvaro Mendoza",
+    "phone": "+505 8130-3708",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2024-02-08"
+  },
+  {
+    "user_id": 797,
+    "name": "Ernesto Talavera Mairena",
+    "phone": "+505 8823-8534",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.64,
+    "registration_date": "2024-02-18"
+  },
+  {
+    "user_id": 798,
+    "name": "Denis Rizo Mendoza",
+    "phone": "+505 7437-3979",
+    "preferred_payment_method": "efectivo",
+    "average_rating": 4.76,
+    "registration_date": "2024-04-30"
+  },
+  {
+    "user_id": 799,
+    "name": "Karla Vanessa Gutiérrez",
+    "phone": "+505 7483-7078",
+    "preferred_payment_method": "billetera_digital",
+    "average_rating": 4.83,
+    "registration_date": "2024-08-28"
+  },
+  {
+    "user_id": 800,
+    "name": "Bayardo Espinoza",
+    "phone": "+505 8835-4773",
+    "preferred_payment_method": "tarjeta",
+    "average_rating": 5.0,
+    "registration_date": "2024-08-02"
+  }
+]

@@ -2,6 +2,8 @@
 
 Generates realistic urban mobility facts with strict mathematical guarantees:
 - Two-tier 3NF spatial architecture: 12 urban pricing zones (urban_zones) grouping 92 fine-grained square quadrants (quadrants, ~0.88 km x 0.88 km)
+- Expanded deterministic population: 800 passengers (users) with Pareto/Zipf ride frequency and registration date enforcement, 150 drivers & 150 vehicles
+- Non-overlapping chronological driver dispatch via `driver_available_at` state clock
 - Normalized transactional entities:
   * drivers & vehicles (separated 1:1)
   * trips (lean 15-column core ride lifecycle header without transitive zone FKs or pre-calculated fare breakdowns)
@@ -94,8 +96,8 @@ def load_movigo_quadrants() -> list[Quadrant]:
 
 
 def load_movigo_vehicles() -> list[Vehicle]:
-    """Load the 20 driver vehicles from LLM JSON seed fixture."""
-    with open(LLM_SEEDS_DIR / "vehicles.json", encoding="utf-8") as f:
+    """Load the 150 driver vehicles from deterministic JSON seed fixture."""
+    with open(DETERMINISTIC_SEEDS_DIR / "vehicles.json", encoding="utf-8") as f:
         return [Vehicle(**v) for v in json.load(f)]
 
 
@@ -110,10 +112,10 @@ def load_movigo_seed_catalogs() -> tuple[
     with open(DETERMINISTIC_SEEDS_DIR / "urban_zones.json", encoding="utf-8") as f:
         zones = [UrbanZone(**z) for z in json.load(f)]
 
-    with open(LLM_SEEDS_DIR / "users.json", encoding="utf-8") as f:
+    with open(DETERMINISTIC_SEEDS_DIR / "users.json", encoding="utf-8") as f:
         users = [User(**u) for u in json.load(f)]
 
-    with open(LLM_SEEDS_DIR / "drivers.json", encoding="utf-8") as f:
+    with open(DETERMINISTIC_SEEDS_DIR / "drivers.json", encoding="utf-8") as f:
         drivers = [Driver(**c) for c in json.load(f)]
 
     with open(LLM_SEEDS_DIR / "incentive_campaigns.json", encoding="utf-8") as f:
@@ -158,6 +160,13 @@ class MoviGoSimulationEngine:
         ) = load_movigo_seed_catalogs()
         self.vehicles = load_movigo_vehicles()
 
+        # Precompute user registration dates and Pareto/Zipf propensity weights
+        self.user_reg_dates = np.array([u.registration_date for u in self.users], dtype=object)
+        ranks = np.arange(1, len(self.users) + 1, dtype=float)
+        zipf_weights = 1.0 / (ranks ** 0.75)
+        perm_rng = np.random.default_rng(self.random_seed + 303)
+        self.user_base_weights = perm_rng.permutation(zipf_weights)
+
         self.zone_quadrants: dict[int, list[Quadrant]] = {z.zone_id: [] for z in self.zones}
         for c in self.quadrants:
             if c.zone_id in self.zone_quadrants:
@@ -191,7 +200,15 @@ class MoviGoSimulationEngine:
 
         self.zones_map = {z.zone_id: z for z in self.zones}
         self.drivers_map = {c.driver_id: c for c in self.drivers}
-        self.active_drivers = [c for c in self.drivers if c.status == "activo"]
+        # All drivers except deactivated ('inactivo') operate shifts across the year
+        self.operational_drivers = [c for c in self.drivers if c.status != "inactivo"]
+        self.driver_base_weights = np.array(
+            [
+                (c.acceptance_rate_pct / 100.0) * (0.45 if c.status == "desconectado" else 1.0)
+                for c in self.operational_drivers
+            ],
+            dtype=float,
+        )
 
     def sample_street_coordinate(self, zone: UrbanZone) -> tuple[float, float, int, bool]:
         """Sample a GPS coordinate strictly on a drivable street within one of the urban zone's square quadrants.
@@ -451,7 +468,7 @@ class MoviGoSimulationEngine:
         list[TripCancellation],
         list[DriverTelemetry],
     ]:
-        """Run full year MoviGo simulation emitting 3NF OLTP transactional tables."""
+        """Run full year MoviGo simulation emitting 3NF OLTP transactional tables with non-overlapping driver dispatch."""
         self.rng = np.random.default_rng(self.random_seed)
         logger.info(f"Starting MoviGo 3NF simulation across {len(weather_df)} days (seed={self.random_seed})...")
 
@@ -472,6 +489,11 @@ class MoviGoSimulationEngine:
         cancellation_counter = 1
         telemetry_counter = 1
 
+        # Track when each operational driver finishes their current ride or cancellation window
+        driver_available_at: dict[int, datetime] = {
+            c.driver_id: datetime.min for c in self.operational_drivers
+        }
+
         for day_idx, (_, row) in enumerate(weather_df.iterrows()):
             curr_date: date = row["date"]
             daily_precip_mm: float = float(row["precipitation_mm"])
@@ -480,14 +502,23 @@ class MoviGoSimulationEngine:
 
             daily_target = self.calculate_daily_demand(daily_precip_mm, dow)
 
-            for _ in range(daily_target):
+            # Filter users who have already registered on or before curr_date
+            eligible_mask = self.user_reg_dates <= curr_date
+            eligible_users = [u for u, m in zip(self.users, eligible_mask) if m]
+            eligible_user_probs = self.user_base_weights[eligible_mask].copy()
+            eligible_user_probs /= eligible_user_probs.sum()
+
+            # Sample and sort request timestamps chronologically within the day
+            req_times = sorted(self.sample_trip_time(curr_date) for _ in range(daily_target))
+
+            for req_time in req_times:
                 trip_id = trip_counter
                 trip_counter += 1
 
-                req_time = self.sample_trip_time(curr_date)
                 hour = req_time.hour
 
-                user = self.users[int(self.rng.integers(0, len(self.users)))]
+                u_idx = int(self.rng.choice(len(eligible_users), p=eligible_user_probs))
+                user = eligible_users[u_idx]
 
                 origin_zone = self.zones[int(self.rng.integers(0, len(self.zones)))]
                 dest_candidates = [z for z in self.zones if z.zone_id != origin_zone.zone_id]
@@ -554,7 +585,20 @@ class MoviGoSimulationEngine:
                     base_wait += float(self.rng.exponential(2.0))
                 wait_min = round(float(np.clip(base_wait, 1.5, 25.0)), 2)
 
-                driver = self.active_drivers[int(self.rng.integers(0, len(self.active_drivers)))]
+                # Non-overlapping driver dispatch: select from operational drivers available at req_time
+                free_indices = [
+                    idx for idx, d in enumerate(self.operational_drivers)
+                    if driver_available_at[d.driver_id] <= req_time
+                ]
+                if free_indices:
+                    free_w = self.driver_base_weights[free_indices].copy()
+                    free_w /= free_w.sum()
+                    chosen_local_idx = int(self.rng.choice(len(free_indices), p=free_w))
+                    driver = self.operational_drivers[free_indices[chosen_local_idx]]
+                else:
+                    driver = min(self.operational_drivers, key=lambda d: driver_available_at[d.driver_id])
+                    extra_wait = max(0.0, (driver_available_at[driver.driver_id] - req_time).total_seconds() / 60.0)
+                    wait_min = round(wait_min + extra_wait, 2)
 
                 is_canceled, cancel_state, reason = self.evaluate_cancellation(
                     stratum=origin_zone.socioeconomic_stratum,
@@ -575,6 +619,7 @@ class MoviGoSimulationEngine:
                     tip_amount = 0.0
                     payment_status = "anulado"
                     cancelled_by = "conductor" if trip_status == "cancelado_conductor" else "usuario"
+                    driver_available_at[driver.driver_id] = req_time + timedelta(minutes=wait_min)
                     cancellations.append(
                         TripCancellation(
                             cancellation_id=cancellation_counter,
@@ -591,6 +636,7 @@ class MoviGoSimulationEngine:
                     trip_status = "completado"
                     start_time = req_time + timedelta(minutes=wait_min)
                     end_time = start_time + timedelta(minutes=dur_min)
+                    driver_available_at[driver.driver_id] = end_time
                     rating_usr = float(self.rng.choice([5.0, 4.0, 3.0, 2.0, 1.0], p=[0.67, 0.20, 0.06, 0.04, 0.03]))
                     rating_drv = float(self.rng.choice([5.0, 4.0, 3.0, 2.0, 1.0], p=[0.75, 0.14, 0.05, 0.03, 0.03]))
 

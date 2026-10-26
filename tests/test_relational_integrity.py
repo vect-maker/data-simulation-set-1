@@ -95,17 +95,19 @@ class TestRelationalIntegrity(unittest.TestCase):
 
         valid_quadrants = {q.quadrant_id: q for q in engine.quadrants}
         valid_zones = {z.zone_id: z for z in engine.zones}
-        valid_users = {u.user_id for u in engine.users}
-        valid_drivers = {c.driver_id for c in engine.drivers}
+        valid_users = {u.user_id: u for u in engine.users}
+        valid_drivers = {c.driver_id: c for c in engine.drivers}
         valid_trips = {v.trip_id: v for v in trips}
 
-        # Verify 1:1 drivers <-> vehicles integrity
-        self.assertEqual(len(engine.vehicles), len(engine.drivers))
+        # Verify expanded deterministic catalog cardinalities (800 users, 150 drivers, 150 vehicles)
+        self.assertEqual(len(engine.users), 800)
+        self.assertEqual(len(engine.drivers), 150)
+        self.assertEqual(len(engine.vehicles), 150)
         seen_vehicle_drivers = set()
         for veh in engine.vehicles:
             self.assertIn(veh.driver_id, valid_drivers)
             seen_vehicle_drivers.add(veh.driver_id)
-        self.assertEqual(seen_vehicle_drivers, valid_drivers)
+        self.assertEqual(seen_vehicle_drivers, set(valid_drivers.keys()))
 
         self.assertEqual(len(engine.quadrants), 92)
         det_zones, det_quadrants, _ = generate_deterministic_spatial_seeds(dry_run=True)
@@ -119,10 +121,23 @@ class TestRelationalIntegrity(unittest.TestCase):
             self.assertTrue(0 <= c.hour <= 23)
             self.assertGreaterEqual(c.channel_runoff_mm, 0.0)
 
+        canc_map = {c.trip_id: c for c in cancellations}
+        driver_last_busy_until = {}
+
         for v in trips:
             self.assertIn(v.user_id, valid_users)
+            u_obj = valid_users[v.user_id]
+            self.assertGreaterEqual(v.requested_at.date(), u_obj.registration_date)
             if v.driver_id is not None:
                 self.assertIn(v.driver_id, valid_drivers)
+                self.assertNotEqual(valid_drivers[v.driver_id].status, "inactivo")
+                if v.driver_id in driver_last_busy_until:
+                    self.assertGreaterEqual(v.requested_at, driver_last_busy_until[v.driver_id])
+                if v.completed_at is not None:
+                    driver_last_busy_until[v.driver_id] = v.completed_at
+                elif v.trip_id in canc_map:
+                    from datetime import timedelta
+                    driver_last_busy_until[v.driver_id] = v.requested_at + timedelta(minutes=canc_map[v.trip_id].wait_time_minutes)
             self.assertIn(v.origin_quadrant_id, valid_quadrants)
             self.assertIn(v.destination_quadrant_id, valid_quadrants)
             qo = valid_quadrants[v.origin_quadrant_id]

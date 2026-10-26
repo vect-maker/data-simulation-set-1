@@ -1,21 +1,25 @@
-"""Deterministic spatial & street-network builder for MoviGo (Managua, Nicaragua).
+"""Deterministic spatial, street-network, and population catalog builder for MoviGo (Managua, Nicaragua).
 
 Encapsulates 100% reproducible, code-driven generation of:
 - urban_zones.json (12 Managua urban pricing and mobility zones)
 - quadrants.json (92 contiguous ~0.88 km x 0.88 km square grid cells grouped by zone_id)
 - managua_street_network.json (OpenStreetMap drivable street segments indexed per zone and per square quadrant)
+- users.json (800 registered passenger profiles with realistic registration dates and payment preferences)
+- drivers.json (150 registered driver profiles with ratings, acceptance rates, and statuses)
+- vehicles.json (150 1:1 vehicles registered in Managua with service tiers and M-XXXXXX plates)
 """
 
 import json
 import logging
 import math
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 import numpy as np
 import requests
 
-from movigo_sim.config import DETERMINISTIC_SEEDS_DIR
-from movigo_sim.models import Quadrant, UrbanZone
+from movigo_sim.config import DETERMINISTIC_SEEDS_DIR, SIMULATION_SEED
+from movigo_sim.models import Driver, Quadrant, UrbanZone, User, Vehicle
 
 logger = logging.getLogger(__name__)
 
@@ -131,8 +135,6 @@ CANONICAL_URBAN_ZONES: list[dict[str, Any]] = [
     },
 ]
 
-CANONICAL_ZONAS_URBANAS = CANONICAL_URBAN_ZONES
-
 # Real-world hydrological flood & cauce bottlenecks in Managua
 FLOOD_HOTSPOTS: list[dict[str, Any]] = [
     {"name": "Cauce Oriental / Gancho de Camino", "lat": 12.1425, "lon": -86.2480, "radius_km": 0.95},
@@ -174,6 +176,52 @@ DRIVABLE_HIGHWAY_TYPES = {
     "tertiary_link",
 }
 
+NICARAGUAN_FIRST_NAMES = [
+    "Carlos", "Juan Carlos", "María Elena", "Alejandro", "Roberto", "Luis Fernando",
+    "Ana Patricia", "José Miguel", "Ernesto", "Claudia", "Francisco Javier", "Rosaura",
+    "Marcos Antonio", "Daniela", "Oscar Danilo", "Karla Vanessa", "Mauricio", "Brenda Lisseth",
+    "Ramón Emilio", "Tatiana Alejandra", "Gabriela", "Humberto", "Sofía", "Ricardo",
+    "Valeria", "Denis", "Xiomara", "Byron", "Marisol", "Jairo", "Yaoska", "Bismarck",
+    "Kenia", "Rigoberto", "Xochilt", "Bayardo", "Arlen", "Eddy", "Indiana", "Melvin",
+    "Scarleth", "Lester", "Massiel", "Wilber", "Heydi", "Noel", "Karelia", "Álvaro",
+    "Meyling", "Donald", "Fabiola", "Reynaldo", "wendy", "Oswaldo", "Marbely", "Silvio",
+    "Verónica", "abner", "Ligia", "Gustavo", "Auxiliadora", "Marvin", "Yahoska", "Milton",
+]
+
+NICARAGUAN_SURNAMES = [
+    "Mendoza", "Pérez", "Ruiz", "Gutiérrez", "Sánchez", "Gómez", "Morales", "Rizo",
+    "Jirón", "Orozco", "López", "Vado", "Téllez", "Bermúdez", "Mairena", "Urbina",
+    "Sequeira", "Centeno", "Duarte", "Pineda", "Solís", "Chamorro", "Montenegro", "Argüello",
+    "Blandón", "Zeledón", "Membreño", "Rostrán", "Gadea", "Palacios", "Picado", "Talavera",
+    "Altamirano", "vanegas", "Larios", "Calero", "Narváez", "Espinoza", "Jarquín", "Sobalvarro",
+    "Salmerón", "Cajina", "Baltodano", "Alemán", "Guadamuz", "Corea", "Lacayo", "Bolaños",
+]
+
+VEHICLE_CATALOG_BY_TIER: dict[str, list[str]] = {
+    "movigo_estandar": [
+        "Toyota Yaris",
+        "Hyundai Grand i10",
+        "Kia Rio",
+        "Suzuki Alto",
+        "Chevrolet Spark",
+        "Kia Picanto",
+    ],
+    "movigo_comfort": [
+        "Suzuki Dzire",
+        "Nissan Versa",
+        "Toyota Corolla",
+        "Hyundai Accent",
+        "Honda City",
+    ],
+    "movigo_moto": [
+        "Honda CB125F",
+        "Yamaha YBR125",
+        "Bajaj Pulsar 150",
+        "Suzuki GN125",
+        "Genesis HJ125",
+    ],
+}
+
 
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Calculate great-circle distance in kilometers between two WGS84 coordinates."""
@@ -190,7 +238,117 @@ def build_deterministic_urban_zones() -> list[dict[str, Any]]:
     return [dict(z) for z in CANONICAL_URBAN_ZONES]
 
 
-build_deterministic_zonas_urbanas = build_deterministic_urban_zones
+def build_deterministic_users(seed: int = SIMULATION_SEED, count: int = 800) -> list[dict[str, Any]]:
+    """Deterministically generate 800 passenger profiles with realistic registration dates and payment methods."""
+    rng = np.random.default_rng(seed + 101)
+    users: list[dict[str, Any]] = []
+    payment_methods = ["efectivo", "tarjeta", "billetera_digital"]
+    payment_probs = [0.42, 0.35, 0.23]
+
+    pre_2024_start = date(2022, 1, 1)
+    pre_2024_days = (date(2023, 12, 31) - pre_2024_start).days
+    in_2024_start = date(2024, 1, 1)
+    in_2024_days = (date(2024, 11, 15) - in_2024_start).days
+
+    first_names = [n.title() for n in NICARAGUAN_FIRST_NAMES]
+    surnames = [s.title() for s in NICARAGUAN_SURNAMES]
+
+    for uid in range(1, count + 1):
+        fn = first_names[int(rng.integers(0, len(first_names)))]
+        sn1 = surnames[int(rng.integers(0, len(surnames)))]
+        sn2 = surnames[int(rng.integers(0, len(surnames)))]
+        name = f"{fn} {sn1} {sn2}" if rng.random() < 0.45 else f"{fn} {sn1}"
+
+        prefix = "8" if rng.random() < 0.72 else "7"
+        mid = 100 + ((uid * 37 + int(rng.integers(0, 900))) % 900)
+        tail = 1000 + ((uid * 73 + int(rng.integers(0, 9000))) % 9000)
+        phone = f"+505 {prefix}{mid:03d}-{tail:04d}"
+
+        pm = str(rng.choice(payment_methods, p=payment_probs))
+        rating = round(float(np.clip(rng.normal(4.76, 0.18), 3.85, 5.00)), 2)
+
+        # 75% registered prior to 2024-01-01, 25% onboarded progressively during 2024
+        if uid <= int(count * 0.75):
+            reg_date = pre_2024_start + timedelta(days=int(rng.integers(0, pre_2024_days + 1)))
+        else:
+            reg_date = in_2024_start + timedelta(days=int(rng.integers(0, in_2024_days + 1)))
+
+        users.append(
+            {
+                "user_id": uid,
+                "name": name,
+                "phone": phone,
+                "preferred_payment_method": pm,
+                "average_rating": rating,
+                "registration_date": reg_date.isoformat(),
+            }
+        )
+
+    return users
+
+
+def build_deterministic_drivers_and_vehicles(
+    seed: int = SIMULATION_SEED, count: int = 150
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Deterministically generate 150 drivers and 150 1:1 vehicles registered in Managua."""
+    rng = np.random.default_rng(seed + 202)
+    drivers: list[dict[str, Any]] = []
+    vehicles: list[dict[str, Any]] = []
+
+    first_names = [n.title() for n in NICARAGUAN_FIRST_NAMES]
+    surnames = [s.title() for s in NICARAGUAN_SURNAMES]
+
+    statuses = ["activo", "en_viaje", "desconectado", "inactivo"]
+    status_probs = [0.65, 0.15, 0.10, 0.10]
+
+    service_tiers = ["movigo_estandar", "movigo_comfort", "movigo_moto"]
+    tier_probs = [0.60, 0.22, 0.18]
+
+    for did in range(1, count + 1):
+        fn = first_names[int(rng.integers(0, len(first_names)))]
+        sn1 = surnames[int(rng.integers(0, len(surnames)))]
+        sn2 = surnames[int(rng.integers(0, len(surnames)))]
+        name = f"{fn} {sn1} {sn2}" if rng.random() < 0.50 else f"{fn} {sn1}"
+
+        status = str(rng.choice(statuses, p=status_probs))
+        rating = round(float(np.clip(rng.normal(4.78, 0.16), 4.20, 4.99)), 2)
+        acceptance = round(float(np.clip(rng.normal(88.5, 6.5), 68.0, 99.5)), 2)
+
+        drivers.append(
+            {
+                "driver_id": did,
+                "name": name,
+                "average_rating": rating,
+                "acceptance_rate_pct": acceptance,
+                "status": status,
+            }
+        )
+
+        tier = str(rng.choice(service_tiers, p=tier_probs))
+        models = VEHICLE_CATALOG_BY_TIER[tier]
+        v_model = str(models[int(rng.integers(0, len(models)))])
+        if tier == "movigo_comfort":
+            v_year = int(rng.integers(2019, 2025))
+        elif tier == "movigo_moto":
+            v_year = int(rng.integers(2020, 2025))
+        else:
+            v_year = int(rng.integers(2015, 2024))
+
+        plate_num = 100000 + did * 5179 + int(rng.integers(10, 999))
+        plate = f"M-{plate_num % 900000 + 100000:06d}"
+
+        vehicles.append(
+            {
+                "vehicle_id": did,
+                "driver_id": did,
+                "service_type": tier,
+                "vehicle_model": v_model,
+                "vehicle_year": v_year,
+                "license_plate": plate,
+            }
+        )
+
+    return drivers, vehicles
 
 
 def fetch_osm_street_network_for_zones(zones: list[dict[str, Any]]) -> dict[str, Any]:
@@ -433,15 +591,13 @@ def build_deterministic_quadrants_and_street_index(
     return quadrants, enriched_network
 
 
-build_deterministic_cuadrantes_and_street_index = build_deterministic_quadrants_and_street_index
-
-
 def generate_deterministic_spatial_seeds(
     output_dir: Path = DETERMINISTIC_SEEDS_DIR,
     fetch_osm: bool = False,
     dry_run: bool = False,
+    seed: int = SIMULATION_SEED,
 ) -> tuple[list[UrbanZone], list[Quadrant], dict[str, Any]]:
-    """Deterministically generate and save urban_zones.json, quadrants.json, and managua_street_network.json."""
+    """Deterministically generate and save urban_zones.json, quadrants.json, managua_street_network.json, users.json, drivers.json, and vehicles.json."""
     zones_dicts = build_deterministic_urban_zones()
     net_path = output_dir / "managua_street_network.json"
 
@@ -455,9 +611,14 @@ def generate_deterministic_spatial_seeds(
     quadrants_dicts, enriched_net = build_deterministic_quadrants_and_street_index(
         zones_dicts, base_net
     )
+    users_dicts = build_deterministic_users(seed=seed, count=800)
+    drivers_dicts, vehicles_dicts = build_deterministic_drivers_and_vehicles(seed=seed, count=150)
 
     zones_models = [UrbanZone(**z) for z in zones_dicts]
     quadrants_models = [Quadrant(**q) for q in quadrants_dicts]
+    _ = [User(**u) for u in users_dicts]
+    _ = [Driver(**d) for d in drivers_dicts]
+    _ = [Vehicle(**v) for v in vehicles_dicts]
 
     if not dry_run:
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -465,6 +626,12 @@ def generate_deterministic_spatial_seeds(
             json.dump(zones_dicts, f, indent=2, ensure_ascii=False)
         with open(output_dir / "quadrants.json", "w", encoding="utf-8") as f:
             json.dump(quadrants_dicts, f, indent=2, ensure_ascii=False)
+        with open(output_dir / "users.json", "w", encoding="utf-8") as f:
+            json.dump(users_dicts, f, indent=2, ensure_ascii=False)
+        with open(output_dir / "drivers.json", "w", encoding="utf-8") as f:
+            json.dump(drivers_dicts, f, indent=2, ensure_ascii=False)
+        with open(output_dir / "vehicles.json", "w", encoding="utf-8") as f:
+            json.dump(vehicles_dicts, f, indent=2, ensure_ascii=False)
         with open(net_path, "w", encoding="utf-8") as f:
             json.dump(enriched_net, f, separators=(",", ":"))
 

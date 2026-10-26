@@ -1,0 +1,1052 @@
+[
+  {
+    "driver_id": 1,
+    "name": "Yahoska Sánchez Rostrán",
+    "average_rating": 4.96,
+    "acceptance_rate_pct": 90.83,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 2,
+    "name": "Byron Altamirano",
+    "average_rating": 4.83,
+    "acceptance_rate_pct": 89.43,
+    "status": "activo"
+  },
+  {
+    "driver_id": 3,
+    "name": "Oscar Danilo Blandón Jirón",
+    "average_rating": 4.97,
+    "acceptance_rate_pct": 86.09,
+    "status": "activo"
+  },
+  {
+    "driver_id": 4,
+    "name": "Brenda Lisseth Mendoza Mendoza",
+    "average_rating": 4.76,
+    "acceptance_rate_pct": 98.7,
+    "status": "activo"
+  },
+  {
+    "driver_id": 5,
+    "name": "Lester Rizo",
+    "average_rating": 4.91,
+    "acceptance_rate_pct": 99.5,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 6,
+    "name": "Luis Fernando Bermúdez",
+    "average_rating": 4.99,
+    "acceptance_rate_pct": 89.63,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 7,
+    "name": "Meyling Pérez Bolaños",
+    "average_rating": 4.84,
+    "acceptance_rate_pct": 88.77,
+    "status": "activo"
+  },
+  {
+    "driver_id": 8,
+    "name": "Tatiana Alejandra Jarquín",
+    "average_rating": 4.74,
+    "acceptance_rate_pct": 90.82,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 9,
+    "name": "Yahoska Espinoza Gómez",
+    "average_rating": 4.65,
+    "acceptance_rate_pct": 89.97,
+    "status": "activo"
+  },
+  {
+    "driver_id": 10,
+    "name": "Juan Carlos Talavera Ruiz",
+    "average_rating": 4.76,
+    "acceptance_rate_pct": 92.27,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 11,
+    "name": "Xochilt Urbina Sobalvarro",
+    "average_rating": 4.78,
+    "acceptance_rate_pct": 81.72,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 12,
+    "name": "Auxiliadora Jarquín Gómez",
+    "average_rating": 4.7,
+    "acceptance_rate_pct": 98.65,
+    "status": "activo"
+  },
+  {
+    "driver_id": 13,
+    "name": "Bayardo Centeno Calero",
+    "average_rating": 4.52,
+    "acceptance_rate_pct": 93.52,
+    "status": "inactivo"
+  },
+  {
+    "driver_id": 14,
+    "name": "Valeria Talavera",
+    "average_rating": 4.73,
+    "acceptance_rate_pct": 81.27,
+    "status": "activo"
+  },
+  {
+    "driver_id": 15,
+    "name": "Marcos Antonio Gómez",
+    "average_rating": 4.79,
+    "acceptance_rate_pct": 95.83,
+    "status": "activo"
+  },
+  {
+    "driver_id": 16,
+    "name": "Lester Sobalvarro",
+    "average_rating": 4.92,
+    "acceptance_rate_pct": 84.52,
+    "status": "activo"
+  },
+  {
+    "driver_id": 17,
+    "name": "Eddy Mendoza",
+    "average_rating": 4.69,
+    "acceptance_rate_pct": 90.73,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 18,
+    "name": "Denis Vanegas Espinoza",
+    "average_rating": 4.8,
+    "acceptance_rate_pct": 91.37,
+    "status": "activo"
+  },
+  {
+    "driver_id": 19,
+    "name": "Sofía Salmerón Centeno",
+    "average_rating": 4.67,
+    "acceptance_rate_pct": 93.24,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 20,
+    "name": "Massiel Ruiz",
+    "average_rating": 4.82,
+    "acceptance_rate_pct": 90.27,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 21,
+    "name": "Xochilt Baltodano Gadea",
+    "average_rating": 4.94,
+    "acceptance_rate_pct": 85.37,
+    "status": "activo"
+  },
+  {
+    "driver_id": 22,
+    "name": "Heydi Picado",
+    "average_rating": 4.96,
+    "acceptance_rate_pct": 80.31,
+    "status": "activo"
+  },
+  {
+    "driver_id": 23,
+    "name": "Humberto Blandón Sánchez",
+    "average_rating": 4.79,
+    "acceptance_rate_pct": 95.47,
+    "status": "activo"
+  },
+  {
+    "driver_id": 24,
+    "name": "Marvin Duarte",
+    "average_rating": 4.72,
+    "acceptance_rate_pct": 87.89,
+    "status": "activo"
+  },
+  {
+    "driver_id": 25,
+    "name": "Claudia Guadamuz",
+    "average_rating": 4.6,
+    "acceptance_rate_pct": 92.61,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 26,
+    "name": "Karla Vanessa Baltodano",
+    "average_rating": 4.76,
+    "acceptance_rate_pct": 84.52,
+    "status": "activo"
+  },
+  {
+    "driver_id": 27,
+    "name": "Rigoberto Espinoza Orozco",
+    "average_rating": 4.99,
+    "acceptance_rate_pct": 85.15,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 28,
+    "name": "Fabiola Palacios",
+    "average_rating": 4.89,
+    "acceptance_rate_pct": 81.55,
+    "status": "activo"
+  },
+  {
+    "driver_id": 29,
+    "name": "Luis Fernando Mairena Téllez",
+    "average_rating": 4.67,
+    "acceptance_rate_pct": 83.58,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 30,
+    "name": "José Miguel Picado",
+    "average_rating": 4.8,
+    "acceptance_rate_pct": 98.97,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 31,
+    "name": "Carlos Téllez Sequeira",
+    "average_rating": 4.95,
+    "acceptance_rate_pct": 81.69,
+    "status": "activo"
+  },
+  {
+    "driver_id": 32,
+    "name": "Yaoska Vado",
+    "average_rating": 4.67,
+    "acceptance_rate_pct": 89.56,
+    "status": "activo"
+  },
+  {
+    "driver_id": 33,
+    "name": "Meyling Guadamuz",
+    "average_rating": 4.99,
+    "acceptance_rate_pct": 86.14,
+    "status": "inactivo"
+  },
+  {
+    "driver_id": 34,
+    "name": "Marcos Antonio Corea",
+    "average_rating": 4.98,
+    "acceptance_rate_pct": 83.0,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 35,
+    "name": "Juan Carlos Alemán Urbina",
+    "average_rating": 4.9,
+    "acceptance_rate_pct": 84.77,
+    "status": "inactivo"
+  },
+  {
+    "driver_id": 36,
+    "name": "Carlos Gutiérrez",
+    "average_rating": 4.83,
+    "acceptance_rate_pct": 88.3,
+    "status": "inactivo"
+  },
+  {
+    "driver_id": 37,
+    "name": "Arlen Gutiérrez Montenegro",
+    "average_rating": 4.62,
+    "acceptance_rate_pct": 91.02,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 38,
+    "name": "Karelia Orozco Vanegas",
+    "average_rating": 4.95,
+    "acceptance_rate_pct": 94.46,
+    "status": "activo"
+  },
+  {
+    "driver_id": 39,
+    "name": "Humberto Sobalvarro Sánchez",
+    "average_rating": 4.92,
+    "acceptance_rate_pct": 90.63,
+    "status": "activo"
+  },
+  {
+    "driver_id": 40,
+    "name": "Heydi Baltodano Chamorro",
+    "average_rating": 4.99,
+    "acceptance_rate_pct": 85.34,
+    "status": "activo"
+  },
+  {
+    "driver_id": 41,
+    "name": "Rigoberto Centeno Lacayo",
+    "average_rating": 4.72,
+    "acceptance_rate_pct": 74.5,
+    "status": "activo"
+  },
+  {
+    "driver_id": 42,
+    "name": "Abner Baltodano Rizo",
+    "average_rating": 4.87,
+    "acceptance_rate_pct": 99.5,
+    "status": "activo"
+  },
+  {
+    "driver_id": 43,
+    "name": "Ana Patricia Gómez",
+    "average_rating": 4.78,
+    "acceptance_rate_pct": 89.96,
+    "status": "activo"
+  },
+  {
+    "driver_id": 44,
+    "name": "Wendy Lacayo Picado",
+    "average_rating": 4.82,
+    "acceptance_rate_pct": 86.87,
+    "status": "activo"
+  },
+  {
+    "driver_id": 45,
+    "name": "Eddy Sobalvarro",
+    "average_rating": 4.88,
+    "acceptance_rate_pct": 87.99,
+    "status": "activo"
+  },
+  {
+    "driver_id": 46,
+    "name": "Wendy Gadea",
+    "average_rating": 4.7,
+    "acceptance_rate_pct": 96.87,
+    "status": "inactivo"
+  },
+  {
+    "driver_id": 47,
+    "name": "Marcos Antonio Alemán",
+    "average_rating": 4.64,
+    "acceptance_rate_pct": 87.5,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 48,
+    "name": "Karelia Salmerón Montenegro",
+    "average_rating": 4.91,
+    "acceptance_rate_pct": 97.16,
+    "status": "activo"
+  },
+  {
+    "driver_id": 49,
+    "name": "Wendy Calero Membreño",
+    "average_rating": 4.91,
+    "acceptance_rate_pct": 95.19,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 50,
+    "name": "Bismarck Pérez Corea",
+    "average_rating": 4.61,
+    "acceptance_rate_pct": 76.71,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 51,
+    "name": "María Elena Gadea Orozco",
+    "average_rating": 4.92,
+    "acceptance_rate_pct": 87.28,
+    "status": "activo"
+  },
+  {
+    "driver_id": 52,
+    "name": "Melvin Bolaños",
+    "average_rating": 4.49,
+    "acceptance_rate_pct": 90.85,
+    "status": "activo"
+  },
+  {
+    "driver_id": 53,
+    "name": "Milton Duarte Chamorro",
+    "average_rating": 4.8,
+    "acceptance_rate_pct": 93.5,
+    "status": "activo"
+  },
+  {
+    "driver_id": 54,
+    "name": "Sofía Sequeira",
+    "average_rating": 4.67,
+    "acceptance_rate_pct": 83.51,
+    "status": "activo"
+  },
+  {
+    "driver_id": 55,
+    "name": "Byron Ruiz Bermúdez",
+    "average_rating": 4.85,
+    "acceptance_rate_pct": 86.88,
+    "status": "activo"
+  },
+  {
+    "driver_id": 56,
+    "name": "Denis Larios",
+    "average_rating": 4.94,
+    "acceptance_rate_pct": 89.65,
+    "status": "activo"
+  },
+  {
+    "driver_id": 57,
+    "name": "Marbely Mairena Salmerón",
+    "average_rating": 4.55,
+    "acceptance_rate_pct": 80.14,
+    "status": "activo"
+  },
+  {
+    "driver_id": 58,
+    "name": "Heydi Pineda",
+    "average_rating": 4.55,
+    "acceptance_rate_pct": 91.09,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 59,
+    "name": "Valeria Salmerón",
+    "average_rating": 4.88,
+    "acceptance_rate_pct": 94.79,
+    "status": "activo"
+  },
+  {
+    "driver_id": 60,
+    "name": "Ricardo López Cajina",
+    "average_rating": 4.9,
+    "acceptance_rate_pct": 81.58,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 61,
+    "name": "Tatiana Alejandra Altamirano Centeno",
+    "average_rating": 4.93,
+    "acceptance_rate_pct": 88.11,
+    "status": "activo"
+  },
+  {
+    "driver_id": 62,
+    "name": "Ricardo Rizo Sequeira",
+    "average_rating": 4.86,
+    "acceptance_rate_pct": 81.52,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 63,
+    "name": "Rosaura Pérez",
+    "average_rating": 4.89,
+    "acceptance_rate_pct": 80.67,
+    "status": "inactivo"
+  },
+  {
+    "driver_id": 64,
+    "name": "Karelia Duarte Centeno",
+    "average_rating": 4.78,
+    "acceptance_rate_pct": 77.6,
+    "status": "activo"
+  },
+  {
+    "driver_id": 65,
+    "name": "Mauricio Gadea",
+    "average_rating": 4.93,
+    "acceptance_rate_pct": 99.5,
+    "status": "activo"
+  },
+  {
+    "driver_id": 66,
+    "name": "Karla Vanessa Mairena",
+    "average_rating": 4.73,
+    "acceptance_rate_pct": 84.21,
+    "status": "activo"
+  },
+  {
+    "driver_id": 67,
+    "name": "Melvin Jarquín",
+    "average_rating": 4.65,
+    "acceptance_rate_pct": 86.44,
+    "status": "activo"
+  },
+  {
+    "driver_id": 68,
+    "name": "Tatiana Alejandra Centeno",
+    "average_rating": 4.83,
+    "acceptance_rate_pct": 81.74,
+    "status": "activo"
+  },
+  {
+    "driver_id": 69,
+    "name": "Marvin Talavera",
+    "average_rating": 4.7,
+    "acceptance_rate_pct": 87.07,
+    "status": "activo"
+  },
+  {
+    "driver_id": 70,
+    "name": "Scarleth Calero Centeno",
+    "average_rating": 4.87,
+    "acceptance_rate_pct": 95.94,
+    "status": "activo"
+  },
+  {
+    "driver_id": 71,
+    "name": "Karla Vanessa Argüello Salmerón",
+    "average_rating": 4.71,
+    "acceptance_rate_pct": 80.18,
+    "status": "activo"
+  },
+  {
+    "driver_id": 72,
+    "name": "Denis Centeno Palacios",
+    "average_rating": 4.99,
+    "acceptance_rate_pct": 98.9,
+    "status": "activo"
+  },
+  {
+    "driver_id": 73,
+    "name": "Rigoberto Espinoza",
+    "average_rating": 4.48,
+    "acceptance_rate_pct": 99.5,
+    "status": "inactivo"
+  },
+  {
+    "driver_id": 74,
+    "name": "Verónica Bolaños Lacayo",
+    "average_rating": 4.44,
+    "acceptance_rate_pct": 88.04,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 75,
+    "name": "Xiomara Larios",
+    "average_rating": 4.61,
+    "acceptance_rate_pct": 78.92,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 76,
+    "name": "Francisco Javier Zeledón Calero",
+    "average_rating": 4.71,
+    "acceptance_rate_pct": 92.24,
+    "status": "activo"
+  },
+  {
+    "driver_id": 77,
+    "name": "Ernesto Palacios",
+    "average_rating": 4.85,
+    "acceptance_rate_pct": 87.99,
+    "status": "activo"
+  },
+  {
+    "driver_id": 78,
+    "name": "Reynaldo Membreño",
+    "average_rating": 4.61,
+    "acceptance_rate_pct": 91.21,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 79,
+    "name": "Fabiola Zeledón Cajina",
+    "average_rating": 4.66,
+    "acceptance_rate_pct": 97.16,
+    "status": "activo"
+  },
+  {
+    "driver_id": 80,
+    "name": "Wendy Sobalvarro",
+    "average_rating": 4.94,
+    "acceptance_rate_pct": 78.71,
+    "status": "activo"
+  },
+  {
+    "driver_id": 81,
+    "name": "Tatiana Alejandra Jarquín Vanegas",
+    "average_rating": 4.44,
+    "acceptance_rate_pct": 82.93,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 82,
+    "name": "Juan Carlos Vanegas Urbina",
+    "average_rating": 4.81,
+    "acceptance_rate_pct": 90.21,
+    "status": "activo"
+  },
+  {
+    "driver_id": 83,
+    "name": "Eddy Centeno",
+    "average_rating": 4.99,
+    "acceptance_rate_pct": 92.47,
+    "status": "activo"
+  },
+  {
+    "driver_id": 84,
+    "name": "Juan Carlos Orozco Mendoza",
+    "average_rating": 4.96,
+    "acceptance_rate_pct": 93.37,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 85,
+    "name": "Marcos Antonio Jarquín",
+    "average_rating": 4.99,
+    "acceptance_rate_pct": 90.04,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 86,
+    "name": "María Elena Duarte Bolaños",
+    "average_rating": 4.78,
+    "acceptance_rate_pct": 80.87,
+    "status": "activo"
+  },
+  {
+    "driver_id": 87,
+    "name": "Abner Gómez Corea",
+    "average_rating": 4.72,
+    "acceptance_rate_pct": 79.23,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 88,
+    "name": "Marisol Morales Téllez",
+    "average_rating": 4.84,
+    "acceptance_rate_pct": 90.32,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 89,
+    "name": "Francisco Javier Solís",
+    "average_rating": 4.88,
+    "acceptance_rate_pct": 84.4,
+    "status": "activo"
+  },
+  {
+    "driver_id": 90,
+    "name": "Karla Vanessa Centeno",
+    "average_rating": 4.9,
+    "acceptance_rate_pct": 93.65,
+    "status": "activo"
+  },
+  {
+    "driver_id": 91,
+    "name": "Eddy Rizo",
+    "average_rating": 4.94,
+    "acceptance_rate_pct": 83.72,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 92,
+    "name": "Luis Fernando Montenegro Corea",
+    "average_rating": 4.99,
+    "acceptance_rate_pct": 93.95,
+    "status": "activo"
+  },
+  {
+    "driver_id": 93,
+    "name": "Carlos Orozco Corea",
+    "average_rating": 4.91,
+    "acceptance_rate_pct": 86.61,
+    "status": "activo"
+  },
+  {
+    "driver_id": 94,
+    "name": "Oscar Danilo Gómez",
+    "average_rating": 4.63,
+    "acceptance_rate_pct": 89.63,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 95,
+    "name": "Wilber Corea",
+    "average_rating": 4.7,
+    "acceptance_rate_pct": 75.32,
+    "status": "activo"
+  },
+  {
+    "driver_id": 96,
+    "name": "Karelia Argüello",
+    "average_rating": 4.6,
+    "acceptance_rate_pct": 84.46,
+    "status": "activo"
+  },
+  {
+    "driver_id": 97,
+    "name": "Alejandro Sánchez",
+    "average_rating": 4.99,
+    "acceptance_rate_pct": 89.85,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 98,
+    "name": "Xiomara Baltodano",
+    "average_rating": 4.72,
+    "acceptance_rate_pct": 84.97,
+    "status": "activo"
+  },
+  {
+    "driver_id": 99,
+    "name": "Marcos Antonio Morales",
+    "average_rating": 4.72,
+    "acceptance_rate_pct": 92.78,
+    "status": "activo"
+  },
+  {
+    "driver_id": 100,
+    "name": "Juan Carlos Solís",
+    "average_rating": 4.61,
+    "acceptance_rate_pct": 99.5,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 101,
+    "name": "Wendy Montenegro Chamorro",
+    "average_rating": 4.53,
+    "acceptance_rate_pct": 81.74,
+    "status": "activo"
+  },
+  {
+    "driver_id": 102,
+    "name": "Valeria Membreño Picado",
+    "average_rating": 4.74,
+    "acceptance_rate_pct": 83.12,
+    "status": "activo"
+  },
+  {
+    "driver_id": 103,
+    "name": "Alejandro Zeledón Téllez",
+    "average_rating": 4.87,
+    "acceptance_rate_pct": 86.42,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 104,
+    "name": "Juan Carlos Bermúdez Sobalvarro",
+    "average_rating": 4.88,
+    "acceptance_rate_pct": 80.83,
+    "status": "activo"
+  },
+  {
+    "driver_id": 105,
+    "name": "Ramón Emilio Lacayo",
+    "average_rating": 4.91,
+    "acceptance_rate_pct": 93.61,
+    "status": "activo"
+  },
+  {
+    "driver_id": 106,
+    "name": "Rosaura Jarquín",
+    "average_rating": 4.7,
+    "acceptance_rate_pct": 82.37,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 107,
+    "name": "Oswaldo Téllez",
+    "average_rating": 4.97,
+    "acceptance_rate_pct": 92.03,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 108,
+    "name": "Álvaro Mairena Vado",
+    "average_rating": 4.75,
+    "acceptance_rate_pct": 93.2,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 109,
+    "name": "Ricardo Guadamuz",
+    "average_rating": 4.61,
+    "acceptance_rate_pct": 85.68,
+    "status": "activo"
+  },
+  {
+    "driver_id": 110,
+    "name": "Ana Patricia Talavera",
+    "average_rating": 4.78,
+    "acceptance_rate_pct": 93.69,
+    "status": "activo"
+  },
+  {
+    "driver_id": 111,
+    "name": "Sofía Alemán",
+    "average_rating": 4.61,
+    "acceptance_rate_pct": 81.58,
+    "status": "activo"
+  },
+  {
+    "driver_id": 112,
+    "name": "Heydi Gutiérrez Vado",
+    "average_rating": 4.76,
+    "acceptance_rate_pct": 87.98,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 113,
+    "name": "Yaoska Larios Ruiz",
+    "average_rating": 4.99,
+    "acceptance_rate_pct": 80.65,
+    "status": "activo"
+  },
+  {
+    "driver_id": 114,
+    "name": "Donald Centeno",
+    "average_rating": 4.74,
+    "acceptance_rate_pct": 79.34,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 115,
+    "name": "Melvin Palacios Chamorro",
+    "average_rating": 4.65,
+    "acceptance_rate_pct": 93.04,
+    "status": "activo"
+  },
+  {
+    "driver_id": 116,
+    "name": "Gabriela Duarte",
+    "average_rating": 4.75,
+    "acceptance_rate_pct": 93.54,
+    "status": "activo"
+  },
+  {
+    "driver_id": 117,
+    "name": "Humberto Sánchez Narváez",
+    "average_rating": 4.54,
+    "acceptance_rate_pct": 84.46,
+    "status": "activo"
+  },
+  {
+    "driver_id": 118,
+    "name": "Melvin Sobalvarro",
+    "average_rating": 4.88,
+    "acceptance_rate_pct": 99.5,
+    "status": "activo"
+  },
+  {
+    "driver_id": 119,
+    "name": "Auxiliadora Membreño",
+    "average_rating": 4.78,
+    "acceptance_rate_pct": 91.57,
+    "status": "activo"
+  },
+  {
+    "driver_id": 120,
+    "name": "Silvio Urbina",
+    "average_rating": 4.97,
+    "acceptance_rate_pct": 96.84,
+    "status": "activo"
+  },
+  {
+    "driver_id": 121,
+    "name": "Gustavo Membreño Calero",
+    "average_rating": 4.82,
+    "acceptance_rate_pct": 96.94,
+    "status": "activo"
+  },
+  {
+    "driver_id": 122,
+    "name": "Verónica Chamorro Altamirano",
+    "average_rating": 4.73,
+    "acceptance_rate_pct": 96.24,
+    "status": "activo"
+  },
+  {
+    "driver_id": 123,
+    "name": "Humberto Baltodano",
+    "average_rating": 4.85,
+    "acceptance_rate_pct": 82.21,
+    "status": "activo"
+  },
+  {
+    "driver_id": 124,
+    "name": "Kenia Sánchez",
+    "average_rating": 4.74,
+    "acceptance_rate_pct": 96.03,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 125,
+    "name": "Auxiliadora Téllez",
+    "average_rating": 4.69,
+    "acceptance_rate_pct": 94.88,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 126,
+    "name": "Ramón Emilio Blandón Jarquín",
+    "average_rating": 4.72,
+    "acceptance_rate_pct": 79.52,
+    "status": "inactivo"
+  },
+  {
+    "driver_id": 127,
+    "name": "Rigoberto Solís Palacios",
+    "average_rating": 4.99,
+    "acceptance_rate_pct": 89.35,
+    "status": "activo"
+  },
+  {
+    "driver_id": 128,
+    "name": "Verónica Espinoza",
+    "average_rating": 4.78,
+    "acceptance_rate_pct": 84.65,
+    "status": "activo"
+  },
+  {
+    "driver_id": 129,
+    "name": "Marbely Alemán Montenegro",
+    "average_rating": 4.67,
+    "acceptance_rate_pct": 88.6,
+    "status": "activo"
+  },
+  {
+    "driver_id": 130,
+    "name": "Ana Patricia Guadamuz Sequeira",
+    "average_rating": 4.99,
+    "acceptance_rate_pct": 84.33,
+    "status": "activo"
+  },
+  {
+    "driver_id": 131,
+    "name": "Marvin Ruiz",
+    "average_rating": 4.79,
+    "acceptance_rate_pct": 95.8,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 132,
+    "name": "Eddy Solís",
+    "average_rating": 4.47,
+    "acceptance_rate_pct": 89.0,
+    "status": "inactivo"
+  },
+  {
+    "driver_id": 133,
+    "name": "Kenia Gutiérrez",
+    "average_rating": 4.72,
+    "acceptance_rate_pct": 94.49,
+    "status": "activo"
+  },
+  {
+    "driver_id": 134,
+    "name": "Donald Narváez",
+    "average_rating": 4.99,
+    "acceptance_rate_pct": 85.86,
+    "status": "activo"
+  },
+  {
+    "driver_id": 135,
+    "name": "Marbely Centeno Narváez",
+    "average_rating": 4.99,
+    "acceptance_rate_pct": 73.68,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 136,
+    "name": "Fabiola Membreño Duarte",
+    "average_rating": 4.78,
+    "acceptance_rate_pct": 93.13,
+    "status": "activo"
+  },
+  {
+    "driver_id": 137,
+    "name": "Xochilt Morales Calero",
+    "average_rating": 4.92,
+    "acceptance_rate_pct": 95.71,
+    "status": "activo"
+  },
+  {
+    "driver_id": 138,
+    "name": "Byron López Baltodano",
+    "average_rating": 4.9,
+    "acceptance_rate_pct": 89.92,
+    "status": "activo"
+  },
+  {
+    "driver_id": 139,
+    "name": "Milton Chamorro Corea",
+    "average_rating": 4.86,
+    "acceptance_rate_pct": 86.73,
+    "status": "inactivo"
+  },
+  {
+    "driver_id": 140,
+    "name": "Oscar Danilo Lacayo",
+    "average_rating": 4.71,
+    "acceptance_rate_pct": 80.68,
+    "status": "activo"
+  },
+  {
+    "driver_id": 141,
+    "name": "Oscar Danilo Larios",
+    "average_rating": 4.96,
+    "acceptance_rate_pct": 88.63,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 142,
+    "name": "Marisol Membreño",
+    "average_rating": 4.6,
+    "acceptance_rate_pct": 92.08,
+    "status": "activo"
+  },
+  {
+    "driver_id": 143,
+    "name": "Roberto Palacios Montenegro",
+    "average_rating": 4.8,
+    "acceptance_rate_pct": 99.5,
+    "status": "activo"
+  },
+  {
+    "driver_id": 144,
+    "name": "Juan Carlos Narváez Mairena",
+    "average_rating": 4.91,
+    "acceptance_rate_pct": 86.02,
+    "status": "activo"
+  },
+  {
+    "driver_id": 145,
+    "name": "Abner Montenegro Vanegas",
+    "average_rating": 4.72,
+    "acceptance_rate_pct": 83.53,
+    "status": "activo"
+  },
+  {
+    "driver_id": 146,
+    "name": "Oscar Danilo Narváez",
+    "average_rating": 4.69,
+    "acceptance_rate_pct": 90.85,
+    "status": "inactivo"
+  },
+  {
+    "driver_id": 147,
+    "name": "Marvin Ruiz",
+    "average_rating": 4.84,
+    "acceptance_rate_pct": 95.87,
+    "status": "activo"
+  },
+  {
+    "driver_id": 148,
+    "name": "Tatiana Alejandra Morales Blandón",
+    "average_rating": 4.93,
+    "acceptance_rate_pct": 86.0,
+    "status": "activo"
+  },
+  {
+    "driver_id": 149,
+    "name": "Juan Carlos Gómez",
+    "average_rating": 4.34,
+    "acceptance_rate_pct": 81.14,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 150,
+    "name": "Marcos Antonio Calero",
+    "average_rating": 4.84,
+    "acceptance_rate_pct": 96.98,
+    "status": "activo"
+  }
+]
