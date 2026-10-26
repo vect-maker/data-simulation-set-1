@@ -1,17 +1,17 @@
-"""Semantic enrichment module for MoviGo ride-hailing simulation."""
+"""Semantic enrichment module for MoviGo ride-hailing simulation (3NF OLTP schema)."""
 
 import logging
 from typing import Any
 import numpy as np
 
 from movigo_sim.config import SIMULATION_SEED
-from movigo_sim.models import Trip
+from movigo_sim.models import TripCancellation
 
 logger = logging.getLogger(__name__)
 
 
 class MoviGoSemanticEnricher:
-    """Enriches simulated rides with contextual ride comments and cancellation notes."""
+    """Enriches simulated cancellation records with contextual Managua cancellation notes."""
 
     def __init__(
         self,
@@ -31,12 +31,12 @@ class MoviGoSemanticEnricher:
             "Falla mecánica / imprevisto del conductor",
         ]
 
-    def enrich_trips(self, trips: list[Trip]) -> list[Trip]:
-        """Ensure all canceled trips have descriptive Managua cancellation notes."""
+    def enrich_cancellations(self, cancellations: list[TripCancellation]) -> list[TripCancellation]:
+        """Ensure all cancellation logs have descriptive Managua cancellation notes."""
         self.rng = np.random.default_rng(self.random_seed)
-        logger.info(f"Enriching {len(trips)} rides with semantic cancellation reasons...")
-        for trip in trips:
-            if "cancelado" in trip.trip_status and not trip.cancellation_reason:
+        logger.info(f"Enriching {len(cancellations)} cancellation logs with semantic cancellation reasons...")
+        for canc in cancellations:
+            if not canc.cancellation_reason:
                 idx = int(self.rng.integers(0, len(self.cancellation_reasons)))
-                trip.cancellation_reason = str(self.cancellation_reasons[idx])
-        return trips
+                canc.cancellation_reason = str(self.cancellation_reasons[idx])
+        return cancellations

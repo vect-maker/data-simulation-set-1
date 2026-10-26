@@ -1,7 +1,7 @@
-"""Exporter module for MoviGo (Urban Mobility in Managua).
+"""Exporter module for MoviGo (Urban Mobility in Managua - 3NF Transactional OLTP Schema).
 
 Generates CSV files, SQL dump with academic database objects (Functions, Triggers, MVs, Roles),
-and statistical/numerical summary reports using standardized English table and column names.
+and statistical/numerical summary reports using standardized English 3NF table and column names.
 """
 
 import logging
@@ -27,12 +27,16 @@ from movigo_sim.models import (
     UrbanZone,
     User,
     Driver,
+    Vehicle,
     IncentiveCampaign,
     QuadrantWeather,
     Trip,
+    TripPayment,
+    TripRating,
+    TripCancellation,
     DriverTelemetry,
 )
-from movigo_sim.generator import load_movigo_quadrants
+from movigo_sim.generator import load_movigo_quadrants, load_movigo_vehicles
 from movigo_sim.analytics import (
     compute_movigo_estadistica_ii,
     compute_movigo_metodos_numericos,
@@ -46,14 +50,18 @@ def export_movigo_to_csv(
     zones: list[UrbanZone],
     users: list[User],
     drivers: list[Driver],
+    vehicles: list[Vehicle],
     campaigns: list[IncentiveCampaign],
     weather: Any,
     trips: list[Trip],
+    payments: list[TripPayment],
+    ratings: list[TripRating],
+    cancellations: list[TripCancellation],
     telemetry: list[DriverTelemetry],
     output_dir: Path = CSV_ARTIFACTS_DIR,
     quadrants: list[Quadrant] | None = None,
 ) -> dict[str, Path]:
-    """Export all relational tables to CSV format with standardized English table names."""
+    """Export all 12 relational 3NF OLTP tables to CSV format with standardized English table names."""
     if quadrants is None:
         quadrants = load_movigo_quadrants()
     tables = {
@@ -61,28 +69,36 @@ def export_movigo_to_csv(
         "quadrants": quadrants,
         "users": users,
         "drivers": drivers,
+        "vehicles": vehicles,
         "incentive_campaigns": campaigns,
         "quadrant_weather": weather,
         "trips": trips,
+        "trip_payments": payments,
+        "trip_ratings": ratings,
+        "trip_cancellations": cancellations,
         "driver_telemetry": telemetry,
     }
     return export_models_to_csv(tables, output_dir)
 
 
 def generate_movigo_postgresql_ddl() -> str:
-    """Generate PostgreSQL DDL for MoviGo with standardized English table and column names."""
+    """Generate PostgreSQL DDL for MoviGo 3NF OLTP schema with standardized English names."""
     return """-- =========================================================
--- ESQUEMA OLTP / RAW STAGING: MoviGo (Managua, Nicaragua)
+-- ESQUEMA OLTP 3NF / RAW STAGING: MoviGo (Managua, Nicaragua)
 -- =========================================================
 
 CREATE SCHEMA IF NOT EXISTS raw_staging_movigo;
 SET search_path TO raw_staging_movigo, public;
 
 DROP TABLE IF EXISTS driver_telemetry CASCADE;
+DROP TABLE IF EXISTS trip_cancellations CASCADE;
+DROP TABLE IF EXISTS trip_ratings CASCADE;
+DROP TABLE IF EXISTS trip_payments CASCADE;
 DROP TABLE IF EXISTS trips CASCADE;
 DROP TABLE IF EXISTS trip_audit_logs CASCADE;
 DROP TABLE IF EXISTS quadrant_weather CASCADE;
 DROP TABLE IF EXISTS incentive_campaigns CASCADE;
+DROP TABLE IF EXISTS vehicles CASCADE;
 DROP TABLE IF EXISTS drivers CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS quadrants CASCADE;
@@ -126,13 +142,18 @@ CREATE TABLE users (
 CREATE TABLE drivers (
     driver_id INT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    service_type VARCHAR(20) NOT NULL CHECK (service_type IN ('movigo_estandar', 'movigo_comfort', 'movigo_moto')),
-    vehicle_model VARCHAR(100) NOT NULL,
-    vehicle_year INT NOT NULL,
-    license_plate VARCHAR(20) NOT NULL,
     average_rating DECIMAL(3,2) NOT NULL,
     acceptance_rate_pct DECIMAL(4,2) NOT NULL,
     status VARCHAR(20) NOT NULL CHECK (status IN ('activo', 'inactivo', 'en_viaje', 'desconectado'))
+);
+
+CREATE TABLE vehicles (
+    vehicle_id INT PRIMARY KEY,
+    driver_id INT NOT NULL UNIQUE REFERENCES drivers(driver_id),
+    service_type VARCHAR(20) NOT NULL CHECK (service_type IN ('movigo_estandar', 'movigo_comfort', 'movigo_moto')),
+    vehicle_model VARCHAR(100) NOT NULL,
+    vehicle_year INT NOT NULL,
+    license_plate VARCHAR(20) NOT NULL UNIQUE
 );
 
 CREATE TABLE incentive_campaigns (
@@ -164,8 +185,6 @@ CREATE TABLE trips (
     trip_id INT PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(user_id),
     driver_id INT REFERENCES drivers(driver_id),
-    origin_zone_id INT NOT NULL REFERENCES urban_zones(zone_id),
-    destination_zone_id INT NOT NULL REFERENCES urban_zones(zone_id),
     origin_quadrant_id INT NOT NULL REFERENCES quadrants(quadrant_id),
     destination_quadrant_id INT NOT NULL REFERENCES quadrants(quadrant_id),
     origin_latitude DECIMAL(9,6) NOT NULL,
@@ -175,30 +194,43 @@ CREATE TABLE trips (
     requested_at TIMESTAMP NOT NULL,
     started_at TIMESTAMP,
     completed_at TIMESTAMP,
-    wait_time_minutes DECIMAL(6,2) NOT NULL CHECK (wait_time_minutes >= 0),
     distance_km DECIMAL(6,2) NOT NULL CHECK (distance_km >= 0),
     duration_minutes DECIMAL(6,2) NOT NULL CHECK (duration_minutes >= 0),
-    flag_drop_fare DECIMAL(8,2) NOT NULL CHECK (flag_drop_fare >= 0),
-    distance_charge DECIMAL(8,2) NOT NULL CHECK (distance_charge >= 0),
-    time_charge DECIMAL(8,2) NOT NULL CHECK (time_charge >= 0),
-    base_fare DECIMAL(8,2) NOT NULL,
-    surge_multiplier DECIMAL(4,2) NOT NULL DEFAULT 1.00 CHECK (surge_multiplier >= 1.00),
-    final_fare DECIMAL(8,2) NOT NULL CHECK (final_fare >= 0),
-    origin_active_requests INT NOT NULL CHECK (origin_active_requests >= 1),
-    origin_available_drivers INT NOT NULL CHECK (origin_available_drivers >= 1),
+    trip_status VARCHAR(25) NOT NULL CHECK (trip_status IN ('completado', 'cancelado_usuario', 'cancelado_conductor', 'no_asignado'))
+);
+
+CREATE TABLE trip_payments (
+    payment_id INT PRIMARY KEY,
+    trip_id INT NOT NULL UNIQUE REFERENCES trips(trip_id),
     payment_method VARCHAR(30) NOT NULL CHECK (payment_method IN ('efectivo', 'tarjeta', 'billetera_digital')),
-    trip_status VARCHAR(25) NOT NULL CHECK (trip_status IN ('completado', 'cancelado_usuario', 'cancelado_conductor', 'no_asignado')),
-    user_rating DECIMAL(3,2),
-    driver_rating DECIMAL(3,2),
-    tip_amount DECIMAL(8,2) NOT NULL DEFAULT 0.0,
-    cancellation_reason TEXT
+    base_fare DECIMAL(8,2) NOT NULL CHECK (base_fare >= 0),
+    surge_multiplier DECIMAL(4,2) NOT NULL DEFAULT 1.00 CHECK (surge_multiplier >= 1.00),
+    tip_amount DECIMAL(8,2) NOT NULL DEFAULT 0.0 CHECK (tip_amount >= 0),
+    final_fare DECIMAL(8,2) NOT NULL CHECK (final_fare >= 0),
+    payment_status VARCHAR(20) NOT NULL CHECK (payment_status IN ('pagado', 'anulado'))
+);
+
+CREATE TABLE trip_ratings (
+    rating_id INT PRIMARY KEY,
+    trip_id INT NOT NULL UNIQUE REFERENCES trips(trip_id),
+    user_rating DECIMAL(3,2) NOT NULL CHECK (user_rating BETWEEN 1.0 AND 5.0),
+    driver_rating DECIMAL(3,2) NOT NULL CHECK (driver_rating BETWEEN 1.0 AND 5.0)
+);
+
+CREATE TABLE trip_cancellations (
+    cancellation_id INT PRIMARY KEY,
+    trip_id INT NOT NULL UNIQUE REFERENCES trips(trip_id),
+    cancelled_by VARCHAR(20) NOT NULL CHECK (cancelled_by IN ('usuario', 'conductor')),
+    cancellation_reason TEXT NOT NULL,
+    wait_time_minutes DECIMAL(6,2) NOT NULL CHECK (wait_time_minutes >= 0),
+    origin_active_requests INT NOT NULL CHECK (origin_active_requests >= 1),
+    origin_available_drivers INT NOT NULL CHECK (origin_available_drivers >= 1)
 );
 
 CREATE TABLE driver_telemetry (
     telemetry_id INT PRIMARY KEY,
     driver_id INT NOT NULL REFERENCES drivers(driver_id),
     trip_id INT REFERENCES trips(trip_id),
-    zone_id INT NOT NULL REFERENCES urban_zones(zone_id),
     quadrant_id INT NOT NULL REFERENCES quadrants(quadrant_id),
     recorded_at TIMESTAMP NOT NULL,
     latitude DECIMAL(9,6) NOT NULL,
@@ -253,16 +285,18 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Indices analiticos
+-- Indices relacionales y analiticos
 CREATE INDEX idx_quadrants_zone ON quadrants(zone_id);
+CREATE INDEX idx_vehicles_driver ON vehicles(driver_id);
 CREATE INDEX idx_weather_quadrant_ts ON quadrant_weather(quadrant_id, recorded_at);
 CREATE INDEX idx_weather_date_hour ON quadrant_weather(date, hour);
 CREATE INDEX idx_trips_requested_at ON trips(requested_at);
-CREATE INDEX idx_trips_origin_zone ON trips(origin_zone_id);
-CREATE INDEX idx_trips_destination_zone ON trips(destination_zone_id);
 CREATE INDEX idx_trips_origin_quadrant ON trips(origin_quadrant_id);
 CREATE INDEX idx_trips_destination_quadrant ON trips(destination_quadrant_id);
 CREATE INDEX idx_trips_driver ON trips(driver_id);
+CREATE INDEX idx_payments_trip ON trip_payments(trip_id);
+CREATE INDEX idx_ratings_trip ON trip_ratings(trip_id);
+CREATE INDEX idx_cancellations_trip ON trip_cancellations(trip_id);
 CREATE INDEX idx_telemetry_driver ON driver_telemetry(driver_id);
 CREATE INDEX idx_telemetry_trip ON driver_telemetry(trip_id);
 CREATE INDEX idx_telemetry_quadrant ON driver_telemetry(quadrant_id);
@@ -273,7 +307,7 @@ def generate_movigo_post_load_ddl() -> str:
     """Generate analytical materialized views and security grants post COPY."""
     return """
 -- =========================================================
--- VISTAS MATERIALIZADAS Y ROLES (Post-Carga de Datos)
+-- VISTAS MATERIALIZADAS Y ROLES (Post-Carga de Datos 3NF)
 -- =========================================================
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_hourly_mobility_kpis AS
@@ -282,10 +316,12 @@ SELECT
     z.socioeconomic_stratum,
     COUNT(t.trip_id) AS total_requests,
     SUM(CASE WHEN t.trip_status = 'completado' THEN 1 ELSE 0 END) AS completed_trips,
-    AVG(t.surge_multiplier) AS avg_surge_multiplier,
-    AVG(t.final_fare) AS avg_fare_nio
+    AVG(p.surge_multiplier) AS avg_surge_multiplier,
+    AVG(p.final_fare) AS avg_fare_nio
 FROM trips t
-JOIN urban_zones z ON t.origin_zone_id = z.zone_id
+JOIN quadrants q ON t.origin_quadrant_id = q.quadrant_id
+JOIN urban_zones z ON q.zone_id = z.zone_id
+JOIN trip_payments p ON t.trip_id = p.trip_id
 GROUP BY EXTRACT(HOUR FROM t.requested_at), z.socioeconomic_stratum
 WITH DATA;
 
@@ -314,15 +350,19 @@ def export_movigo_to_sql_dump(
     csv_paths: dict[str, Path],
     output_file: Path = SQL_ARTIFACTS_DIR / "schema_and_data.sql",
 ) -> Path:
-    """Generate consolidated SQL file with DDL and COPY commands."""
+    """Generate consolidated SQL file with DDL and COPY commands for all 12 normalized tables."""
     copy_order = [
         "urban_zones",
         "quadrants",
         "users",
         "drivers",
+        "vehicles",
         "incentive_campaigns",
         "quadrant_weather",
         "trips",
+        "trip_payments",
+        "trip_ratings",
+        "trip_cancellations",
         "driver_telemetry",
     ]
     return build_sql_dump(
@@ -337,15 +377,20 @@ def export_movigo_to_sql_dump(
 
 def compute_movigo_simulation_summary(
     zones: list[UrbanZone],
+    quadrants: list[Quadrant],
     trips: list[Trip],
+    payments: list[TripPayment],
     weather: Any,
     campaigns: list[IncentiveCampaign],
     seed: int = SIMULATION_SEED,
     summary_path: Path | None = None,
 ) -> dict[str, Any]:
-    """Compute mathematical, inferential, and optimization properties of MoviGo dataset."""
+    """Compute mathematical, inferential, and optimization properties of MoviGo 3NF dataset."""
     df_trips = pd.DataFrame([v.model_dump() for v in trips])
+    df_payments = pd.DataFrame([p.model_dump() for p in payments])
     df_zones = pd.DataFrame([z.model_dump() for z in zones])
+    df_quadrants = pd.DataFrame([q.model_dump() for q in quadrants])
+
     if isinstance(weather, pd.DataFrame):
         df_weather = weather
     elif hasattr(weather, "to_dataframe"):
@@ -359,11 +404,11 @@ def compute_movigo_simulation_summary(
     canceled_trips = int(df_trips["trip_status"].str.contains("cancelado").sum()) if not df_trips.empty else 0
     cancellation_pct = round((canceled_trips / total_trips) * 100, 2) if total_trips > 0 else 0
 
-    total_gross_revenue = float(df_trips["final_fare"].sum()) if not df_trips.empty else 0.0
-    avg_fare = round(float(df_trips["final_fare"].mean()), 2) if not df_trips.empty else 0.0
+    total_gross_revenue = float(df_payments["final_fare"].sum()) if not df_payments.empty else 0.0
+    avg_fare = round(float(df_payments["final_fare"].mean()), 2) if not df_payments.empty else 0.0
     avg_dist = round(float(df_trips["distance_km"].mean()), 2) if not df_trips.empty else 0.0
     avg_dur = round(float(df_trips["duration_minutes"].mean()), 2) if not df_trips.empty else 0.0
-    avg_surge = round(float(df_trips["surge_multiplier"].mean()), 2) if not df_trips.empty else 1.0
+    avg_surge = round(float(df_payments["surge_multiplier"].mean()), 2) if not df_payments.empty else 1.0
 
     df_trips["date"] = pd.to_datetime(df_trips["requested_at"]).dt.date
     daily_trips = df_trips.groupby("date").size().reset_index(name="num_trips")
@@ -383,16 +428,27 @@ def compute_movigo_simulation_summary(
     corr_rain = float(merged_weather["precipitation_mm"].corr(merged_weather["num_trips"])) if len(merged_weather) >= 3 else 0.92
     corr_congestion = float(merged_weather["congestion_index"].corr(merged_weather["num_trips"])) if len(merged_weather) >= 3 else 0.86
 
-    merged_trips = df_trips.merge(
-        df_zones[["zone_id", "socioeconomic_stratum"]],
-        left_on="origin_zone_id",
-        right_on="zone_id",
-        how="left",
-    ) if not df_trips.empty else pd.DataFrame()
+    if not df_trips.empty and not df_payments.empty:
+        merged_trips = (
+            df_trips.merge(df_payments[["trip_id", "payment_method"]], on="trip_id", how="left")
+            .merge(
+                df_quadrants[["quadrant_id", "zone_id"]],
+                left_on="origin_quadrant_id",
+                right_on="quadrant_id",
+                how="left",
+            )
+            .merge(
+                df_zones[["zone_id", "socioeconomic_stratum"]],
+                on="zone_id",
+                how="left",
+            )
+        )
+    else:
+        merged_trips = pd.DataFrame()
 
     chi2_res = compute_contingency_chi2(merged_trips, "socioeconomic_stratum", "payment_method")
 
-    est_results = compute_movigo_estadistica_ii(df_trips, df_weather, df_zones)
+    est_results = compute_movigo_estadistica_ii(df_trips, df_payments, df_quadrants, df_weather, df_zones)
     num_results = compute_movigo_metodos_numericos()
     opt_results = compute_movigo_optimizacion()
 

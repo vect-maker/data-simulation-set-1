@@ -1,14 +1,14 @@
-"""Numerical and operational simulation engine for MoviGo ride-hailing app in Managua.
+"""Numerical and operational simulation engine for MoviGo ride-hailing app in Managua (3NF OLTP schema).
 
 Generates realistic urban mobility facts with strict mathematical guarantees:
-- Two-tier spatial architecture: 12 urban pricing zones (urban_zones) grouping 92 fine-grained square quadrants (quadrants, ~0.88 km x 0.88 km)
-- Hourly localized weather, topographical cauce runoff (channel_runoff_mm), and street flooding (flooded_roads) per square quadrant
-- Street-snapped Origin, Destination, and Telemetry GPS coordinates from OpenStreetMap ways strictly within their square quadrant bounding box
-- Physical route consistency (Haversine * circuity factor) with forced detours when cauces flood
-- Micro-behavioral logistic cancellation model (stratum surge sensitivity, cash threshold C$200/C$500, dispatch wait > 10m, flooded streets)
-- Transparent parametric pricing breakdown (flag_drop_fare, distance_charge, time_charge, base_fare, surge_multiplier, final_fare)
-- Supply & Demand snapshot at request time (origin_active_requests, origin_available_drivers) coupled to f(m) = D(m) - S(m) = 0
-- Multi-point GPS breadcrumb trajectories in driver_telemetry linked via trip_id and quadrant_id
+- Two-tier 3NF spatial architecture: 12 urban pricing zones (urban_zones) grouping 92 fine-grained square quadrants (quadrants, ~0.88 km x 0.88 km)
+- Normalized transactional entities:
+  * drivers & vehicles (separated 1:1)
+  * trips (lean 15-column core ride lifecycle header without transitive zone FKs or pre-calculated fare breakdowns)
+  * trip_payments (payment_method, base_fare, surge_multiplier, tip_amount, final_fare, payment_status)
+  * trip_ratings (user_rating, driver_rating for completed trips only)
+  * trip_cancellations (cancelled_by, cancellation_reason, wait_time_minutes, origin_active_requests, origin_available_drivers for cancelled trips only)
+  * driver_telemetry (multi-point GPS breadcrumb trajectories linked via trip_id and quadrant_id without transitive zone_id)
 """
 
 import json
@@ -36,7 +36,11 @@ from movigo_sim.models import (
     UrbanZone,
     User,
     Driver,
+    Vehicle,
     Trip,
+    TripPayment,
+    TripRating,
+    TripCancellation,
     DriverTelemetry,
     IncentiveCampaign,
 )
@@ -89,6 +93,12 @@ def load_movigo_quadrants() -> list[Quadrant]:
         return [Quadrant(**c) for c in json.load(f)]
 
 
+def load_movigo_vehicles() -> list[Vehicle]:
+    """Load the 20 driver vehicles from LLM JSON seed fixture."""
+    with open(LLM_SEEDS_DIR / "vehicles.json", encoding="utf-8") as f:
+        return [Vehicle(**v) for v in json.load(f)]
+
+
 def load_movigo_seed_catalogs() -> tuple[
     list[UrbanZone],
     list[User],
@@ -125,7 +135,7 @@ def load_managua_street_network() -> dict[str, Any]:
 
 
 class MoviGoSimulationEngine:
-    """Core numerical simulation engine for MoviGo ride-hailing facts."""
+    """Core numerical simulation engine for MoviGo ride-hailing facts in 3NF OLTP form."""
 
     def __init__(self, random_seed: int = SIMULATION_SEED):
         self.random_seed = random_seed
@@ -146,6 +156,7 @@ class MoviGoSimulationEngine:
             self.campaigns,
             self.templates,
         ) = load_movigo_seed_catalogs()
+        self.vehicles = load_movigo_vehicles()
 
         self.zone_quadrants: dict[int, list[Quadrant]] = {z.zone_id: [] for z in self.zones}
         for c in self.quadrants:
@@ -318,7 +329,7 @@ class MoviGoSimulationEngine:
         return d_t, s_t, round(multiplier, 2)
 
     def calculate_surge_multiplier(self, precip_mm: float, hour: int) -> float:
-        """Backward-compatible helper to calculate dynamic surge multiplier."""
+        """Helper to calculate dynamic surge multiplier."""
         _, _, m = self.simulate_supply_demand_and_surge(self.zones[0], precip_mm, precip_mm, precip_mm > 12.0, hour, 2)
         return m
 
@@ -433,10 +444,16 @@ class MoviGoSimulationEngine:
     def run_simulation(
         self,
         weather_df: pd.DataFrame,
-    ) -> tuple[list[Trip], list[DriverTelemetry]]:
-        """Run full year MoviGo simulation coupled to hourly square-quadrant climate and street flood risk."""
+    ) -> tuple[
+        list[Trip],
+        list[TripPayment],
+        list[TripRating],
+        list[TripCancellation],
+        list[DriverTelemetry],
+    ]:
+        """Run full year MoviGo simulation emitting 3NF OLTP transactional tables."""
         self.rng = np.random.default_rng(self.random_seed)
-        logger.info(f"Starting MoviGo simulation across {len(weather_df)} days (seed={self.random_seed})...")
+        logger.info(f"Starting MoviGo 3NF simulation across {len(weather_df)} days (seed={self.random_seed})...")
 
         hourly_matrices: dict[str, Any] | None = weather_df.attrs.get("hourly_matrices")
         date_hour_to_idx: dict[tuple[date, int], int] = (
@@ -444,8 +461,15 @@ class MoviGoSimulationEngine:
         )
 
         trips: list[Trip] = []
+        payments: list[TripPayment] = []
+        ratings: list[TripRating] = []
+        cancellations: list[TripCancellation] = []
         telemetry: list[DriverTelemetry] = []
+
         trip_counter = 1
+        payment_counter = 1
+        rating_counter = 1
+        cancellation_counter = 1
         telemetry_counter = 1
 
         for day_idx, (_, row) in enumerate(weather_df.iterrows()):
@@ -548,9 +572,21 @@ class MoviGoSimulationEngine:
                     trip_status = cancel_state or "cancelado_usuario"
                     start_time = None
                     end_time = None
-                    rating_usr = None
-                    rating_drv = None
                     tip_amount = 0.0
+                    payment_status = "anulado"
+                    cancelled_by = "conductor" if trip_status == "cancelado_conductor" else "usuario"
+                    cancellations.append(
+                        TripCancellation(
+                            cancellation_id=cancellation_counter,
+                            trip_id=trip_id,
+                            cancelled_by=cancelled_by,
+                            cancellation_reason=reason or "Tarifa dinámica sobrepasa presupuesto",
+                            wait_time_minutes=wait_min,
+                            origin_active_requests=d_t,
+                            origin_available_drivers=s_t,
+                        )
+                    )
+                    cancellation_counter += 1
                 else:
                     trip_status = "completado"
                     start_time = req_time + timedelta(minutes=wait_min)
@@ -565,14 +601,23 @@ class MoviGoSimulationEngine:
                         tip_amount = float(self.rng.choice([20.0, 30.0, 50.0], p=[0.60, 0.30, 0.10]))
                     else:
                         tip_amount = 0.0
+                    payment_status = "pagado"
+
+                    ratings.append(
+                        TripRating(
+                            rating_id=rating_counter,
+                            trip_id=trip_id,
+                            user_rating=rating_usr,
+                            driver_rating=rating_drv,
+                        )
+                    )
+                    rating_counter += 1
 
                 trips.append(
                     Trip(
                         trip_id=trip_id,
                         user_id=user.user_id,
                         driver_id=driver.driver_id,
-                        origin_zone_id=origin_zone.zone_id,
-                        destination_zone_id=destination_zone.zone_id,
                         origin_quadrant_id=q_o,
                         destination_quadrant_id=q_d,
                         origin_latitude=lat_o,
@@ -582,25 +627,25 @@ class MoviGoSimulationEngine:
                         requested_at=req_time,
                         started_at=start_time,
                         completed_at=end_time,
-                        wait_time_minutes=wait_min,
                         distance_km=dist_km,
                         duration_minutes=dur_min,
-                        flag_drop_fare=flag_drop_fare,
-                        distance_charge=distance_charge,
-                        time_charge=time_charge,
-                        base_fare=base_fare,
-                        surge_multiplier=surge,
-                        final_fare=final_fare,
-                        origin_active_requests=d_t,
-                        origin_available_drivers=s_t,
-                        payment_method=payment_method,
                         trip_status=trip_status,
-                        user_rating=rating_usr,
-                        driver_rating=rating_drv,
-                        tip_amount=tip_amount,
-                        cancellation_reason=reason,
                     )
                 )
+
+                payments.append(
+                    TripPayment(
+                        payment_id=payment_counter,
+                        trip_id=trip_id,
+                        payment_method=payment_method,
+                        base_fare=base_fare,
+                        surge_multiplier=surge,
+                        tip_amount=tip_amount,
+                        final_fare=final_fare,
+                        payment_status=payment_status,
+                    )
+                )
+                payment_counter += 1
 
                 # Generate street-snapped telemetry breadcrumb trail & idle pings
                 if not is_canceled and self.rng.random() < 0.08:
@@ -614,7 +659,6 @@ class MoviGoSimulationEngine:
                             telemetry_id=telemetry_counter,
                             driver_id=driver.driver_id,
                             trip_id=trip_id,
-                            zone_id=origin_zone.zone_id,
                             quadrant_id=approach_q,
                             recorded_at=req_time + timedelta(minutes=round(wait_min * 0.5, 2)),
                             latitude=approach_lat,
@@ -629,7 +673,7 @@ class MoviGoSimulationEngine:
                         raw_lat = lat_o + frac * (lat_d - lat_o) + (detour_lat_offset if frac == 0.55 else 0.0)
                         raw_lon = lon_o + frac * (lon_d - lon_o) + (detour_lon_offset if frac == 0.55 else 0.0)
                         fallback_z = origin_zone if frac < 0.5 else destination_zone
-                        wp_lat, wp_lon, wp_zone_id, wp_quad_id = self.snap_to_nearest_street_and_quadrant(
+                        wp_lat, wp_lon, _wp_zone_id, wp_quad_id = self.snap_to_nearest_street_and_quadrant(
                             raw_lat, raw_lon, fallback_z
                         )
 
@@ -648,7 +692,6 @@ class MoviGoSimulationEngine:
                                 telemetry_id=telemetry_counter,
                                 driver_id=driver.driver_id,
                                 trip_id=trip_id,
-                                zone_id=wp_zone_id,
                                 quadrant_id=wp_quad_id,
                                 recorded_at=start_time + timedelta(minutes=round(dur_min * frac, 2)),
                                 latitude=wp_lat,
@@ -666,7 +709,6 @@ class MoviGoSimulationEngine:
                             telemetry_id=telemetry_counter,
                             driver_id=driver.driver_id,
                             trip_id=None,
-                            zone_id=origin_zone.zone_id,
                             quadrant_id=idle_q,
                             recorded_at=req_time,
                             latitude=idle_lat,
@@ -680,5 +722,8 @@ class MoviGoSimulationEngine:
             if (day_idx + 1) % 60 == 0 or (day_idx + 1) == len(weather_df):
                 logger.info(f"Simulated {day_idx + 1}/{len(weather_df)} days... ({len(trips)} rides generated)")
 
-        logger.info(f"MoviGo simulation completed! Produced {len(trips)} rides and {len(telemetry)} telemetry pings.")
-        return trips, telemetry
+        logger.info(
+            f"MoviGo simulation completed! Produced {len(trips)} trips, {len(payments)} payments, "
+            f"{len(ratings)} ratings, {len(cancellations)} cancellations, and {len(telemetry)} telemetry pings."
+        )
+        return trips, payments, ratings, cancellations, telemetry

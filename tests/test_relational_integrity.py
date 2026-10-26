@@ -91,13 +91,21 @@ class TestRelationalIntegrity(unittest.TestCase):
         weather_df = weather_df.head(3)
 
         engine = MoviGoSimulationEngine(random_seed=42)
-        trips, telemetry = engine.run_simulation(weather_df)
+        trips, payments, ratings, cancellations, telemetry = engine.run_simulation(weather_df)
 
         valid_quadrants = {q.quadrant_id: q for q in engine.quadrants}
-        valid_zones = {z.zone_id for z in engine.zones}
+        valid_zones = {z.zone_id: z for z in engine.zones}
         valid_users = {u.user_id for u in engine.users}
         valid_drivers = {c.driver_id for c in engine.drivers}
-        valid_trips = {v.trip_id for v in trips}
+        valid_trips = {v.trip_id: v for v in trips}
+
+        # Verify 1:1 drivers <-> vehicles integrity
+        self.assertEqual(len(engine.vehicles), len(engine.drivers))
+        seen_vehicle_drivers = set()
+        for veh in engine.vehicles:
+            self.assertIn(veh.driver_id, valid_drivers)
+            seen_vehicle_drivers.add(veh.driver_id)
+        self.assertEqual(seen_vehicle_drivers, valid_drivers)
 
         self.assertEqual(len(engine.quadrants), 92)
         det_zones, det_quadrants, _ = generate_deterministic_spatial_seeds(dry_run=True)
@@ -115,41 +123,64 @@ class TestRelationalIntegrity(unittest.TestCase):
             self.assertIn(v.user_id, valid_users)
             if v.driver_id is not None:
                 self.assertIn(v.driver_id, valid_drivers)
-            self.assertIn(v.origin_zone_id, valid_zones)
-            self.assertIn(v.destination_zone_id, valid_zones)
             self.assertIn(v.origin_quadrant_id, valid_quadrants)
             self.assertIn(v.destination_quadrant_id, valid_quadrants)
             qo = valid_quadrants[v.origin_quadrant_id]
             qd = valid_quadrants[v.destination_quadrant_id]
-            self.assertEqual(qo.zone_id, v.origin_zone_id)
-            self.assertEqual(qd.zone_id, v.destination_zone_id)
+            self.assertNotEqual(qo.zone_id, qd.zone_id)
             self.assertTrue(qo.lat_min <= v.origin_latitude <= qo.lat_max)
             self.assertTrue(qo.lon_min <= v.origin_longitude <= qo.lon_max)
             self.assertTrue(qd.lat_min <= v.destination_latitude <= qd.lat_max)
             self.assertTrue(qd.lon_min <= v.destination_longitude <= qd.lon_max)
-            self.assertGreaterEqual(v.wait_time_minutes, 0.0)
             self.assertGreaterEqual(v.distance_km, 0.0)
             self.assertGreaterEqual(v.duration_minutes, 0.0)
+
+        # Verify 1:1 trips <-> trip_payments and derived fare formula
+        self.assertEqual(len(payments), len(trips))
+        for p in payments:
+            self.assertIn(p.trip_id, valid_trips)
+            t_obj = valid_trips[p.trip_id]
+            zo = valid_zones[valid_quadrants[t_obj.origin_quadrant_id].zone_id]
+            derived_base_fare = round(zo.base_flag_drop_fare + round(t_obj.distance_km * 18.0, 2) + round(t_obj.duration_minutes * 4.5, 2), 2)
+            self.assertAlmostEqual(p.base_fare, derived_base_fare, delta=0.02)
+            self.assertGreaterEqual(p.surge_multiplier, 1.0)
             self.assertAlmostEqual(
-                v.base_fare,
-                v.flag_drop_fare + v.distance_charge + v.time_charge,
+                p.final_fare,
+                round(p.base_fare * p.surge_multiplier, 2),
                 delta=0.02,
             )
-            self.assertGreaterEqual(v.surge_multiplier, 1.0)
-            self.assertAlmostEqual(
-                v.final_fare,
-                round(v.base_fare * v.surge_multiplier, 2),
-                delta=0.02,
-            )
-            self.assertGreaterEqual(v.origin_active_requests, 1)
-            self.assertGreaterEqual(v.origin_available_drivers, 1)
+            if t_obj.trip_status == "completado":
+                self.assertEqual(p.payment_status, "pagado")
+            else:
+                self.assertEqual(p.payment_status, "anulado")
+
+        # Verify trip_ratings (only completed trips) + trip_cancellations (only cancelled trips) partition trips
+        self.assertEqual(len(ratings) + len(cancellations), len(trips))
+        rated_trip_ids = set()
+        for r in ratings:
+            self.assertIn(r.trip_id, valid_trips)
+            self.assertEqual(valid_trips[r.trip_id].trip_status, "completado")
+            self.assertTrue(1.0 <= r.user_rating <= 5.0)
+            self.assertTrue(1.0 <= r.driver_rating <= 5.0)
+            rated_trip_ids.add(r.trip_id)
+
+        cancelled_trip_ids = set()
+        for canc in cancellations:
+            self.assertIn(canc.trip_id, valid_trips)
+            self.assertIn(valid_trips[canc.trip_id].trip_status, ["cancelado_usuario", "cancelado_conductor"])
+            self.assertIn(canc.cancelled_by, ["usuario", "conductor"])
+            self.assertGreaterEqual(canc.wait_time_minutes, 0.0)
+            self.assertGreaterEqual(canc.origin_active_requests, 1)
+            self.assertGreaterEqual(canc.origin_available_drivers, 1)
+            cancelled_trip_ids.add(canc.trip_id)
+
+        self.assertTrue(rated_trip_ids.isdisjoint(cancelled_trip_ids))
 
         for t in telemetry:
             self.assertIn(t.driver_id, valid_drivers)
-            self.assertIn(t.zone_id, valid_zones)
             self.assertIn(t.quadrant_id, valid_quadrants)
             qt = valid_quadrants[t.quadrant_id]
-            self.assertEqual(qt.zone_id, t.zone_id)
+            self.assertIn(qt.zone_id, valid_zones)
             self.assertTrue(qt.lat_min <= t.latitude <= qt.lat_max)
             self.assertTrue(qt.lon_min <= t.longitude <= qt.lon_max)
             self.assertGreaterEqual(t.speed_kmh, 0.0)
@@ -174,17 +205,20 @@ class TestRelationalIntegrity(unittest.TestCase):
         engine = MoviGoSimulationEngine(random_seed=SIMULATION_SEED)
         enricher = MoviGoSemanticEnricher(engine.templates, random_seed=SIMULATION_SEED)
 
-        viajes_1, tel_1 = engine.run_simulation(w_df_1.head(3))
-        viajes_1 = enricher.enrich_trips(viajes_1)
+        trips_1, pay_1, rat_1, canc_1, tel_1 = engine.run_simulation(w_df_1.head(3))
+        canc_1 = enricher.enrich_cancellations(canc_1)
 
         # Mutate global np.random in between to prove complete RNG isolation
         np.random.seed(99999)
         _ = np.random.rand(100)
 
-        viajes_2, tel_2 = engine.run_simulation(w_df_2.head(3))
-        viajes_2 = enricher.enrich_trips(viajes_2)
+        trips_2, pay_2, rat_2, canc_2, tel_2 = engine.run_simulation(w_df_2.head(3))
+        canc_2 = enricher.enrich_cancellations(canc_2)
 
-        self.assertEqual([v.model_dump() for v in viajes_1], [v.model_dump() for v in viajes_2])
+        self.assertEqual([v.model_dump() for v in trips_1], [v.model_dump() for v in trips_2])
+        self.assertEqual([p.model_dump() for p in pay_1], [p.model_dump() for p in pay_2])
+        self.assertEqual([r.model_dump() for r in rat_1], [r.model_dump() for r in rat_2])
+        self.assertEqual([c.model_dump() for c in canc_1], [c.model_dump() for c in canc_2])
         self.assertEqual([t.model_dump() for t in tel_1], [t.model_dump() for t in tel_2])
 
 

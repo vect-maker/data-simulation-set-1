@@ -1014,7 +1014,7 @@ class UserOut(BaseModel):
 
 
 class DriverOut(BaseModel):
-    """Socio conductor y unidad vehicular registrada en la flota."""
+    """Socio conductor registrado en la flota."""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -1027,26 +1027,6 @@ class DriverOut(BaseModel):
         ...,
         description="Nombre y apellido del conductor.",
         examples=["Ernesto Chamorro"],
-    )
-    service_type: str = Field(
-        ...,
-        description="Categoría del servicio prestado ('movigo_estandar', 'movigo_comfort', 'movigo_moto').",
-        examples=["movigo_estandar"],
-    )
-    vehicle_model: str = Field(
-        ...,
-        description="Marca y modelo del automóvil o moto.",
-        examples=["Toyota Yaris Sedan"],
-    )
-    vehicle_year: int = Field(
-        ...,
-        description="Año de fabricación del vehículo automotor.",
-        examples=[2021],
-    )
-    license_plate: str = Field(
-        ...,
-        description="Matrícula vehicular de Managua (ej. 'M-123456').",
-        examples=["M-123456"],
     )
     average_rating: float = Field(
         ...,
@@ -1062,6 +1042,43 @@ class DriverOut(BaseModel):
         ...,
         description="Disponibilidad operativa actual ('activo', 'inactivo', 'en_viaje', 'desconectado').",
         examples=["activo"],
+    )
+
+
+class VehicleOut(BaseModel):
+    """Unidad vehicular asignada al socio conductor en la flota MoviGo."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    vehicle_id: int = Field(
+        ...,
+        description="Identificador único numérico de la unidad vehicular.",
+        examples=[1],
+    )
+    driver_id: int = Field(
+        ...,
+        description="Clave foránea del socio conductor que opera la unidad.",
+        examples=[1],
+    )
+    service_type: str = Field(
+        ...,
+        description="Categoría del servicio prestado ('movigo_estandar', 'movigo_comfort', 'movigo_moto').",
+        examples=["movigo_estandar"],
+    )
+    vehicle_model: str = Field(
+        ...,
+        description="Marca y modelo del automóvil o moto.",
+        examples=["Toyota Yaris"],
+    )
+    vehicle_year: int = Field(
+        ...,
+        description="Año de fabricación del vehículo automotor.",
+        examples=[2021],
+    )
+    license_plate: str = Field(
+        ...,
+        description="Matrícula vehicular de Managua (ej. 'M-123456').",
+        examples=["M-123456"],
     )
 
 
@@ -1175,7 +1192,7 @@ class QuadrantWeatherOut(BaseModel):
 
 
 class TripOut(BaseModel):
-    """Registro transaccional de un viaje realizado en la plataforma MoviGo."""
+    """Cabecera transaccional esbelta (3NF) de un viaje solicitado en la plataforma MoviGo."""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -1193,16 +1210,6 @@ class TripOut(BaseModel):
         default=None,
         description="Clave foránea del socio conductor que atendió el viaje.",
         examples=[205],
-    )
-    origin_zone_id: int = Field(
-        ...,
-        description="Clave foránea de la zona urbana de origen (1 a 12).",
-        examples=[1],
-    )
-    destination_zone_id: int = Field(
-        ...,
-        description="Clave foránea de la zona urbana de destino (1 a 12).",
-        examples=[4],
     )
     origin_quadrant_id: int = Field(
         ...,
@@ -1249,11 +1256,6 @@ class TripOut(BaseModel):
         description="Marca de tiempo de finalización del viaje en destino.",
         examples=["2024-05-18T18:22:00"],
     )
-    wait_time_minutes: float = Field(
-        ...,
-        description="Tiempo de espera de despacho desde la solicitud hasta el arribo o cancelación en minutos.",
-        examples=[7.0],
-    )
     distance_km: float = Field(
         ...,
         description="Distancia real del trayecto en kilómetros (km).",
@@ -1264,24 +1266,36 @@ class TripOut(BaseModel):
         description="Tiempo total transcurrido del viaje en minutos.",
         examples=[30.0],
     )
-    flag_drop_fare: float = Field(
+    trip_status: str = Field(
         ...,
-        description="Tarifa de arranque o bajada de bandera según la zona de origen en Córdobas (NIO).",
-        examples=[70.0],
+        description="Estado final del servicio ('completado', 'cancelado_usuario', 'cancelado_conductor', 'no_asignado').",
+        examples=["completado"],
     )
-    distance_charge: float = Field(
+
+
+class TripPaymentOut(BaseModel):
+    """Transacción de cobro y liquidación tarifaria asociada a un viaje."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    payment_id: int = Field(
         ...,
-        description="Componente tarifario por kilómetros recorridos (18.00 NIO * distance_km).",
-        examples=[122.4],
+        description="Identificador único numérico de la transacción de pago.",
+        examples=[10042],
     )
-    time_charge: float = Field(
+    trip_id: int = Field(
         ...,
-        description="Componente tarifario por minutos de viaje (4.50 NIO * duration_minutes).",
-        examples=[135.0],
+        description="Clave foránea del viaje facturado.",
+        examples=[10042],
+    )
+    payment_method: str = Field(
+        ...,
+        description="Modalidad de pago ('efectivo', 'tarjeta', 'billetera_digital').",
+        examples=["tarjeta"],
     )
     base_fare: float = Field(
         ...,
-        description="Tarifa base regular antes de aplicar recargos dinámicos (bajada + distancia + tiempo) en Córdobas (NIO).",
+        description="Tarifa base regular antes de aplicar recargos dinámicos en Córdobas (NIO).",
         examples=[327.4],
     )
     surge_multiplier: float = Field(
@@ -1289,55 +1303,94 @@ class TripOut(BaseModel):
         description="Factor multiplicador por alta demanda o lluvia (surge pricing, 1.00x a 3.20x).",
         examples=[1.35],
     )
-    final_fare: float = Field(
-        ...,
-        description="Monto final efectivamente facturado al pasajero (base_fare * surge_multiplier) en Córdobas (NIO).",
-        examples=[441.99],
-    )
-    origin_active_requests: int = Field(
-        ...,
-        description="Demanda activa instantánea (Dt) de viajes en la zona de origen en esa hora.",
-        examples=[42],
-    )
-    origin_available_drivers: int = Field(
-        ...,
-        description="Oferta instantánea (St) de conductores disponibles en la zona de origen en esa hora.",
-        examples=[28],
-    )
-    payment_method: str = Field(
-        ...,
-        description="Modalidad de pago ('efectivo', 'tarjeta', 'billetera_digital').",
-        examples=["tarjeta"],
-    )
-    trip_status: str = Field(
-        ...,
-        description="Estado final del servicio ('completado', 'cancelado_usuario', 'cancelado_conductor', 'no_asignado').",
-        examples=["completado"],
-    )
-    user_rating: float | None = Field(
-        default=None,
-        description="Puntuación otorgada por el conductor al pasajero (1.0 a 5.0).",
-        examples=[5.0],
-    )
-    driver_rating: float | None = Field(
-        default=None,
-        description="Puntuación otorgada por el pasajero al conductor (1.0 a 5.0).",
-        examples=[4.9],
-    )
     tip_amount: float = Field(
         default=0.0,
         description="Monto voluntario de gratificación dejado al conductor en Córdobas (NIO).",
         examples=[20.0],
     )
-    cancellation_reason: str | None = Field(
-        default=None,
-        description="Motivo categórico registrado en caso de viaje cancelado.",
-        examples=[None],
+    final_fare: float = Field(
+        ...,
+        description="Monto final facturado al pasajero (base_fare * surge_multiplier) en Córdobas (NIO).",
+        examples=[441.99],
+    )
+    payment_status: str = Field(
+        ...,
+        description="Estado de la transacción de pago ('pagado', 'anulado').",
+        examples=["pagado"],
+    )
+
+
+class TripRatingOut(BaseModel):
+    """Calificación bilateral post-viaje para viajes completados."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    rating_id: int = Field(
+        ...,
+        description="Identificador único numérico del registro de calificación.",
+        examples=[8500],
+    )
+    trip_id: int = Field(
+        ...,
+        description="Clave foránea del viaje completado.",
+        examples=[10042],
+    )
+    user_rating: float = Field(
+        ...,
+        description="Puntuación otorgada por el conductor al pasajero (1.0 a 5.0).",
+        examples=[5.0],
+    )
+    driver_rating: float = Field(
+        ...,
+        description="Puntuación otorgada por el pasajero al conductor (1.0 a 5.0).",
+        examples=[4.9],
+    )
+
+
+class TripCancellationOut(BaseModel):
+    """Bitácora de cancelación y estado de oferta/demanda al momento de cancelar el viaje."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    cancellation_id: int = Field(
+        ...,
+        description="Identificador único numérico del evento de cancelación.",
+        examples=[1204],
+    )
+    trip_id: int = Field(
+        ...,
+        description="Clave foránea del viaje cancelado.",
+        examples=[10055],
+    )
+    cancelled_by: str = Field(
+        ...,
+        description="Actor que originó la cancelación ('usuario', 'conductor').",
+        examples=["usuario"],
+    )
+    cancellation_reason: str = Field(
+        ...,
+        description="Motivo registrado de la cancelación.",
+        examples=["Tarifa dinámica sobrepasa presupuesto"],
+    )
+    wait_time_minutes: float = Field(
+        ...,
+        description="Tiempo de espera transcurrido desde la solicitud hasta la cancelación en minutos.",
+        examples=[9.5],
+    )
+    origin_active_requests: int = Field(
+        ...,
+        description="Demanda activa instantánea (Dt) de viajes en la zona de origen.",
+        examples=[42],
+    )
+    origin_available_drivers: int = Field(
+        ...,
+        description="Oferta instantánea (St) de conductores disponibles en la zona de origen.",
+        examples=[18],
     )
 
 
 class DriverTelemetryOut(BaseModel):
-    """Ping de telemetría GPS vehicular y velocidad en tiempo real."""
+    """Ping de telemetría GPS vehicular y velocidad en tiempo real (esquema 3NF)."""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -1355,11 +1408,6 @@ class DriverTelemetryOut(BaseModel):
         default=None,
         description="Clave foránea del viaje activo asociado al ping GPS (None cuando el conductor está disponible).",
         examples=[10042],
-    )
-    zone_id: int = Field(
-        ...,
-        description="Clave foránea de la zona urbana donde se captó la señal (1 a 12).",
-        examples=[1],
     )
     quadrant_id: int = Field(
         ...,

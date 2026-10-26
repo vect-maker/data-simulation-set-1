@@ -99,7 +99,7 @@ def run_generation(
     output_dir=None,
     refresh_weather: bool = False,
 ):
-    """Programmatic entry point for MoviGo simulation generation."""
+    """Programmatic entry point for MoviGo 3NF simulation generation."""
     weather_df, weather_records = get_movigo_weather_series(force_refresh=refresh_weather, seed=seed)
     if days and days < len(weather_df):
         weather_df = weather_df.head(days)
@@ -110,14 +110,14 @@ def run_generation(
             weather_records = [c for c in weather_records if c.date in valid_dates]
 
     engine = MoviGoSimulationEngine(random_seed=seed)
-    trips, telemetry = engine.run_simulation(weather_df)
+    trips, payments, ratings, cancellations, telemetry = engine.run_simulation(weather_df)
 
     enricher = MoviGoSemanticEnricher(
         templates=engine.templates,
         use_llm=live_llm,
         random_seed=seed,
     )
-    trips = enricher.enrich_trips(trips)
+    cancellations = enricher.enrich_cancellations(cancellations)
 
     csv_dir = Path(output_dir).resolve() if output_dir else CSV_ARTIFACTS_DIR.resolve()
     is_custom_dir = csv_dir != CSV_ARTIFACTS_DIR.resolve()
@@ -128,9 +128,13 @@ def run_generation(
         zones=engine.zones,
         users=engine.users,
         drivers=engine.drivers,
+        vehicles=engine.vehicles,
         campaigns=engine.campaigns,
         weather=weather_records,
         trips=trips,
+        payments=payments,
+        ratings=ratings,
+        cancellations=cancellations,
         telemetry=telemetry,
         output_dir=csv_dir,
         quadrants=engine.quadrants,
@@ -138,7 +142,9 @@ def run_generation(
     export_movigo_to_sql_dump(csv_files, output_file=sql_path)
     summary = compute_movigo_simulation_summary(
         zones=engine.zones,
+        quadrants=engine.quadrants,
         trips=trips,
+        payments=payments,
         weather=weather_records,
         campaigns=engine.campaigns,
         seed=seed,
@@ -150,9 +156,13 @@ def run_generation(
             zones=engine.zones,
             users=engine.users,
             drivers=engine.drivers,
+            vehicles=engine.vehicles,
             campaigns=engine.campaigns,
             weather=weather_records,
             trips=trips,
+            payments=payments,
+            ratings=ratings,
+            cancellations=cancellations,
             telemetry=telemetry,
             schema_name=schema,
             quadrants=engine.quadrants,
@@ -177,17 +187,21 @@ def run_loading(schema: str = POSTGRES_SCHEMA, seed: int = SIMULATION_SEED):
     """Programmatic entry point for loading to PostgreSQL."""
     engine = MoviGoSimulationEngine(random_seed=seed)
     weather_df, weather_records = get_movigo_weather_series(seed=seed)
-    trips, telemetry = engine.run_simulation(weather_df)
+    trips, payments, ratings, cancellations, telemetry = engine.run_simulation(weather_df)
     enricher = MoviGoSemanticEnricher(engine.templates, random_seed=seed)
-    trips = enricher.enrich_trips(trips)
+    cancellations = enricher.enrich_cancellations(cancellations)
 
     load_movigo_to_postgres(
         zones=engine.zones,
         users=engine.users,
         drivers=engine.drivers,
+        vehicles=engine.vehicles,
         campaigns=engine.campaigns,
         weather=weather_records,
         trips=trips,
+        payments=payments,
+        ratings=ratings,
+        cancellations=cancellations,
         telemetry=telemetry,
         schema_name=schema,
         quadrants=engine.quadrants,

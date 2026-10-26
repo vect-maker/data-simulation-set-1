@@ -1,4 +1,4 @@
-"""Routers for Caso 3: MoviGo (Transporte por Aplicación y Movilidad Urbana - Managua)."""
+"""Routers for Caso 3: MoviGo (Transporte por Aplicación y Movilidad Urbana - Managua, Esquema OLTP 3NF)."""
 
 from datetime import date
 from typing import Annotated, Any
@@ -12,9 +12,13 @@ from src.api.schemas import (
     PaginatedResponse,
     QuadrantOut,
     QuadrantWeatherOut,
+    TripCancellationOut,
     TripOut,
+    TripPaymentOut,
+    TripRatingOut,
     UrbanZoneOut,
     UserOut,
+    VehicleOut,
 )
 from src.api.utils import execute_paginated_query, fetch_single_resource
 
@@ -213,27 +217,19 @@ def get_users(
 @router.get(
     "/drivers",
     response_model=PaginatedResponse[DriverOut],
-    summary="Listar flota de socios conductores",
+    summary="Listar socios conductores registrados",
     description=(
-        "### Directorio de Conductores y Unidades Vehiculares\n\n"
-        "Consulta la flota de conductores afiliados a MoviGo clasificados por categoría de servicio "
-        "(`movigo_estandar`, `movigo_comfort`, `movigo_moto`), incluyendo modelo y año del vehículo, "
-        "matrícula, calificación promedio de pasajeros y tasa histórica de aceptación de carreras."
+        "### Directorio de Socios Conductores (3NF)\n\n"
+        "Consulta el perfil operativo de los conductores afiliados a MoviGo, incluyendo "
+        "calificación promedio de pasajeros (`average_rating`), tasa histórica de aceptación (`acceptance_rate_pct`) y estado operativo (`status`)."
     ),
-    response_description="Colección paginada de conductores y vehículos",
+    response_description="Colección paginada de conductores",
     responses={
         200: {"description": "Consulta exitosa de conductores."},
         422: {"description": "Error en los parámetros de filtrado o paginación."},
     },
 )
 def get_drivers(
-    service_type: Annotated[
-        str | None,
-        Query(
-            description="Filtrar por categoría del vehículo.",
-            examples=["movigo_estandar", "movigo_comfort", "movigo_moto"],
-        ),
-    ] = None,
     status: Annotated[
         str | None,
         Query(
@@ -254,7 +250,7 @@ def get_drivers(
         str | None,
         Query(
             description="Campo de ordenamiento (ej. '-average_rating', '-acceptance_rate_pct').",
-            examples=["-average_rating", "-acceptance_rate_pct", "vehicle_year"],
+            examples=["-average_rating", "-acceptance_rate_pct"],
         ),
     ] = None,
     offset: Annotated[
@@ -266,22 +262,83 @@ def get_drivers(
         Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
     ] = 50,
 ):
-    """Consulta la flota de conductores, vehículos, calificación y tasa de aceptación."""
+    """Consulta el directorio de conductores, calificación y tasa de aceptación."""
     filters: list[tuple[str, str, Any]] = []
-    if service_type:
-        filters.append(("service_type", "=", service_type))
     if status:
         filters.append(("status", "=", status))
     if min_rating is not None:
         filters.append(("average_rating", ">=", min_rating))
 
-    allowed = {"driver_id", "name", "service_type", "vehicle_year", "average_rating", "acceptance_rate_pct", "status"}
+    allowed = {"driver_id", "name", "average_rating", "acceptance_rate_pct", "status"}
     return execute_paginated_query(
         schema=SCHEMA,
         table="drivers",
         filters=filters,
         allowed_sort_columns=allowed,
         default_sort="driver_id",
+        sort=sort,
+        offset=offset,
+        limit=limit,
+    )
+
+
+@router.get(
+    "/vehicles",
+    response_model=PaginatedResponse[VehicleOut],
+    summary="Listar unidades vehiculares registradas",
+    description=(
+        "### Catálogo de Unidades Vehiculares (3NF)\n\n"
+        "Consulta los vehículos registrados y asignados a cada conductor (`driver_id`), clasificados por categoría de servicio "
+        "(`movigo_estandar`, `movigo_comfort`, `movigo_moto`), modelo, año de fabricación y matrícula (`license_plate`)."
+    ),
+    response_description="Colección paginada de unidades vehiculares",
+    responses={
+        200: {"description": "Consulta exitosa de vehículos."},
+        422: {"description": "Error en los parámetros de filtrado o paginación."},
+    },
+)
+def get_vehicles(
+    driver_id: Annotated[
+        int | None,
+        Query(ge=1, description="Filtrar por identificador del socio conductor.", examples=[1]),
+    ] = None,
+    service_type: Annotated[
+        str | None,
+        Query(
+            description="Filtrar por categoría de servicio vehicular.",
+            examples=["movigo_estandar", "movigo_comfort", "movigo_moto"],
+        ),
+    ] = None,
+    sort: Annotated[
+        str | None,
+        Query(
+            description="Campo de ordenamiento (ej. 'vehicle_id', '-vehicle_year').",
+            examples=["vehicle_id", "-vehicle_year"],
+        ),
+    ] = None,
+    offset: Annotated[
+        int,
+        Query(ge=0, description="Desplazamiento para paginación.", examples=[0]),
+    ] = 0,
+    limit: Annotated[
+        int,
+        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+    ] = 50,
+):
+    """Consulta las unidades vehiculares asociadas a los socios conductores."""
+    filters: list[tuple[str, str, Any]] = []
+    if driver_id is not None:
+        filters.append(("driver_id", "=", driver_id))
+    if service_type:
+        filters.append(("service_type", "=", service_type))
+
+    allowed = {"vehicle_id", "driver_id", "service_type", "vehicle_model", "vehicle_year", "license_plate"}
+    return execute_paginated_query(
+        schema=SCHEMA,
+        table="vehicles",
+        filters=filters,
+        allowed_sort_columns=allowed,
+        default_sort="vehicle_id",
         sort=sort,
         offset=offset,
         limit=limit,
@@ -444,12 +501,11 @@ def get_weather_movigo(
 @router.get(
     "/trips",
     response_model=PaginatedResponse[TripOut],
-    summary="Listar viajes en la plataforma y tarifas dinámicas",
+    summary="Listar cabecera transaccional de viajes (3NF)",
     description=(
-        "### Histórico Transaccional de Viajes Urbanos\n\n"
-        "Consulta los viajes solicitados y completados en la plataforma MoviGo. Incluye zona y cuadrante de origen/destino, "
-        "distancia recorrida en kilómetros, duración en minutos, multiplicador dinámico (`surge_multiplier`), "
-        "tarifa final en Córdobas (`final_fare`), propinas y calificaciones bilaterales."
+        "### Cabecera Transaccional de Viajes Urbanos (Esquema 3NF)\n\n"
+        "Consulta la tabla `trips` normalizada en 3NF. Contiene los cuadrantes de origen/destino (`origin_quadrant_id`, `destination_quadrant_id`), "
+        "coordenadas GPS en vía pública, marcas de tiempo (`requested_at`, `started_at`, `completed_at`), distancia (`distance_km`), duración (`duration_minutes`) y estado (`trip_status`)."
     ),
     response_description="Colección paginada de viajes urbanos transaccionales",
     responses={
@@ -458,14 +514,6 @@ def get_weather_movigo(
     },
 )
 def get_trips(
-    origin_zone_id: Annotated[
-        int | None,
-        Query(description="Filtrar por zona urbana de origen en Managua.", examples=[1]),
-    ] = None,
-    destination_zone_id: Annotated[
-        int | None,
-        Query(description="Filtrar por zona urbana de destino en Managua.", examples=[4]),
-    ] = None,
     origin_quadrant_id: Annotated[
         int | None,
         Query(description="Filtrar por cuadrante cuadrado de origen (1 a 92).", examples=[15]),
@@ -476,11 +524,11 @@ def get_trips(
     ] = None,
     driver_id: Annotated[
         int | None,
-        Query(description="Filtrar por conductor asignado.", examples=[205]),
+        Query(description="Filtrar por conductor asignado.", examples=[1]),
     ] = None,
     user_id: Annotated[
         int | None,
-        Query(description="Filtrar por usuario pasajero.", examples=[501]),
+        Query(description="Filtrar por usuario pasajero.", examples=[1]),
     ] = None,
     trip_status: Annotated[
         str | None,
@@ -489,18 +537,11 @@ def get_trips(
             examples=["completado", "cancelado_usuario", "cancelado_conductor", "no_asignado"],
         ),
     ] = None,
-    payment_method: Annotated[
-        str | None,
-        Query(
-            description="Filtrar por método de pago empleado.",
-            examples=["efectivo", "tarjeta", "billetera_digital"],
-        ),
-    ] = None,
     sort: Annotated[
         str | None,
         Query(
-            description="Campo de ordenamiento (ej. '-requested_at', '-final_fare', '-surge_multiplier').",
-            examples=["-requested_at", "-final_fare", "duration_minutes"],
+            description="Campo de ordenamiento (ej. '-requested_at', 'distance_km', 'duration_minutes').",
+            examples=["-requested_at", "distance_km", "duration_minutes"],
         ),
     ] = None,
     offset: Annotated[
@@ -512,12 +553,8 @@ def get_trips(
         Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
     ] = 50,
 ):
-    """Histórico transaccional de viajes urbanos, tarifas dinámicas y distancias."""
+    """Cabecera transaccional de viajes urbanos (3NF)."""
     filters: list[tuple[str, str, Any]] = []
-    if origin_zone_id:
-        filters.append(("origin_zone_id", "=", origin_zone_id))
-    if destination_zone_id:
-        filters.append(("destination_zone_id", "=", destination_zone_id))
     if origin_quadrant_id:
         filters.append(("origin_quadrant_id", "=", origin_quadrant_id))
     if destination_quadrant_id:
@@ -528,23 +565,17 @@ def get_trips(
         filters.append(("user_id", "=", user_id))
     if trip_status:
         filters.append(("trip_status", "=", trip_status))
-    if payment_method:
-        filters.append(("payment_method", "=", payment_method))
 
     allowed = {
         "trip_id",
+        "user_id",
+        "driver_id",
+        "origin_quadrant_id",
+        "destination_quadrant_id",
         "requested_at",
-        "wait_time_minutes",
         "distance_km",
         "duration_minutes",
-        "flag_drop_fare",
-        "distance_charge",
-        "time_charge",
-        "base_fare",
-        "surge_multiplier",
-        "final_fare",
-        "origin_active_requests",
-        "origin_available_drivers",
+        "trip_status",
     }
     return execute_paginated_query(
         schema=SCHEMA,
@@ -564,9 +595,9 @@ def get_trips(
     summary="Obtener detalle de viaje por ID",
     description=(
         "### Información Detallada de un Viaje en Particular\n\n"
-        "Recupera la ficha de un viaje individual por su identificador único transaccional (`trip_id`)."
+        "Recupera la cabecera transaccional de un viaje individual por su identificador único (`trip_id`)."
     ),
-    response_description="Datos completos del viaje consultado",
+    response_description="Datos de la cabecera del viaje consultado",
     responses={
         200: {"description": "Viaje encontrado exitosamente."},
         404: {"description": "Viaje no encontrado. Verifique que el ID solicitado exista."},
@@ -584,13 +615,207 @@ def get_trip_by_id(
 
 
 @router.get(
+    "/payments",
+    response_model=PaginatedResponse[TripPaymentOut],
+    summary="Listar transacciones de pago y tarifas dinámicas",
+    description=(
+        "### Liquidación Tarifaria y Pagos de Viajes (`trip_payments`)\n\n"
+        "Consulta las transacciones financieras asociadas a cada viaje (`trip_id`), incluyendo modalidad de pago (`payment_method`), "
+        "tarifa base (`base_fare`), multiplicador dinámico (`surge_multiplier`), propina (`tip_amount`), monto final (`final_fare`) y estado (`payment_status`)."
+    ),
+    response_description="Colección paginada de transacciones de pago",
+    responses={
+        200: {"description": "Consulta exitosa de pagos."},
+        422: {"description": "Error en los parámetros de filtrado o paginación."},
+    },
+)
+def get_trip_payments(
+    trip_id: Annotated[
+        int | None,
+        Query(ge=1, description="Filtrar por identificador de viaje.", examples=[1]),
+    ] = None,
+    payment_method: Annotated[
+        str | None,
+        Query(
+            description="Filtrar por método de pago empleado.",
+            examples=["efectivo", "tarjeta", "billetera_digital"],
+        ),
+    ] = None,
+    payment_status: Annotated[
+        str | None,
+        Query(
+            description="Filtrar por estado del pago.",
+            examples=["pagado", "anulado"],
+        ),
+    ] = None,
+    sort: Annotated[
+        str | None,
+        Query(
+            description="Campo de ordenamiento (ej. 'payment_id', '-final_fare', '-surge_multiplier').",
+            examples=["payment_id", "-final_fare", "-surge_multiplier"],
+        ),
+    ] = None,
+    offset: Annotated[
+        int,
+        Query(ge=0, description="Desplazamiento para paginación.", examples=[0]),
+    ] = 0,
+    limit: Annotated[
+        int,
+        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+    ] = 50,
+):
+    """Consulta las transacciones de pago y liquidación tarifaria de viajes."""
+    filters: list[tuple[str, str, Any]] = []
+    if trip_id is not None:
+        filters.append(("trip_id", "=", trip_id))
+    if payment_method:
+        filters.append(("payment_method", "=", payment_method))
+    if payment_status:
+        filters.append(("payment_status", "=", payment_status))
+
+    allowed = {"payment_id", "trip_id", "payment_method", "base_fare", "surge_multiplier", "tip_amount", "final_fare", "payment_status"}
+    return execute_paginated_query(
+        schema=SCHEMA,
+        table="trip_payments",
+        filters=filters,
+        allowed_sort_columns=allowed,
+        default_sort="payment_id",
+        sort=sort,
+        offset=offset,
+        limit=limit,
+    )
+
+
+@router.get(
+    "/ratings",
+    response_model=PaginatedResponse[TripRatingOut],
+    summary="Listar calificaciones post-viaje",
+    description=(
+        "### Calificaciones Bilaterales de Viajes Completados (`trip_ratings`)\n\n"
+        "Consulta las evaluaciones otorgadas al finalizar viajes completados (`user_rating` y `driver_rating`)."
+    ),
+    response_description="Colección paginada de calificaciones de viajes",
+    responses={
+        200: {"description": "Consulta exitosa de calificaciones."},
+        422: {"description": "Error en los parámetros de filtrado o paginación."},
+    },
+)
+def get_trip_ratings(
+    trip_id: Annotated[
+        int | None,
+        Query(ge=1, description="Filtrar por identificador de viaje completado.", examples=[1]),
+    ] = None,
+    sort: Annotated[
+        str | None,
+        Query(
+            description="Campo de ordenamiento (ej. 'rating_id', '-driver_rating').",
+            examples=["rating_id", "-driver_rating"],
+        ),
+    ] = None,
+    offset: Annotated[
+        int,
+        Query(ge=0, description="Desplazamiento para paginación.", examples=[0]),
+    ] = 0,
+    limit: Annotated[
+        int,
+        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+    ] = 50,
+):
+    """Consulta las calificaciones post-viaje de pasajeros y conductores."""
+    filters: list[tuple[str, str, Any]] = []
+    if trip_id is not None:
+        filters.append(("trip_id", "=", trip_id))
+
+    allowed = {"rating_id", "trip_id", "user_rating", "driver_rating"}
+    return execute_paginated_query(
+        schema=SCHEMA,
+        table="trip_ratings",
+        filters=filters,
+        allowed_sort_columns=allowed,
+        default_sort="rating_id",
+        sort=sort,
+        offset=offset,
+        limit=limit,
+    )
+
+
+@router.get(
+    "/cancellations",
+    response_model=PaginatedResponse[TripCancellationOut],
+    summary="Listar bitácora de cancelaciones de viajes",
+    description=(
+        "### Bitácora de Cancelaciones y Fricción de Mercado (`trip_cancellations`)\n\n"
+        "Consulta los eventos de cancelación de viajes, incluyendo quién canceló (`cancelled_by`), motivo (`cancellation_reason`), "
+        "tiempo de espera transcurrido (`wait_time_minutes`) e instantánea de demanda/oferta activa (`origin_active_requests`, `origin_available_drivers`)."
+    ),
+    response_description="Colección paginada de cancelaciones de viajes",
+    responses={
+        200: {"description": "Consulta exitosa de cancelaciones."},
+        422: {"description": "Error en los parámetros de filtrado o paginación."},
+    },
+)
+def get_trip_cancellations(
+    trip_id: Annotated[
+        int | None,
+        Query(ge=1, description="Filtrar por identificador de viaje cancelado.", examples=[5]),
+    ] = None,
+    cancelled_by: Annotated[
+        str | None,
+        Query(
+            description="Filtrar por actor que originó la cancelación.",
+            examples=["usuario", "conductor"],
+        ),
+    ] = None,
+    sort: Annotated[
+        str | None,
+        Query(
+            description="Campo de ordenamiento (ej. 'cancellation_id', '-wait_time_minutes').",
+            examples=["cancellation_id", "-wait_time_minutes"],
+        ),
+    ] = None,
+    offset: Annotated[
+        int,
+        Query(ge=0, description="Desplazamiento para paginación.", examples=[0]),
+    ] = 0,
+    limit: Annotated[
+        int,
+        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+    ] = 50,
+):
+    """Consulta los eventos de cancelación y métricas de fricción de despacho."""
+    filters: list[tuple[str, str, Any]] = []
+    if trip_id is not None:
+        filters.append(("trip_id", "=", trip_id))
+    if cancelled_by:
+        filters.append(("cancelled_by", "=", cancelled_by))
+
+    allowed = {
+        "cancellation_id",
+        "trip_id",
+        "cancelled_by",
+        "wait_time_minutes",
+        "origin_active_requests",
+        "origin_available_drivers",
+    }
+    return execute_paginated_query(
+        schema=SCHEMA,
+        table="trip_cancellations",
+        filters=filters,
+        allowed_sort_columns=allowed,
+        default_sort="cancellation_id",
+        sort=sort,
+        offset=offset,
+        limit=limit,
+    )
+
+
+@router.get(
     "/telemetry",
     response_model=PaginatedResponse[DriverTelemetryOut],
     summary="Listar registros de telemetría GPS vehicular",
     description=(
-        "### Pings Telemétricos de Posición GPS y Velocidad\n\n"
-        "Consulta la serie de datos telemétricos captados desde los teléfonos de los conductores en ruta. "
-        "Registra latitud, longitud, velocidad instantánea en km/h (`speed_kmh`) y estado de disponibilidad en tiempo real (`availability_status`)."
+        "### Pings Telemétricos de Posición GPS y Velocidad (3NF)\n\n"
+        "Consulta la serie de datos telemétricos captados desde los teléfonos de los conductores en ruta (`quadrant_id`, `latitude`, `longitude`, `speed_kmh`, `availability_status`)."
     ),
     response_description="Colección paginada de registros telemétricos GPS",
     responses={
@@ -601,15 +826,11 @@ def get_trip_by_id(
 def get_telemetry(
     driver_id: Annotated[
         int | None,
-        Query(description="Filtrar por identificador de conductor monitoreado.", examples=[205]),
+        Query(description="Filtrar por identificador de conductor monitoreado.", examples=[1]),
     ] = None,
     trip_id: Annotated[
         int | None,
         Query(description="Filtrar por identificador de viaje asociado al recorrido GPS.", examples=[10042]),
-    ] = None,
-    zone_id: Annotated[
-        int | None,
-        Query(description="Filtrar por zona urbana donde se emitió la señal.", examples=[1]),
     ] = None,
     quadrant_id: Annotated[
         int | None,
@@ -638,20 +859,18 @@ def get_telemetry(
         Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
     ] = 50,
 ):
-    """Datos telemétricos de conducción (velocidad, coordenadas, estado de disponibilidad)."""
+    """Datos telemétricos de conducción (velocidad, coordenadas, cuadrante, estado de disponibilidad)."""
     filters: list[tuple[str, str, Any]] = []
     if driver_id:
         filters.append(("driver_id", "=", driver_id))
     if trip_id:
         filters.append(("trip_id", "=", trip_id))
-    if zone_id:
-        filters.append(("zone_id", "=", zone_id))
     if quadrant_id:
         filters.append(("quadrant_id", "=", quadrant_id))
     if availability_status:
         filters.append(("availability_status", "=", availability_status))
 
-    allowed = {"telemetry_id", "trip_id", "recorded_at", "speed_kmh"}
+    allowed = {"telemetry_id", "driver_id", "trip_id", "quadrant_id", "recorded_at", "speed_kmh"}
     return execute_paginated_query(
         schema=SCHEMA,
         table="driver_telemetry",

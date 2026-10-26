@@ -1,4 +1,4 @@
-"""Advanced Analytics & Mathematical Engine for MoviGo (Urban Mobility in Managua).
+"""Advanced Analytics & Mathematical Engine for MoviGo (Urban Mobility in Managua - 3NF OLTP Schema).
 
 Delegates core computations to data_sim.core:
 - Estadistica II: Rain vs Trip Demand regression, Gauss-Markov assumptions, ANOVA table, t-test, z-test, ANOVA
@@ -28,10 +28,13 @@ from data_sim.core.optimization import solve_hungarian_assignment
 
 def compute_movigo_estadistica_ii(
     df_trips: pd.DataFrame,
+    df_payments: pd.DataFrame,
+    df_quadrants: pd.DataFrame,
     df_weather: pd.DataFrame,
     df_zones: pd.DataFrame,
 ) -> dict[str, Any]:
-    """Perform formal Estadistica II inferential battery on MoviGo urban mobility."""
+    """Perform formal Estadistica II inferential battery on MoviGo 3NF urban mobility tables."""
+    df_trips = df_trips.copy()
     df_trips["date"] = pd.to_datetime(df_trips["requested_at"]).dt.date
     daily_trips = df_trips.groupby("date").size().reset_index(name="num_trips")
     if "quadrant_id" in df_weather.columns:
@@ -57,9 +60,9 @@ def compute_movigo_estadistica_ii(
     supuestos_regresion = verify_gauss_markov(x, residuals)
 
     # 2. Formal Hypothesis Testing Battery
-    # Test A: Difference of Means (Welch t-test): Dynamic Surge vs Base Fare
-    surge_fares = df_trips[df_trips["surge_multiplier"] > 1.25]["final_fare"]
-    base_fares = df_trips[df_trips["surge_multiplier"] <= 1.05]["final_fare"]
+    # Test A: Difference of Means (Welch t-test): Dynamic Surge vs Base Fare (from trip_payments)
+    surge_fares = df_payments[df_payments["surge_multiplier"] > 1.25]["final_fare"]
+    base_fares = df_payments[df_payments["surge_multiplier"] <= 1.05]["final_fare"]
     test_a = welch_ttest(
         sample_a=surge_fares,
         sample_b=base_fares,
@@ -87,12 +90,19 @@ def compute_movigo_estadistica_ii(
         conclusion_true="La congestion en horas pico (Rotonda Centroamerica / Metrocentro) dispara significativamente las cancelaciones.",
     )
 
-    # Test C: ANOVA for trip duration across destination strata
-    merged_dest = df_trips.merge(
-        df_zones[["zone_id", "socioeconomic_stratum"]],
-        left_on="destination_zone_id",
-        right_on="zone_id",
-        how="left",
+    # Test C: ANOVA for trip duration across destination strata (resolved via destination_quadrant_id -> quadrants.zone_id -> urban_zones)
+    merged_dest = (
+        df_trips.merge(
+            df_quadrants[["quadrant_id", "zone_id"]],
+            left_on="destination_quadrant_id",
+            right_on="quadrant_id",
+            how="left",
+        )
+        .merge(
+            df_zones[["zone_id", "socioeconomic_stratum"]],
+            on="zone_id",
+            how="left",
+        )
     )
     groups = []
     for stratum in ["alto", "medio", "comercial", "popular"]:

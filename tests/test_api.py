@@ -238,14 +238,12 @@ class TestAPIService(unittest.TestCase):
 
     @patch("src.api.utils.fetch_one")
     def test_single_item_lookup_movigo(self, mock_fetch_one):
-        """Test GET /movigo/trips/{trip_id} returns trip details."""
+        """Test GET /movigo/trips/{trip_id} returns 3NF trip details."""
         import datetime
         mock_fetch_one.return_value = {
             "trip_id": 1,
             "user_id": 1,
             "driver_id": 1,
-            "origin_zone_id": 1,
-            "destination_zone_id": 2,
             "origin_quadrant_id": 15,
             "destination_quadrant_id": 8,
             "origin_latitude": 12.1152,
@@ -255,23 +253,9 @@ class TestAPIService(unittest.TestCase):
             "requested_at": datetime.datetime(2024, 3, 5, 8, 15, 0),
             "started_at": datetime.datetime(2024, 3, 5, 8, 20, 0),
             "completed_at": datetime.datetime(2024, 3, 5, 8, 45, 0),
-            "wait_time_minutes": 5.0,
             "distance_km": 7.2,
             "duration_minutes": 25.0,
-            "flag_drop_fare": 70.0,
-            "distance_charge": 129.6,
-            "time_charge": 112.5,
-            "base_fare": 312.1,
-            "surge_multiplier": 1.2,
-            "final_fare": 374.52,
-            "origin_active_requests": 32,
-            "origin_available_drivers": 24,
-            "payment_method": "tarjeta",
             "trip_status": "completado",
-            "user_rating": 5.0,
-            "driver_rating": 4.8,
-            "tip_amount": 15.0,
-            "cancellation_reason": None,
         }
         response = self.client.get("/movigo/trips/1")
         self.assertEqual(response.status_code, 200)

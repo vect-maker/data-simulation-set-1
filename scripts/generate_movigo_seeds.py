@@ -1,4 +1,4 @@
-"""Generate deterministic spatial seeds and LLM catalog seeds for MoviGo (standardized English schema).
+"""Generate deterministic spatial seeds and LLM catalog seeds for MoviGo (standardized English 3NF schema).
 
 Seed directories are strictly separated by provenance:
 1. src/movigo_sim/seeds/deterministic/:
@@ -7,7 +7,8 @@ Seed directories are strictly separated by provenance:
    - managua_street_network.json (OpenStreetMap drivable streets indexed per square quadrant)
 2. src/movigo_sim/seeds/llm/:
    - users.json (20 passenger profiles via Gemini API)
-   - drivers.json (20 driver & vehicle profiles via Gemini API)
+   - drivers.json (20 driver profiles via Gemini API)
+   - vehicles.json (20 vehicle profiles linked to drivers via Gemini API)
    - incentive_campaigns.json (12 Knapsack bonus campaigns via Gemini API)
    - semantic_templates.json (cancellation reasons and trip comments via Gemini API)
 """
@@ -26,6 +27,7 @@ from movigo_sim.config import DETERMINISTIC_SEEDS_DIR, LLM_SEEDS_DIR, SEEDS_DIR,
 from movigo_sim.models import (
     User,
     Driver,
+    Vehicle,
     IncentiveCampaign,
 )
 from movigo_sim.spatial import generate_deterministic_spatial_seeds
@@ -55,6 +57,10 @@ class DriverCatalog(BaseModel):
     drivers: list[Driver]
 
 
+class VehicleCatalog(BaseModel):
+    vehicles: list[Vehicle]
+
+
 class CampaignCatalog(BaseModel):
     campaigns: list[IncentiveCampaign]
 
@@ -62,6 +68,7 @@ class CampaignCatalog(BaseModel):
 class MoviGoSeedBundle(BaseModel):
     """Consolidated schema to generate non-spatial LLM catalogs in a single API request."""
     drivers: list[Driver]
+    vehicles: list[Vehicle]
     users: list[User]
     campaigns: list[IncentiveCampaign]
     semantic_templates: MoviGoSemanticTemplates
@@ -105,10 +112,11 @@ def generate_movigo_llm_bundle(
 
     prompt = """
     Genera el catálogo dimensional no espacial para MoviGo (app de movilidad urbana en Managua, Nicaragua):
-    1. drivers (exactamente 20): driver_id enteros del 1 al 20 con modelos populares en Nicaragua (Yaris, Grand i10, Dzire, Rio, Versa, CB125F), license_plate Managua 'M-123456', average_rating 4.30-4.98.
-    2. users (exactamente 20): user_id enteros del 1 al 20 pasajeros frecuentes, phone '+505 8xxx-xxxx', preferred_payment_method (efectivo, tarjeta, billetera_digital).
-    3. campaigns (exactamente 12): campaign_id enteros del 1 al 12 campañas de incentivos y bonos para optimización de mochila año 2024 (meta_viajes, hora_pico_lluvia, zona_alta_demanda).
-    4. semantic_templates: cancellation_reasons, driver_cancellation_reasons, user_cancellation_reasons y trip_comments con vernáculo urbano de Managua.
+    1. drivers (exactamente 20): driver_id enteros del 1 al 20 con average_rating 4.30-4.98, acceptance_rate_pct y status.
+    2. vehicles (exactamente 20): vehicle_id y driver_id enteros del 1 al 20 con modelos populares en Nicaragua (Yaris, Grand i10, Dzire, Rio, Versa, CB125F), service_type y license_plate Managua 'M-123456'.
+    3. users (exactamente 20): user_id enteros del 1 al 20 pasajeros frecuentes, phone '+505 8xxx-xxxx', preferred_payment_method (efectivo, tarjeta, billetera_digital).
+    4. campaigns (exactamente 12): campaign_id enteros del 1 al 12 campañas de incentivos y bonos para optimización de mochila año 2024 (meta_viajes, hora_pico_lluvia, zona_alta_demanda).
+    5. semantic_templates: cancellation_reasons, driver_cancellation_reasons, user_cancellation_reasons y trip_comments con vernáculo urbano de Managua.
     """
 
     console.print("[yellow]⏳ Solicitando paquete de catálogos LLM a Gemini...[/yellow]")
@@ -116,6 +124,7 @@ def generate_movigo_llm_bundle(
 
     llm_dir.mkdir(parents=True, exist_ok=True)
     save_json_file([c.model_dump() for c in bundle.drivers], llm_dir / "drivers.json", dry_run)
+    save_json_file([v.model_dump() for v in bundle.vehicles], llm_dir / "vehicles.json", dry_run)
     save_json_file([u.model_dump(mode="json") for u in bundle.users], llm_dir / "users.json", dry_run)
     save_json_file([c.model_dump(mode="json") for c in bundle.campaigns], llm_dir / "incentive_campaigns.json", dry_run)
     save_json_file(bundle.semantic_templates.model_dump(), llm_dir / "semantic_templates.json", dry_run)
@@ -140,9 +149,15 @@ def generate_movigo_llm_granular(
 
     if target in ("all", "llm", "drivers"):
         console.print("[yellow]Generando Drivers (20)...[/yellow]")
-        prompt = "Genera 20 conductores de MoviGo con driver_id enteros del 1 al 20 con vehículos comunes en Nicaragua y placas M-XXXXXX."
+        prompt = "Genera 20 conductores de MoviGo con driver_id enteros del 1 al 20."
         cond_data = generate_structured_data(client, prompt, DriverCatalog, seed=seed)
         save_json_file([c.model_dump() for c in cond_data.drivers], llm_dir / "drivers.json", dry_run)
+
+    if target in ("all", "llm", "vehicles"):
+        console.print("[yellow]Generando Vehicles (20)...[/yellow]")
+        prompt = "Genera 20 vehículos de MoviGo con vehicle_id y driver_id enteros del 1 al 20 con placas M-XXXXXX."
+        veh_data = generate_structured_data(client, prompt, VehicleCatalog, seed=seed)
+        save_json_file([v.model_dump() for v in veh_data.vehicles], llm_dir / "vehicles.json", dry_run)
 
     if target in ("all", "llm", "users"):
         console.print("[yellow]Generando Users (20)...[/yellow]")
@@ -183,7 +198,7 @@ def generate_movigo_seeds(
     if target == "deterministic":
         return
 
-    if granular or target in ("drivers", "users", "campaigns", "templates"):
+    if granular or target in ("drivers", "vehicles", "users", "campaigns", "templates"):
         generate_movigo_llm_granular(llm_dir=llm_dir, target=target, dry_run=dry_run, seed=seed)
     else:
         generate_movigo_llm_bundle(llm_dir=llm_dir, dry_run=dry_run, seed=seed)
@@ -195,7 +210,7 @@ def main():
     parser.add_argument(
         "--target",
         type=str,
-        choices=["all", "deterministic", "llm", "drivers", "users", "campaigns", "templates"],
+        choices=["all", "deterministic", "llm", "drivers", "vehicles", "users", "campaigns", "templates"],
         default="all",
         help="Objetivo a generar: 'deterministic' (solo geometría/calles por código), 'llm' (solo catálogos Gemini), o 'all'",
     )
