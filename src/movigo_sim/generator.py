@@ -20,7 +20,8 @@ import numpy as np
 import pandas as pd
 
 from movigo_sim.config import (
-    SEEDS_DIR,
+    DETERMINISTIC_SEEDS_DIR,
+    LLM_SEEDS_DIR,
     BASE_PER_KM_NIO,
     BASE_PER_MINUTE_NIO,
     SURGE_RAIN_FACTOR,
@@ -82,8 +83,8 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 
 def load_movigo_cuadrantes() -> list[Cuadrante]:
-    """Load the 92 Managua geographical square quadrants from JSON seed fixture."""
-    with open(SEEDS_DIR / "cuadrantes.json", encoding="utf-8") as f:
+    """Load the 92 Managua geographical square quadrants from deterministic JSON seed fixture."""
+    with open(DETERMINISTIC_SEEDS_DIR / "cuadrantes.json", encoding="utf-8") as f:
         return [Cuadrante(**c) for c in json.load(f)]
 
 
@@ -94,28 +95,28 @@ def load_movigo_seed_catalogs() -> tuple[
     list[CampanaIncentivo],
     dict[str, Any],
 ]:
-    """Load dimensional seed catalogs from JSON fixtures."""
-    with open(SEEDS_DIR / "zonas_urbanas.json", encoding="utf-8") as f:
+    """Load dimensional seed catalogs from deterministic/ and llm/ JSON fixtures."""
+    with open(DETERMINISTIC_SEEDS_DIR / "zonas_urbanas.json", encoding="utf-8") as f:
         zonas = [ZonaUrbana(**z) for z in json.load(f)]
 
-    with open(SEEDS_DIR / "usuarios.json", encoding="utf-8") as f:
+    with open(LLM_SEEDS_DIR / "usuarios.json", encoding="utf-8") as f:
         usuarios = [Usuario(**u) for u in json.load(f)]
 
-    with open(SEEDS_DIR / "conductores.json", encoding="utf-8") as f:
+    with open(LLM_SEEDS_DIR / "conductores.json", encoding="utf-8") as f:
         conductores = [Conductor(**c) for c in json.load(f)]
 
-    with open(SEEDS_DIR / "campanas_incentivos.json", encoding="utf-8") as f:
+    with open(LLM_SEEDS_DIR / "campanas_incentivos.json", encoding="utf-8") as f:
         campanas = [CampanaIncentivo(**cmp) for cmp in json.load(f)]
 
-    with open(SEEDS_DIR / "semantic_templates.json", encoding="utf-8") as f:
+    with open(LLM_SEEDS_DIR / "semantic_templates.json", encoding="utf-8") as f:
         templates = json.load(f)
 
     return zonas, usuarios, conductores, campanas, templates
 
 
 def load_managua_street_network() -> dict[str, Any]:
-    """Load cached OpenStreetMap drivable street segments and flood-hotspot flags for Managua quadrants and zones."""
-    network_path = SEEDS_DIR / "managua_street_network.json"
+    """Load cached OpenStreetMap drivable street segments and flood-hotspot flags from deterministic/."""
+    network_path = DETERMINISTIC_SEEDS_DIR / "managua_street_network.json"
     if network_path.exists():
         with open(network_path, encoding="utf-8") as f:
             return json.load(f)

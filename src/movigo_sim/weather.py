@@ -25,7 +25,7 @@ from movigo_sim.config import (
     START_DATE,
     END_DATE,
     RAW_DATA_DIR,
-    SEEDS_DIR,
+    DETERMINISTIC_SEEDS_DIR,
 )
 from movigo_sim.models import Cuadrante, ClimaCuadrantes
 
@@ -86,8 +86,8 @@ class VectorizedClimaRecords:
 
 
 def load_cuadrantes_catalog() -> list[Cuadrante]:
-    """Load the 92 Managua fine-grained square quadrants from seed fixture."""
-    path = SEEDS_DIR / "cuadrantes.json"
+    """Load the 92 Managua fine-grained square quadrants from deterministic seed fixture."""
+    path = DETERMINISTIC_SEEDS_DIR / "cuadrantes.json"
     with open(path, encoding="utf-8") as f:
         return [Cuadrante(**c) for c in json.load(f)]
 

@@ -10,6 +10,8 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 SRC_DIR = BASE_DIR / "src" / "movigo_sim"
 SEEDS_DIR = SRC_DIR / "seeds"
+DETERMINISTIC_SEEDS_DIR = SEEDS_DIR / "deterministic"
+LLM_SEEDS_DIR = SEEDS_DIR / "llm"
 DATA_DIR = BASE_DIR / "data"
 RAW_DATA_DIR = DATA_DIR / "raw" / "movigo"
 ARTIFACTS_DIR = BASE_DIR / "artifacts" / "movigo"

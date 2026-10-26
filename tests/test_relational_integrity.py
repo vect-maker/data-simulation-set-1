@@ -12,6 +12,7 @@ from volcan_sim.generator import VolcanSimulationEngine
 
 from movigo_sim.weather import get_movigo_weather_series
 from movigo_sim.generator import MoviGoSimulationEngine
+from movigo_sim.spatial import generate_deterministic_spatial_seeds
 
 
 class TestRelationalIntegrity(unittest.TestCase):
@@ -99,6 +100,9 @@ class TestRelationalIntegrity(unittest.TestCase):
         valid_viajes = {v.id_viaje for v in viajes}
 
         self.assertEqual(len(engine.cuadrantes), 92)
+        det_zonas, det_cuadrantes, _ = generate_deterministic_spatial_seeds(dry_run=True)
+        self.assertEqual([z.model_dump() for z in det_zonas], [z.model_dump() for z in engine.zonas])
+        self.assertEqual([q.model_dump() for q in det_cuadrantes], [q.model_dump() for q in engine.cuadrantes])
         for q in engine.cuadrantes:
             self.assertIn(q.id_zona, valid_zonas)
 
