@@ -141,7 +141,7 @@ class DriverTelemetry(BaseModel):
     latitude: float = Field(ge=12.00, le=12.30)
     longitude: float = Field(ge=-86.45, le=-86.10)
     speed_kmh: float = Field(ge=0.0, le=120.0)
-    availability_status: str = Field(pattern=r"^(disponible|ocupado|en_camino_recogida)$")
+    availability_status: str = Field(pattern=r"^(disponible|ocupado|en_camino_recogida|descanso)$")
 
 
 class IncentiveCampaign(BaseModel):

@@ -237,7 +237,7 @@ CREATE TABLE driver_telemetry (
     latitude DECIMAL(9,6) NOT NULL,
     longitude DECIMAL(9,6) NOT NULL,
     speed_kmh DECIMAL(5,2) NOT NULL,
-    availability_status VARCHAR(30) NOT NULL CHECK (availability_status IN ('disponible', 'ocupado', 'en_camino_recogida'))
+    availability_status VARCHAR(30) NOT NULL CHECK (availability_status IN ('disponible', 'ocupado', 'en_camino_recogida', 'descanso'))
 );
 
 CREATE TABLE trip_audit_logs (

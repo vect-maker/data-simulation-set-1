@@ -1441,7 +1441,7 @@ class DriverTelemetryOut(BaseModel):
     )
     availability_status: str = Field(
         ...,
-        description="Estado del conductor en ese instante ('disponible', 'ocupado', 'en_camino_recogida').",
+        description="Estado del conductor en ese instante ('disponible', 'ocupado', 'en_camino_recogida', 'descanso').",
         examples=["ocupado"],
     )
 

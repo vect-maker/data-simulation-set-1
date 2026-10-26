@@ -220,9 +220,11 @@ class TestRelationalIntegrity(unittest.TestCase):
             self.assertTrue(qt.lat_min <= t.latitude <= qt.lat_max)
             self.assertTrue(qt.lon_min <= t.longitude <= qt.lon_max)
             self.assertGreaterEqual(t.speed_kmh, 0.0)
-            self.assertIn(t.availability_status, ["disponible", "ocupado", "en_camino_recogida"])
-            if t.availability_status == "disponible":
+            self.assertIn(t.availability_status, ["disponible", "ocupado", "en_camino_recogida", "descanso"])
+            if t.availability_status in ("disponible", "descanso"):
                 self.assertIsNone(t.trip_id)
+                if t.availability_status == "descanso":
+                    self.assertEqual(t.speed_kmh, 0.0)
             else:
                 self.assertIn(t.trip_id, valid_trips)
 
