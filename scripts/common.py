@@ -62,6 +62,7 @@ def generate_structured_data(
     response_schema: type[T],
     model: str = GEMINI_MODEL,
     max_retries: int = 4,
+    seed: int | None = None,
 ) -> T:
     """Generate structured Pydantic object using Gemini with backoff and automatic model fallback."""
     tracker.record_request()
@@ -72,17 +73,21 @@ def generate_structured_data(
             candidate_models.append(m)
             seen.add(m)
 
+    gen_config: dict[str, Any] = {
+        "response_mime_type": "application/json",
+        "response_schema": response_schema,
+        "temperature": 0.7,
+    }
+    if seed is not None:
+        gen_config["seed"] = seed
+
     for current_model in candidate_models:
         for attempt in range(1, max_retries + 1):
             try:
                 response = client.models.generate_content(
                     model=current_model,
                     contents=prompt,
-                    config={
-                        "response_mime_type": "application/json",
-                        "response_schema": response_schema,
-                        "temperature": 0.7,
-                    },
+                    config=gen_config,
                 )
                 return response.parsed
             except Exception as e:

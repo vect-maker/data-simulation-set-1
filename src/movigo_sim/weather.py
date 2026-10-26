@@ -24,6 +24,7 @@ from movigo_sim.config import (
     TIMEZONE,
     START_DATE,
     END_DATE,
+    SIMULATION_SEED,
     RAW_DATA_DIR,
     DETERMINISTIC_SEEDS_DIR,
 )
@@ -104,7 +105,11 @@ def map_sky_condition(precip_mm: float, weather_code: int) -> str:
         return "despejado"
 
 
-def generate_synthetic_weather_fallback(start_date: str = START_DATE, end_date: str = END_DATE) -> dict[str, Any]:
+def generate_synthetic_weather_fallback(
+    start_date: str = START_DATE,
+    end_date: str = END_DATE,
+    seed: int = SIMULATION_SEED,
+) -> dict[str, Any]:
     """Generate realistic daily + hourly tropical weather for Managua if network fails."""
     start = datetime.strptime(start_date, "%Y-%m-%d").date()
     end = datetime.strptime(end_date, "%Y-%m-%d").date()
@@ -120,7 +125,7 @@ def generate_synthetic_weather_fallback(start_date: str = START_DATE, end_date: 
     hourly_temps = []
     hourly_codes = []
 
-    rng = np.random.default_rng(42)
+    rng = np.random.default_rng(seed)
     for d_str in dates:
         dt_obj = datetime.strptime(d_str, "%Y-%m-%d").date()
         month = dt_obj.month
@@ -186,6 +191,7 @@ def fetch_movigo_weather_archive(
     end_date: str = END_DATE,
     cache_path: Path | None = None,
     force_refresh: bool = False,
+    seed: int = SIMULATION_SEED,
 ) -> dict[str, Any]:
     """Fetch daily and hourly historical weather for Managua from Open-Meteo or local cache."""
     if cache_path is None:
@@ -202,7 +208,7 @@ def fetch_movigo_weather_archive(
         hourly_vars="precipitation,temperature_2m,weather_code",
         timezone=TIMEZONE,
         cache_path=cache_path,
-        fallback_fn=lambda: generate_synthetic_weather_fallback(start_date, end_date),
+        fallback_fn=lambda: generate_synthetic_weather_fallback(start_date, end_date, seed=seed),
         force_refresh=force_refresh,
     )
 
@@ -212,9 +218,10 @@ fetch_open_meteo_managua_series = fetch_movigo_weather_archive
 
 def build_hourly_quadrant_climate(
     raw_json: dict[str, Any],
+    seed: int = SIMULATION_SEED,
 ) -> tuple[VectorizedClimaRecords, dict[str, Any]]:
     """Build vectorized hourly per-quadrant climate, cauce runoff, and congestion across all 92 square quadrants."""
-    rng = np.random.default_rng(42)
+    rng = np.random.default_rng(seed)
     cuadrantes = load_cuadrantes_catalog()
     n_quads = len(cuadrantes)
 
@@ -225,7 +232,7 @@ def build_hourly_quadrant_climate(
         h_temps = np.array([float(t) if t is not None else 28.0 for t in hourly["temperature_2m"]], dtype=float)
         h_codes = np.array([int(c) if c is not None else 0 for c in (hourly.get("weather_code") or hourly.get("weathercode", []))], dtype=int)
     else:
-        fallback = generate_synthetic_weather_fallback()
+        fallback = generate_synthetic_weather_fallback(seed=seed)
         hourly = fallback["hourly"]
         h_times = hourly["time"]
         h_precip = np.array(hourly["precipitation"], dtype=float)
@@ -368,7 +375,10 @@ def build_hourly_quadrant_climate(
     return VectorizedClimaRecords(df_clima), hourly_matrices
 
 
-def parse_movigo_weather_dataframe(raw_json: dict[str, Any]) -> pd.DataFrame:
+def parse_movigo_weather_dataframe(
+    raw_json: dict[str, Any],
+    seed: int = SIMULATION_SEED,
+) -> pd.DataFrame:
     """Parse Open-Meteo daily summary DataFrame for daily demand driver while preserving OLS regression properties."""
     daily = raw_json["daily"]
     dates = [datetime.strptime(t, "%Y-%m-%d").date() for t in daily["time"]]
@@ -376,7 +386,7 @@ def parse_movigo_weather_dataframe(raw_json: dict[str, Any]) -> pd.DataFrame:
     temps = [float(t) if t is not None else 28.0 for t in daily["temperature_2m_mean"]]
     codes = [int(c) if c is not None else 0 for c in (daily.get("weather_code") or daily.get("weathercode", []))]
 
-    rng = np.random.default_rng(42)
+    rng = np.random.default_rng(seed)
     congestion_indices = []
     sky_conditions = []
     for d, p, c in zip(dates, precip, codes, strict=True):
@@ -396,10 +406,13 @@ def parse_movigo_weather_dataframe(raw_json: dict[str, Any]) -> pd.DataFrame:
     })
 
 
-def get_movigo_weather_series(force_refresh: bool = False) -> tuple[pd.DataFrame, VectorizedClimaRecords]:
+def get_movigo_weather_series(
+    force_refresh: bool = False,
+    seed: int = SIMULATION_SEED,
+) -> tuple[pd.DataFrame, VectorizedClimaRecords]:
     """Retrieve full 2024 daily driver DataFrame (with attached hourly quadrant matrices) and hourly ClimaCuadrantes records."""
-    raw = fetch_movigo_weather_archive(force_refresh=force_refresh)
-    df = parse_movigo_weather_dataframe(raw)
-    hourly_records, hourly_matrices = build_hourly_quadrant_climate(raw)
+    raw = fetch_movigo_weather_archive(force_refresh=force_refresh, seed=seed)
+    df = parse_movigo_weather_dataframe(raw, seed=seed)
+    hourly_records, hourly_matrices = build_hourly_quadrant_climate(raw, seed=seed)
     df.attrs["hourly_matrices"] = hourly_matrices
     return df, hourly_records

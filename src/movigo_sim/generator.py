@@ -22,6 +22,7 @@ import pandas as pd
 from movigo_sim.config import (
     DETERMINISTIC_SEEDS_DIR,
     LLM_SEEDS_DIR,
+    SIMULATION_SEED,
     BASE_PER_KM_NIO,
     BASE_PER_MINUTE_NIO,
     SURGE_RAIN_FACTOR,
@@ -126,9 +127,10 @@ def load_managua_street_network() -> dict[str, Any]:
 class MoviGoSimulationEngine:
     """Core numerical simulation engine for MoviGo ride-hailing facts."""
 
-    def __init__(self, random_seed: int = 42):
+    def __init__(self, random_seed: int = SIMULATION_SEED):
         self.random_seed = random_seed
-        np.random.seed(random_seed)
+        self.rng = np.random.default_rng(self.random_seed)
+        np.random.seed(self.random_seed)
 
         self.cuadrantes = load_movigo_cuadrantes()
         self.cuadrantes_map = {c.id_cuadrante: c for c in self.cuadrantes}
@@ -190,15 +192,15 @@ class MoviGoSimulationEngine:
             (latitud, longitud, id_cuadrante, is_flood_prone_street)
         """
         quad_list = self.zone_cuadrantes.get(zona.id_zona) or self.cuadrantes
-        q_idx = int(np.random.randint(0, len(quad_list)))
+        q_idx = int(self.rng.integers(0, len(quad_list)))
         cuad = quad_list[q_idx]
 
         segs = self.cuadrante_streets.get(cuad.id_cuadrante)
         flags = self.cuadrante_flood_flags.get(cuad.id_cuadrante)
         if segs is not None and len(segs) > 0:
-            idx = int(np.random.randint(0, len(segs)))
+            idx = int(self.rng.integers(0, len(segs)))
             lat1, lon1, lat2, lon2 = segs[idx]
-            t = float(np.random.uniform(0.0, 1.0))
+            t = float(self.rng.uniform(0.0, 1.0))
             lat = lat1 + t * (lat2 - lat1)
             lon = lon1 + t * (lon2 - lon1)
             lat_clamped = round(float(np.clip(lat, cuad.lat_min, cuad.lat_max)), 6)
@@ -206,8 +208,8 @@ class MoviGoSimulationEngine:
             is_flood_street = bool(flags[idx]) if flags is not None and len(flags) > idx else (cuad.riesgo_inundacion == "critico")
             return lat_clamped, lon_clamped, cuad.id_cuadrante, is_flood_street
 
-        lat_f = round(float(np.random.uniform(cuad.lat_min + 0.0005, cuad.lat_max - 0.0005)), 6)
-        lon_f = round(float(np.random.uniform(cuad.lon_min + 0.0005, cuad.lon_max - 0.0005)), 6)
+        lat_f = round(float(self.rng.uniform(cuad.lat_min + 0.0005, cuad.lat_max - 0.0005)), 6)
+        lon_f = round(float(self.rng.uniform(cuad.lon_min + 0.0005, cuad.lon_max - 0.0005)), 6)
         return lat_f, lon_f, cuad.id_cuadrante, (cuad.riesgo_inundacion == "critico")
 
     def snap_to_nearest_street_and_cuadrante(
@@ -223,9 +225,9 @@ class MoviGoSimulationEngine:
         cuad = self.cuadrantes[nearest_q_idx]
         segs = self.cuadrante_streets.get(cuad.id_cuadrante)
         if segs is not None and len(segs) > 0:
-            seg_idx = int(np.random.randint(0, len(segs)))
+            seg_idx = int(self.rng.integers(0, len(segs)))
             lat1, lon1, lat2, lon2 = segs[seg_idx]
-            t = float(np.random.uniform(0.15, 0.85))
+            t = float(self.rng.uniform(0.15, 0.85))
             lat = round(float(np.clip(lat1 + t * (lat2 - lat1), cuad.lat_min, cuad.lat_max)), 6)
             lon = round(float(np.clip(lon1 + t * (lon2 - lon1), cuad.lon_min, cuad.lon_max)), 6)
             return lat, lon, cuad.id_zona, cuad.id_cuadrante
@@ -238,23 +240,23 @@ class MoviGoSimulationEngine:
         dow_adj = 30.0 if dow in [4, 5] else (0.0 if dow in [0, 1, 2, 3] else -15.0)
         rain_adj = 5.2 * precip_mm
         noise_std = 12.0 + (0.65 * precip_mm)
-        noise = np.random.normal(0, noise_std)
+        noise = float(self.rng.normal(0, noise_std))
 
         total_rides = 175.0 + rain_adj + dow_adj + noise
 
-        shock_roll = np.random.rand()
+        shock_roll = float(self.rng.random())
         if shock_roll < (OUTLIER_MOBILITY_SHOCK_PROB * 0.60):
-            total_rides *= float(np.random.uniform(1.35, 1.65))
+            total_rides *= float(self.rng.uniform(1.35, 1.65))
         elif shock_roll < OUTLIER_MOBILITY_SHOCK_PROB:
-            total_rides *= float(np.random.uniform(0.50, 0.68))
+            total_rides *= float(self.rng.uniform(0.50, 0.68))
 
         return max(60, int(round(total_rides)))
 
     def sample_trip_time(self, curr_date: date) -> datetime:
         """Sample request timestamp via NHPP."""
-        hour = int(np.random.choice(24, p=HOURLY_TRIP_WEIGHTS))
-        minute = int(np.random.randint(0, 60))
-        second = int(np.random.randint(0, 60))
+        hour = int(self.rng.choice(24, p=HOURLY_TRIP_WEIGHTS))
+        minute = int(self.rng.integers(0, 60))
+        second = int(self.rng.integers(0, 60))
         return datetime.combine(curr_date, time(hour, minute, second))
 
     def simulate_supply_demand_and_surge(
@@ -287,17 +289,17 @@ class MoviGoSimulationEngine:
         expected_d = (14.0 * hour_weight * stratum_demand_factor * weekend_boost) + (1.45 * effective_water_mm)
         if vias_anegadas:
             expected_d *= 1.22
-        d_t = max(2, int(round(np.random.normal(expected_d, max(1.8, 0.12 * expected_d)))))
+        d_t = max(2, int(round(self.rng.normal(expected_d, max(1.8, 0.12 * expected_d)))))
 
         # Available driver supply in origin zone during that hour (St)
         rain_supply_penalty = max(0.45, 1.0 - 0.032 * effective_water_mm - (0.18 if vias_anegadas else 0.0))
         peak_supply_factor = 0.82 if hour in [7, 8, 17, 18] else (0.90 if hour in [12, 13, 19] else 1.12)
         expected_s = (13.5 * hour_weight * stratum_demand_factor * peak_supply_factor * rain_supply_penalty) + 2.0
-        s_t = max(1, int(round(np.random.normal(expected_s, max(1.5, 0.10 * expected_s)))))
+        s_t = max(1, int(round(self.rng.normal(expected_s, max(1.5, 0.10 * expected_s)))))
 
         # Solve market-clearing surge multiplier m* from excess demand ratio Dt / St
         if d_t <= s_t and effective_water_mm < 0.5 and hour not in [7, 8, 17, 18]:
-            base_m = 1.00 + max(0.0, float(np.random.normal(0.0, 0.03)))
+            base_m = 1.00 + max(0.0, float(self.rng.normal(0.0, 0.03)))
         else:
             m = float(np.clip((d_t / max(1.0, float(s_t))) ** 0.65, 1.01, SURGE_MAX))
             alpha = 0.65
@@ -309,10 +311,10 @@ class MoviGoSimulationEngine:
                     m = float(np.clip(m - f_val / df_val, 1.00, SURGE_MAX))
             rain_boost = 0.045 * effective_water_mm + (0.18 if vias_anegadas else 0.0)
             rush_boost = 0.12 if hour in [7, 8, 17, 18] else (0.06 if hour in [12, 13, 19] else 0.0)
-            base_m = m + rain_boost + rush_boost + float(np.random.normal(0.0, 0.04))
+            base_m = m + rain_boost + rush_boost + float(self.rng.normal(0.0, 0.04))
 
-        if (vias_anegadas or effective_water_mm > 8.0) and hour in [7, 8, 17, 18] and np.random.rand() < 0.22:
-            multiplier = float(np.random.uniform(2.60, 3.20))
+        if (vias_anegadas or effective_water_mm > 8.0) and hour in [7, 8, 17, 18] and self.rng.random() < 0.22:
+            multiplier = float(self.rng.uniform(2.60, 3.20))
         else:
             multiplier = float(np.clip(base_m, 1.00, SURGE_MAX))
 
@@ -326,7 +328,7 @@ class MoviGoSimulationEngine:
     def sample_payment_method_for_stratum(self, stratum: str) -> str:
         """Sample payment method conditioned on origin zone stratum (Chi-Square guarantee)."""
         probs = STRATUM_PAYMENT_PROBABILITIES.get(stratum, [0.40, 0.35, 0.25])
-        return str(np.random.choice(PAYMENT_METHODS, p=probs))
+        return str(self.rng.choice(PAYMENT_METHODS, p=probs))
 
     def estimate_distance_and_duration(
         self,
@@ -341,30 +343,30 @@ class MoviGoSimulationEngine:
         """Calculate road distance and duration from exact GPS coordinates with flood-induced detours."""
         hav_km = haversine_km(lat_o, lon_o, lat_d, lon_d)
 
-        is_suboptimal = bool(flood_affected_route or (np.random.rand() < 0.16))
+        is_suboptimal = bool(flood_affected_route or (self.rng.random() < 0.16))
         if flood_affected_route:
-            circuity_factor = float(np.random.uniform(1.55, 2.02))
+            circuity_factor = float(self.rng.uniform(1.55, 2.02))
         elif is_suboptimal:
-            circuity_factor = float(np.random.uniform(1.50, 1.88))
+            circuity_factor = float(self.rng.uniform(1.50, 1.88))
         else:
-            circuity_factor = float(np.clip(np.random.normal(1.30, 0.03), 1.24, 1.38))
+            circuity_factor = float(np.clip(self.rng.normal(1.30, 0.03), 1.24, 1.38))
 
         dist_km = round(max(0.65, hav_km * circuity_factor), 2)
 
         rain_speed_penalty = 1.0 + 0.025 * effective_water_mm + (0.28 if flood_affected_route else 0.0)
         effective_speed_kmh = max(8.5, 30.5 / (congestion_idx * rain_speed_penalty))
         duration_min = round(
-            max(2.5, (dist_km / effective_speed_kmh) * 60.0 + float(np.random.uniform(1.0, 3.5))),
+            max(2.5, (dist_km / effective_speed_kmh) * 60.0 + float(self.rng.uniform(1.0, 3.5))),
             2,
         )
 
-        roll = np.random.rand()
+        roll = float(self.rng.random())
         if roll < OUTLIER_AIRPORT_TRIP_PROB:
-            dist_km = round(max(dist_km, float(np.random.uniform(18.0, 32.0))), 2)
-            duration_min = round(float(dist_km * np.random.uniform(1.6, 2.2) + np.random.uniform(8.0, 18.0)), 2)
+            dist_km = round(max(dist_km, float(self.rng.uniform(18.0, 32.0))), 2)
+            duration_min = round(float(dist_km * self.rng.uniform(1.6, 2.2) + self.rng.uniform(8.0, 18.0)), 2)
             is_suboptimal = True
         elif roll < (OUTLIER_AIRPORT_TRIP_PROB + OUTLIER_GRIDLOCK_DELAY_PROB):
-            duration_min = round(float(duration_min + np.random.uniform(30.0, 55.0)), 2)
+            duration_min = round(float(duration_min + self.rng.uniform(30.0, 55.0)), 2)
 
         return dist_km, duration_min, is_suboptimal
 
@@ -401,26 +403,26 @@ class MoviGoSimulationEngine:
         logit = -3.88 + surge_term + cash_term + delay_term + peak_term + flood_term
         cancel_prob = float(np.clip(1.0 / (1.0 + math.exp(-logit)), 0.015, 0.72))
 
-        if np.random.rand() >= cancel_prob:
+        if self.rng.random() >= cancel_prob:
             return False, None, None
 
-        if flood_affected or (effective_water_mm > 3.5 and np.random.rand() < 0.55):
+        if flood_affected or (effective_water_mm > 3.5 and self.rng.random() < 0.55):
             return True, "cancelado_conductor", "Vía anegada / cauce intransitable"
 
-        if (cash_term > 0.0 or surge >= 1.35) and np.random.rand() < 0.58:
+        if (cash_term > 0.0 or surge >= 1.35) and self.rng.random() < 0.58:
             return True, "cancelado_usuario", "Tarifa dinámica sobrepasa presupuesto"
 
         if wait_min > 10.0:
-            if np.random.rand() < 0.62:
+            if self.rng.random() < 0.62:
                 return True, "cancelado_usuario", "Tiempo de llegada excesivo"
             return True, "cancelado_usuario", "Conductor no avanza"
 
-        if congestion_idx > 2.0 and np.random.rand() < 0.55:
-            if np.random.rand() < 0.65:
+        if congestion_idx > 2.0 and self.rng.random() < 0.55:
+            if self.rng.random() < 0.65:
                 return True, "cancelado_usuario", "Conductor no avanza"
             return True, "cancelado_usuario", "Tiempo de llegada excesivo"
 
-        roll = np.random.rand()
+        roll = float(self.rng.random())
         if roll < 0.40:
             return True, "cancelado_usuario", "Tarifa dinámica sobrepasa presupuesto"
         elif roll < 0.72:
@@ -436,7 +438,8 @@ class MoviGoSimulationEngine:
         weather_df: pd.DataFrame,
     ) -> tuple[list[Viaje], list[TelemetriaConductor]]:
         """Run full year MoviGo simulation coupled to hourly square-quadrant climate and street flood risk."""
-        logger.info(f"Starting MoviGo simulation across {len(weather_df)} days...")
+        self.rng = np.random.default_rng(self.random_seed)
+        logger.info(f"Starting MoviGo simulation across {len(weather_df)} days (seed={self.random_seed})...")
 
         hourly_matrices: dict[str, Any] | None = weather_df.attrs.get("hourly_matrices")
         date_hour_to_idx: dict[tuple[date, int], int] = (
@@ -463,11 +466,11 @@ class MoviGoSimulationEngine:
                 req_time = self.sample_trip_time(curr_date)
                 hour = req_time.hour
 
-                user = np.random.choice(self.usuarios)
+                user = self.usuarios[int(self.rng.integers(0, len(self.usuarios)))]
 
-                zona_origen = np.random.choice(self.zonas)
+                zona_origen = self.zonas[int(self.rng.integers(0, len(self.zonas)))]
                 dest_candidates = [z for z in self.zonas if z.id_zona != zona_origen.id_zona]
-                zona_destino = np.random.choice(dest_candidates)
+                zona_destino = dest_candidates[int(self.rng.integers(0, len(dest_candidates)))]
 
                 # Street-snapped Origin and Destination GPS coordinates inside exact square cuadrantes
                 lat_o, lon_o, q_o, flood_street_o = self.sample_street_coordinate(zona_origen)
@@ -521,16 +524,16 @@ class MoviGoSimulationEngine:
 
                 imbalance_ratio = d_t / max(1.0, float(s_t))
                 base_wait = (
-                    float(np.random.uniform(2.5, 6.2))
+                    float(self.rng.uniform(2.5, 6.2))
                     + 1.4 * max(0.0, imbalance_ratio - 0.9)
                     + 1.2 * (effective_congestion - 1.0)
                     + (3.2 if flood_affected else 0.0)
                 )
                 if effective_water_mm > 4.0 or hour in [7, 8, 17, 18]:
-                    base_wait += float(np.random.exponential(2.0))
+                    base_wait += float(self.rng.exponential(2.0))
                 wait_min = round(float(np.clip(base_wait, 1.5, 25.0)), 2)
 
-                conductor = np.random.choice(self.active_conductores)
+                conductor = self.active_conductores[int(self.rng.integers(0, len(self.active_conductores)))]
 
                 is_canceled, cancel_state, motivo = self.evaluate_cancellation(
                     stratum=zona_origen.estrato_socioeconomico,
@@ -555,14 +558,14 @@ class MoviGoSimulationEngine:
                     estado_viaje = "completado"
                     start_time = req_time + timedelta(minutes=wait_min)
                     end_time = start_time + timedelta(minutes=dur_min)
-                    rating_usr = float(np.random.choice([5.0, 4.0, 3.0, 2.0, 1.0], p=[0.67, 0.20, 0.06, 0.04, 0.03]))
-                    rating_cnd = float(np.random.choice([5.0, 4.0, 3.0, 2.0, 1.0], p=[0.75, 0.14, 0.05, 0.03, 0.03]))
+                    rating_usr = float(self.rng.choice([5.0, 4.0, 3.0, 2.0, 1.0], p=[0.67, 0.20, 0.06, 0.04, 0.03]))
+                    rating_cnd = float(self.rng.choice([5.0, 4.0, 3.0, 2.0, 1.0], p=[0.75, 0.14, 0.05, 0.03, 0.03]))
 
-                    tip_roll = np.random.rand()
+                    tip_roll = float(self.rng.random())
                     if tip_roll < 0.015:
-                        propina = float(np.random.choice([80.0, 100.0, 150.0]))
+                        propina = float(self.rng.choice([80.0, 100.0, 150.0]))
                     elif tip_roll < 0.28:
-                        propina = float(np.random.choice([20.0, 30.0, 50.0], p=[0.60, 0.30, 0.10]))
+                        propina = float(self.rng.choice([20.0, 30.0, 50.0], p=[0.60, 0.30, 0.10]))
                     else:
                         propina = 0.0
 
@@ -603,10 +606,10 @@ class MoviGoSimulationEngine:
                 )
 
                 # Generate street-snapped telemetry breadcrumb trail & idle pings
-                if not is_canceled and np.random.rand() < 0.08:
+                if not is_canceled and self.rng.random() < 0.08:
                     avg_speed_kmh = max(9.0, min(75.0, (dist_km / max(0.05, dur_min / 60.0))))
-                    detour_lat_offset = float(np.random.choice([-0.008, 0.008])) if is_suboptimal else 0.0
-                    detour_lon_offset = float(np.random.choice([-0.009, 0.009])) if is_suboptimal else 0.0
+                    detour_lat_offset = float(self.rng.choice([-0.008, 0.008])) if is_suboptimal else 0.0
+                    detour_lon_offset = float(self.rng.choice([-0.009, 0.009])) if is_suboptimal else 0.0
 
                     approach_lat, approach_lon, approach_q, _ = self.sample_street_coordinate(zona_origen)
                     telemetria.append(
@@ -619,7 +622,7 @@ class MoviGoSimulationEngine:
                             fecha_hora=req_time + timedelta(minutes=round(wait_min * 0.5, 2)),
                             latitud=approach_lat,
                             longitud=approach_lon,
-                            velocidad_kmh=round(float(np.clip(avg_speed_kmh * np.random.uniform(0.75, 1.15), 8.0, 65.0)), 2),
+                            velocidad_kmh=round(float(np.clip(avg_speed_kmh * self.rng.uniform(0.75, 1.15), 8.0, 65.0)), 2),
                             estado_disponibilidad="en_camino_recogida",
                         )
                     )
@@ -633,15 +636,15 @@ class MoviGoSimulationEngine:
                             raw_lat, raw_lon, fallback_z
                         )
 
-                        speed_roll = np.random.rand()
+                        speed_roll = float(self.rng.random())
                         if flood_affected and frac == 0.55:
-                            wp_speed = float(np.random.uniform(3.5, 11.5))
+                            wp_speed = float(self.rng.uniform(3.5, 11.5))
                         elif speed_roll < 0.08:
-                            wp_speed = float(np.random.uniform(0.0, 5.0))
+                            wp_speed = float(self.rng.uniform(0.0, 5.0))
                         elif speed_roll < 0.16:
-                            wp_speed = float(np.random.uniform(60.0, 76.0))
+                            wp_speed = float(self.rng.uniform(60.0, 76.0))
                         else:
-                            wp_speed = float(np.clip(avg_speed_kmh * np.random.uniform(0.80, 1.25), 12.0, 58.0))
+                            wp_speed = float(np.clip(avg_speed_kmh * self.rng.uniform(0.80, 1.25), 12.0, 58.0))
 
                         telemetria.append(
                             TelemetriaConductor(
@@ -659,7 +662,7 @@ class MoviGoSimulationEngine:
                         )
                         telemetry_counter += 1
 
-                elif np.random.rand() < 0.06:
+                elif self.rng.random() < 0.06:
                     idle_lat, idle_lon, idle_q, _ = self.sample_street_coordinate(zona_origen)
                     telemetria.append(
                         TelemetriaConductor(
@@ -671,7 +674,7 @@ class MoviGoSimulationEngine:
                             fecha_hora=req_time,
                             latitud=idle_lat,
                             longitud=idle_lon,
-                            velocidad_kmh=round(float(np.random.uniform(0.0, 22.0)), 2),
+                            velocidad_kmh=round(float(self.rng.uniform(0.0, 22.0)), 2),
                             estado_disponibilidad="disponible",
                         )
                     )

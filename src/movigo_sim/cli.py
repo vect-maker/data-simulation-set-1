@@ -19,6 +19,7 @@ from movigo_sim.config import (
     ARTIFACTS_DIR,
     RAW_DATA_DIR,
     POSTGRES_SCHEMA,
+    SIMULATION_SEED,
 )
 from movigo_sim.weather import (
     get_movigo_weather_series,
@@ -89,9 +90,17 @@ def display_movigo_rich_summary(summary: dict):
         render_math_optimization_table("Métodos Numéricos & Optimización Prescriptiva", math_rows, border_style="cyan")
 
 
-def run_generation(days=None, seed=42, live_llm=False, load_db=False, schema=POSTGRES_SCHEMA, output_dir=None):
+def run_generation(
+    days=None,
+    seed: int = SIMULATION_SEED,
+    live_llm: bool = False,
+    load_db: bool = False,
+    schema: str = POSTGRES_SCHEMA,
+    output_dir=None,
+    refresh_weather: bool = False,
+):
     """Programmatic entry point for MoviGo simulation generation."""
-    weather_df, clima_records = get_movigo_weather_series()
+    weather_df, clima_records = get_movigo_weather_series(force_refresh=refresh_weather, seed=seed)
     if days and days < len(weather_df):
         weather_df = weather_df.head(days)
         valid_dates = set(weather_df["fecha"])
@@ -110,7 +119,11 @@ def run_generation(days=None, seed=42, live_llm=False, load_db=False, schema=POS
     )
     viajes = enricher.enrich_trips(viajes)
 
-    csv_dir = Path(output_dir) if output_dir else CSV_ARTIFACTS_DIR
+    csv_dir = Path(output_dir).resolve() if output_dir else CSV_ARTIFACTS_DIR.resolve()
+    is_custom_dir = csv_dir != CSV_ARTIFACTS_DIR.resolve()
+    sql_path = (csv_dir.parent / "sql" / "schema_and_data.sql") if is_custom_dir else (SQL_ARTIFACTS_DIR / "schema_and_data.sql")
+    summary_path = (csv_dir.parent / "simulation_summary.json") if is_custom_dir else (ARTIFACTS_DIR / "simulation_summary.json")
+
     csv_files = export_movigo_to_csv(
         zonas=engine.zonas,
         usuarios=engine.usuarios,
@@ -122,12 +135,14 @@ def run_generation(days=None, seed=42, live_llm=False, load_db=False, schema=POS
         output_dir=csv_dir,
         cuadrantes=engine.cuadrantes,
     )
-    sql_file = export_movigo_to_sql_dump(csv_files)
+    export_movigo_to_sql_dump(csv_files, output_file=sql_path)
     summary = compute_movigo_simulation_summary(
         zonas=engine.zonas,
         viajes=viajes,
         clima=clima_records,
         campanas=engine.campanas,
+        seed=seed,
+        summary_path=summary_path,
     )
 
     if load_db:
@@ -140,6 +155,7 @@ def run_generation(days=None, seed=42, live_llm=False, load_db=False, schema=POS
             viajes=viajes,
             telemetria=telemetria,
             schema_name=schema,
+            cuadrantes=engine.cuadrantes,
         )
 
     return summary
@@ -157,12 +173,12 @@ def run_inspection():
     display_movigo_rich_summary(summary)
 
 
-def run_loading(schema=POSTGRES_SCHEMA):
+def run_loading(schema: str = POSTGRES_SCHEMA, seed: int = SIMULATION_SEED):
     """Programmatic entry point for loading to PostgreSQL."""
-    engine = MoviGoSimulationEngine(42)
-    weather_df, clima_records = get_movigo_weather_series()
+    engine = MoviGoSimulationEngine(random_seed=seed)
+    weather_df, clima_records = get_movigo_weather_series(seed=seed)
     viajes, telemetria = engine.run_simulation(weather_df)
-    enricher = MoviGoSemanticEnricher(engine.templates)
+    enricher = MoviGoSemanticEnricher(engine.templates, random_seed=seed)
     viajes = enricher.enrich_trips(viajes)
 
     load_movigo_to_postgres(
@@ -174,6 +190,7 @@ def run_loading(schema=POSTGRES_SCHEMA):
         viajes=viajes,
         telemetria=telemetria,
         schema_name=schema,
+        cuadrantes=engine.cuadrantes,
     )
 
 
@@ -191,13 +208,14 @@ def cmd_generate(args):
         load_db=args.load_db,
         schema=args.schema,
         output_dir=args.output_dir,
+        refresh_weather=getattr(args, "refresh_weather", False),
     )
     display_movigo_rich_summary(summary)
 
 
 def cmd_load(args):
     """CLI handler for load."""
-    run_loading(schema=args.schema)
+    run_loading(schema=args.schema, seed=getattr(args, "seed", SIMULATION_SEED))
     console.print(f"[bold green]Data loaded into PostgreSQL schema '{args.schema}'.[/bold green]")
 
 
@@ -233,7 +251,7 @@ def main():
 
     # generate
     gen_parser = subparsers.add_parser("generate", help="Generate 2024 urban rides & telemetry facts")
-    gen_parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
+    gen_parser.add_argument("--seed", type=int, default=SIMULATION_SEED, help="Random seed for reproducibility")
     gen_parser.add_argument("--days", type=int, default=None, help="Number of days to simulate")
     gen_parser.add_argument("--refresh-weather", action="store_true", help="Force refresh weather from Open-Meteo")
     gen_parser.add_argument("--live-llm", action="store_true", help="Use live Gemini LLM for trip reviews")
@@ -249,6 +267,7 @@ def main():
     # load
     load_parser = subparsers.add_parser("load", help="Load data into PostgreSQL via dlt")
     load_parser.add_argument("--schema", type=str, default=POSTGRES_SCHEMA, help="Target PostgreSQL schema")
+    load_parser.add_argument("--seed", type=int, default=SIMULATION_SEED, help="Random seed for reproducibility")
     load_parser.set_defaults(func=cmd_load)
 
     # inspect

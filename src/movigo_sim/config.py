@@ -29,6 +29,9 @@ START_DATE = "2024-01-01"
 END_DATE = "2024-12-31"
 TIMEZONE = "America/Managua"
 
+# Global Reproducibility Seed
+SIMULATION_SEED = int(os.getenv("MOVIGO_SIMULATION_SEED", "42"))
+
 # Weather API (Open-Meteo Managua)
 OPEN_METEO_ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
 OPEN_METEO_LATITUDE = 12.1364

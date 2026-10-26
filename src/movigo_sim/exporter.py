@@ -17,6 +17,7 @@ from movigo_sim.config import (
     SQL_ARTIFACTS_DIR,
     ARTIFACTS_DIR,
     SIMULATION_YEAR,
+    SIMULATION_SEED,
     START_DATE,
     END_DATE,
     CITY_NAME,
@@ -339,6 +340,8 @@ def compute_movigo_simulation_summary(
     viajes: list[Viaje],
     clima: Any,
     campanas: list[CampanaIncentivo],
+    seed: int = SIMULATION_SEED,
+    summary_path: Path | None = None,
 ) -> dict[str, Any]:
     """Compute mathematical, inferential, and optimization properties of MoviGo dataset."""
     df_viajes = pd.DataFrame([v.model_dump() for v in viajes])
@@ -397,6 +400,7 @@ def compute_movigo_simulation_summary(
         "case_name": "MoviGo (Transporte por Aplicación)",
         "city": CITY_NAME,
         "year": SIMULATION_YEAR,
+        "simulation_seed": seed,
         "date_range": [START_DATE, END_DATE],
         "total_trips": total_trips,
         "completed_trips": completed_trips,
@@ -430,5 +434,6 @@ def compute_movigo_simulation_summary(
         "optimizacion": opt_results,
     }
 
-    write_json_summary(summary, ARTIFACTS_DIR / "simulation_summary.json")
+    target_summary_path = summary_path if summary_path is not None else (ARTIFACTS_DIR / "simulation_summary.json")
+    write_json_summary(summary, target_summary_path)
     return summary

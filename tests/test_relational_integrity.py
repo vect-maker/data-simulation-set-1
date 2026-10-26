@@ -159,6 +159,34 @@ class TestRelationalIntegrity(unittest.TestCase):
             else:
                 self.assertIn(t.id_viaje, valid_viajes)
 
+    def test_movigo_deterministic_reproducibility(self):
+        import numpy as np
+        from movigo_sim.config import SIMULATION_SEED
+        from movigo_sim.enrichment import MoviGoSemanticEnricher
+
+        self.assertIsInstance(SIMULATION_SEED, int)
+
+        w_df_1, clima_1 = get_movigo_weather_series(seed=SIMULATION_SEED)
+        w_df_2, clima_2 = get_movigo_weather_series(seed=SIMULATION_SEED)
+        self.assertTrue(w_df_1.equals(w_df_2))
+        self.assertTrue(clima_1.to_dataframe().head(200).equals(clima_2.to_dataframe().head(200)))
+
+        engine = MoviGoSimulationEngine(random_seed=SIMULATION_SEED)
+        enricher = MoviGoSemanticEnricher(engine.templates, random_seed=SIMULATION_SEED)
+
+        viajes_1, tel_1 = engine.run_simulation(w_df_1.head(3))
+        viajes_1 = enricher.enrich_trips(viajes_1)
+
+        # Mutate global np.random in between to prove complete RNG isolation
+        np.random.seed(99999)
+        _ = np.random.rand(100)
+
+        viajes_2, tel_2 = engine.run_simulation(w_df_2.head(3))
+        viajes_2 = enricher.enrich_trips(viajes_2)
+
+        self.assertEqual([v.model_dump() for v in viajes_1], [v.model_dump() for v in viajes_2])
+        self.assertEqual([t.model_dump() for t in tel_1], [t.model_dump() for t in tel_2])
+
 
 if __name__ == "__main__":
     unittest.main()
