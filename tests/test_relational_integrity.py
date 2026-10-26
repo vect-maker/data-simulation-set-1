@@ -168,9 +168,13 @@ class TestRelationalIntegrity(unittest.TestCase):
 
         # Verify 1:1 trips <-> trip_payments and derived fare formula
         self.assertEqual(len(payments), len(trips))
+        concordant_payments = 0
         for p in payments:
             self.assertIn(p.trip_id, valid_trips)
             t_obj = valid_trips[p.trip_id]
+            u_obj = valid_users[t_obj.user_id]
+            if p.payment_method == u_obj.preferred_payment_method:
+                concordant_payments += 1
             zo = valid_zones[valid_quadrants[t_obj.origin_quadrant_id].zone_id]
             derived_base_fare = round(zo.base_flag_drop_fare + round(t_obj.distance_km * 18.0, 2) + round(t_obj.duration_minutes * 4.5, 2), 2)
             self.assertAlmostEqual(p.base_fare, derived_base_fare, delta=0.02)
@@ -184,6 +188,7 @@ class TestRelationalIntegrity(unittest.TestCase):
                 self.assertEqual(p.payment_status, "pagado")
             else:
                 self.assertEqual(p.payment_status, "anulado")
+        self.assertGreater(concordant_payments / len(payments), 0.75)
 
         # Verify trip_ratings (only completed trips) + trip_cancellations (only cancelled trips) partition trips
         self.assertEqual(len(ratings) + len(cancellations), len(trips))

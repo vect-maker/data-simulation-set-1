@@ -295,12 +295,20 @@ class MoviGoSimulationEngine:
         ) = load_movigo_seed_catalogs()
         self.vehicles = load_movigo_vehicles()
 
-        # Precompute user registration dates and Pareto/Zipf propensity weights
+        # Precompute user registration dates, Pareto/Zipf propensity weights, and stratum-coupled rider weights
         self.user_reg_dates = np.array([u.registration_date for u in self.users], dtype=object)
         ranks = np.arange(1, len(self.users) + 1, dtype=float)
         zipf_weights = 1.0 / (ranks ** 0.75)
         perm_rng = np.random.default_rng(self.random_seed + 303)
         self.user_base_weights = perm_rng.permutation(zipf_weights)
+        user_method_indices = np.array(
+            [PAYMENT_METHODS.index(u.preferred_payment_method) for u in self.users],
+            dtype=int,
+        )
+        self.user_stratum_weights: dict[str, np.ndarray] = {}
+        for stratum, probs in STRATUM_PAYMENT_PROBABILITIES.items():
+            probs_arr = np.array(probs, dtype=float)
+            self.user_stratum_weights[stratum] = self.user_base_weights * probs_arr[user_method_indices]
 
         self.zone_quadrants: dict[int, list[Quadrant]] = {z.zone_id: [] for z in self.zones}
         for c in self.quadrants:
@@ -527,9 +535,24 @@ class MoviGoSimulationEngine:
         _, _, m = self.simulate_supply_demand_and_surge(self.zones[0], precip_mm, precip_mm, precip_mm > 12.0, hour, 2)
         return m
 
-    def sample_payment_method_for_stratum(self, stratum: str) -> str:
-        """Sample payment method conditioned on origin zone stratum (Chi-Square guarantee)."""
-        probs = STRATUM_PAYMENT_PROBABILITIES.get(stratum, [0.40, 0.35, 0.25])
+    def sample_payment_method_for_stratum(
+        self,
+        stratum: str,
+        preferred_method: str | None = None,
+        user_weight: float = 0.75,
+    ) -> str:
+        """Sample payment method coupling user preference with origin zone stratum (Chi-Square guarantee)."""
+        stratum_probs = np.array(
+            STRATUM_PAYMENT_PROBABILITIES.get(stratum, [0.40, 0.35, 0.25]),
+            dtype=float,
+        )
+        if preferred_method is not None and preferred_method in PAYMENT_METHODS:
+            pref_idx = PAYMENT_METHODS.index(preferred_method)
+            probs = (1.0 - user_weight) * stratum_probs
+            probs[pref_idx] += user_weight
+            probs /= probs.sum()
+        else:
+            probs = stratum_probs
         return str(self.rng.choice(PAYMENT_METHODS, p=probs))
 
     def estimate_distance_and_duration(
@@ -679,11 +702,14 @@ class MoviGoSimulationEngine:
 
             daily_target = self.calculate_daily_demand(daily_precip_mm, dow)
 
-            # Filter users who have already registered on or before curr_date
+            # Filter users who have already registered on or before curr_date and precompute stratum-coupled probabilities
             eligible_mask = self.user_reg_dates <= curr_date
             eligible_users = [u for u, m in zip(self.users, eligible_mask) if m]
-            eligible_user_probs = self.user_base_weights[eligible_mask].copy()
-            eligible_user_probs /= eligible_user_probs.sum()
+            eligible_stratum_probs: dict[str, np.ndarray] = {}
+            for stratum, w_arr in self.user_stratum_weights.items():
+                ew = w_arr[eligible_mask].copy()
+                ew /= ew.sum()
+                eligible_stratum_probs[stratum] = ew
 
             # Sample and sort request timestamps chronologically within the day
             req_times = sorted(self.sample_trip_time(curr_date) for _ in range(daily_target))
@@ -694,10 +720,14 @@ class MoviGoSimulationEngine:
 
                 hour = req_time.hour
 
-                u_idx = int(self.rng.choice(len(eligible_users), p=eligible_user_probs))
-                user = eligible_users[u_idx]
-
                 origin_zone, destination_zone = self.sample_origin_destination_zones(hour, dow)
+
+                u_probs = eligible_stratum_probs.get(origin_zone.socioeconomic_stratum)
+                if u_probs is not None:
+                    u_idx = int(self.rng.choice(len(eligible_users), p=u_probs))
+                else:
+                    u_idx = int(self.rng.integers(0, len(eligible_users)))
+                user = eligible_users[u_idx]
 
                 # Street-snapped Origin and Destination GPS coordinates inside exact square quadrants
                 lat_o, lon_o, q_o, flood_street_o = self.sample_street_coordinate(origin_zone)
@@ -737,7 +767,10 @@ class MoviGoSimulationEngine:
                     origin_zone, h_precip_o, h_esc_o, h_aneg_o, hour, dow
                 )
 
-                payment_method = self.sample_payment_method_for_stratum(origin_zone.socioeconomic_stratum)
+                payment_method = self.sample_payment_method_for_stratum(
+                    origin_zone.socioeconomic_stratum,
+                    preferred_method=user.preferred_payment_method,
+                )
 
                 dist_km, dur_min, is_suboptimal = self.estimate_distance_and_duration(
                     lat_o, lon_o, lat_d, lon_d, effective_congestion, effective_water_mm, flood_affected
