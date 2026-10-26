@@ -48,6 +48,7 @@ data/raw/
 data/exports/
 data/logs/
 postgres_data/
+src/movigo_sim/seeds/deterministic/managua_osm_raw.json
 
 # Generated artifacts and datasets
 artifacts/

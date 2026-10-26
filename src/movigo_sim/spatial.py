@@ -176,6 +176,69 @@ DRIVABLE_HIGHWAY_TYPES = {
     "tertiary_link",
 }
 
+HIGHWAY_BASE_SPEEDS: dict[str, float] = {
+    "motorway": 55.0,
+    "motorway_link": 45.0,
+    "trunk": 50.0,
+    "trunk_link": 40.0,
+    "primary": 45.0,
+    "primary_link": 35.0,
+    "secondary": 38.0,
+    "secondary_link": 30.0,
+    "tertiary": 30.0,
+    "tertiary_link": 25.0,
+    "residential": 22.0,
+    "unclassified": 24.0,
+}
+
+HIGHWAY_CLASSES = sorted(list(DRIVABLE_HIGHWAY_TYPES))
+HW_TO_IDX = {hw: i for i, hw in enumerate(HIGHWAY_CLASSES)}
+
+
+def clip_segment_liang_barsky(
+    lat1: float,
+    lon1: float,
+    lat2: float,
+    lon2: float,
+    lat_min: float,
+    lat_max: float,
+    lon_min: float,
+    lon_max: float,
+) -> tuple[float, float, float, float] | None:
+    """Exact Liang-Barsky parametric 2D line clipping to an axis-aligned bounding box.
+
+    Guarantees that the clipped segment is strictly collinear with the raw OpenStreetMap way
+    with zero geometric bending or artificial axis clamping.
+    """
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    p = [-dlat, dlat, -dlon, dlon]
+    q = [lat1 - lat_min, lat_max - lat1, lon1 - lon_min, lon_max - lon1]
+    u1, u2 = 0.0, 1.0
+    for pi, qi in zip(p, q):
+        if pi == 0:
+            if qi < 0:
+                return None
+        else:
+            t = qi / pi
+            if pi < 0:
+                if t > u2:
+                    return None
+                if t > u1:
+                    u1 = t
+            else:
+                if t < u1:
+                    return None
+                if t < u2:
+                    u2 = t
+    if u1 > u2:
+        return None
+    c_lat1 = round(lat1 + u1 * dlat, 6)
+    c_lon1 = round(lon1 + u1 * dlon, 6)
+    c_lat2 = round(lat1 + u2 * dlat, 6)
+    c_lon2 = round(lon1 + u2 * dlon, 6)
+    return (c_lat1, c_lon1, c_lat2, c_lon2)
+
 NICARAGUAN_FIRST_NAMES = [
     "Carlos", "Juan Carlos", "María Elena", "Alejandro", "Roberto", "Luis Fernando",
     "Ana Patricia", "José Miguel", "Ernesto", "Claudia", "Francisco Javier", "Rosaura",
@@ -351,242 +414,352 @@ def build_deterministic_drivers_and_vehicles(
     return drivers, vehicles
 
 
-def fetch_osm_street_network_for_zones(zones: list[dict[str, Any]]) -> dict[str, Any]:
-    """Fetch real drivable street segments from OpenStreetMap API v0.6 for all 12 Managua zones."""
-    zone_segments: dict[str, list[list[float]]] = {}
-    arterials: list[list[float]] = []
-    rng = np.random.default_rng(42)
+def fetch_or_load_osm_raw_elements(
+    output_dir: Path, fetch_osm: bool = False
+) -> list[dict[str, Any]]:
+    """Fetch complete OSM street elements for Managua across a 3x3 tiled grid or load from local cache."""
+    cache_path = output_dir / "managua_osm_raw.json"
+    if not fetch_osm and cache_path.exists():
+        logger.info(f"Loading cached raw OSM elements from {cache_path}...")
+        with open(cache_path, encoding="utf-8") as f:
+            return json.load(f)
 
-    for z in zones:
-        zid = str(z["zone_id"])
-        lat_c = z["latitude"]
-        lon_c = z["longitude"]
-        r_deg = min(0.015, (z["coverage_radius_km"] / 111.0) * 0.85)
-        bbox = f"{lon_c - r_deg:.5f},{lat_c - r_deg:.5f},{lon_c + r_deg:.5f},{lat_c + r_deg:.5f}"
-        url = f"https://api.openstreetmap.org/api/0.6/map.json?bbox={bbox}"
-        resp = requests.get(url, headers={"User-Agent": "cs-datos-simulations/1.0"}, timeout=25)
-        resp.raise_for_status()
-        elements = resp.json().get("elements", [])
+    logger.info("Fetching complete drivable street network from OpenStreetMap API v0.6 for Managua...")
+    elements: list[dict[str, Any]] = []
+    seen_ids: set[tuple[str, int]] = set()
 
-        nodes = {el["id"]: (el["lat"], el["lon"]) for el in elements if el.get("type") == "node"}
-        segs = []
-        for el in elements:
-            if el.get("type") == "way":
-                hw = el.get("tags", {}).get("highway")
-                if hw in DRIVABLE_HIGHWAY_TYPES:
-                    nids = el.get("nodes", [])
-                    for k in range(len(nids) - 1):
-                        if nids[k] in nodes and nids[k + 1] in nodes:
-                            lat1, lon1 = nodes[nids[k]]
-                            lat2, lon2 = nodes[nids[k + 1]]
-                            seg = [round(lat1, 6), round(lon1, 6), round(lat2, 6), round(lon2, 6)]
-                            segs.append(seg)
-                            if hw in {"trunk", "primary", "secondary", "tertiary"}:
-                                arterials.append(seg)
+    lat_min, lat_max = 12.086, 12.166
+    lon_min, lon_max = -86.316, -86.204
+    ny, nx = 3, 3
+    dlat = (lat_max - lat_min) / ny
+    dlon = (lon_max - lon_min) / nx
 
-        if len(segs) > 450:
-            idxs = sorted(rng.choice(len(segs), size=450, replace=False))
-            segs = [segs[i] for i in idxs]
-        zone_segments[zid] = segs
+    import time
 
-    if len(arterials) > 1500:
-        idxs = sorted(rng.choice(len(arterials), size=1500, replace=False))
-        arterials = [arterials[i] for i in idxs]
+    for j in range(ny):
+        for i in range(nx):
+            b_lat0 = round(lat_min + j * dlat, 5)
+            b_lat1 = round(lat_min + (j + 1) * dlat, 5)
+            b_lon0 = round(lon_min + i * dlon, 5)
+            b_lon1 = round(lon_min + (i + 1) * dlon, 5)
+            bbox = f"{b_lon0},{b_lat0},{b_lon1},{b_lat1}"
+            url = f"https://api.openstreetmap.org/api/0.6/map.json?bbox={bbox}"
+            try:
+                resp = requests.get(
+                    url, headers={"User-Agent": "cs-datos-simulations/1.0"}, timeout=30
+                )
+                if resp.status_code == 200:
+                    for el in resp.json().get("elements", []):
+                        key = (el.get("type"), el.get("id"))
+                        if key not in seen_ids:
+                            seen_ids.add(key)
+                            elements.append(el)
+            except Exception as exc:
+                logger.warning(f"Warning fetching OSM tile {bbox}: {exc}")
+            time.sleep(1.0)
 
-    return {"zones": zone_segments, "arterials": arterials}
+    output_dir.mkdir(parents=True, exist_ok=True)
+    with open(cache_path, "w", encoding="utf-8") as f:
+        json.dump(elements, f)
+    logger.info(f"Saved {len(elements)} raw OSM elements to {cache_path}.")
+    return elements
 
 
-def build_deterministic_quadrants_and_street_index(
+def build_deterministic_quadrants_and_dense_osm_graph(
     zones: list[dict[str, Any]],
-    base_network: dict[str, Any],
+    raw_osm_elements: list[dict[str, Any]],
+    canonical_quadrants: list[dict[str, Any]] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    """Deterministically build the 92 contiguous square Quadrants and index all street segments."""
-    all_segs = []
-    for zid, segs in base_network.get("zones", {}).items():
-        for seg in segs:
-            all_segs.append(seg)
-    for seg in base_network.get("arterials", []):
-        all_segs.append(seg)
+    """Deterministically build or load the 92 contiguous square Quadrants and index the dense routable OSM street graph."""
+    from collections import defaultdict, deque
 
-    unique_segs = list({tuple(round(float(x), 6) for x in s) for s in all_segs})
-    unique_segs.sort()
+    # 1. Parse raw nodes and filter drivable ways
+    raw_nodes = {
+        el["id"]: (round(el["lat"], 6), round(el["lon"], 6))
+        for el in raw_osm_elements
+        if el.get("type") == "node"
+    }
+    drivable_ways = [
+        el
+        for el in raw_osm_elements
+        if el.get("type") == "way"
+        and el.get("tags", {}).get("highway") in DRIVABLE_HIGHWAY_TYPES
+    ]
 
-    dense_pts = []
-    for lat1, lon1, lat2, lon2 in unique_segs:
-        for t in (0.0, 0.25, 0.5, 0.75, 1.0):
-            dense_pts.append((lon1 + t * (lon2 - lon1), lat1 + t * (lat2 - lat1)))
-    dense_pts_arr = np.array(dense_pts)
+    # 2. Define or load the 92 Quadrants (~0.88 km x 0.88 km square cells)
+    quad_bounds: dict[int, tuple[float, float, float, float]] = {}
 
-    cell_size = 0.008  # ~0.88 km x 0.88 km square grid cells
-    lon_grid = np.round(np.arange(-86.316, -86.204, cell_size), 6)
-    lat_grid = np.round(np.arange(12.086, 12.166, cell_size), 6)
-
-    ny = len(lat_grid)
-    nx = len(lon_grid)
-    active = np.zeros((ny, nx), dtype=bool)
-
-    for j, lat0 in enumerate(lat_grid):
-        for i, lon0 in enumerate(lon_grid):
-            lat1 = round(float(lat0 + cell_size), 6)
-            lon1 = round(float(lon0 + cell_size), 6)
-            clat = 0.5 * (lat0 + lat1)
-            clon = 0.5 * (lon0 + lon1)
-            in_cell = (
-                (dense_pts_arr[:, 0] >= lon0)
-                & (dense_pts_arr[:, 0] <= lon1)
-                & (dense_pts_arr[:, 1] >= lat0)
-                & (dense_pts_arr[:, 1] <= lat1)
+    if canonical_quadrants is not None and len(canonical_quadrants) > 0:
+        quadrants = [dict(q) for q in canonical_quadrants]
+        for q in quadrants:
+            quad_bounds[q["quadrant_id"]] = (
+                float(q["lat_min"]),
+                float(q["lat_max"]),
+                float(q["lon_min"]),
+                float(q["lon_max"]),
             )
-            min_d = min(haversine_km(clat, clon, z["latitude"], z["longitude"]) for z in zones)
-            if np.sum(in_cell) >= 3 and min_d <= 2.15:
-                active[j, i] = True
+    else:
+        cell_size = 0.008
+        lon_grid = np.round(np.arange(-86.316, -86.204, cell_size), 6)
+        lat_grid = np.round(np.arange(12.086, 12.166, cell_size), 6)
+        ny = len(lat_grid)
+        nx = len(lon_grid)
 
-    # Fill interior pockets with >= 3 active orthogonal neighbors so the city grid has zero holes
-    for _ in range(2):
-        for j in range(1, ny - 1):
-            for i in range(1, nx - 1):
+        active = np.zeros((ny, nx), dtype=bool)
+        dense_pts = np.array([raw_nodes[nid] for nid in raw_nodes])
+
+        for j, lat0 in enumerate(lat_grid):
+            for i, lon0 in enumerate(lon_grid):
+                lat1 = round(float(lat0 + cell_size), 6)
+                lon1 = round(float(lon0 + cell_size), 6)
+                clat = 0.5 * (lat0 + lat1)
+                clon = 0.5 * (lon0 + lon1)
+                in_cell = (
+                    (dense_pts[:, 1] >= lon0)
+                    & (dense_pts[:, 1] <= lon1)
+                    & (dense_pts[:, 0] >= lat0)
+                    & (dense_pts[:, 0] <= lat1)
+                )
+                min_d = min(haversine_km(clat, clon, z["latitude"], z["longitude"]) for z in zones)
+                if np.sum(in_cell) >= 3 and min_d <= 2.15:
+                    active[j, i] = True
+
+        for _ in range(2):
+            for j in range(1, ny - 1):
+                for i in range(1, nx - 1):
+                    if not active[j, i]:
+                        nbrs = (
+                            int(active[j - 1, i])
+                            + int(active[j + 1, i])
+                            + int(active[j, i - 1])
+                            + int(active[j, i + 1])
+                        )
+                        if nbrs >= 3:
+                            active[j, i] = True
+
+        quadrants = []
+        cell_id = 1
+        for j, lat0 in enumerate(lat_grid):
+            for i, lon0 in enumerate(lon_grid):
                 if not active[j, i]:
-                    nbrs = (
-                        int(active[j - 1, i])
-                        + int(active[j + 1, i])
-                        + int(active[j, i - 1])
-                        + int(active[j, i + 1])
-                    )
-                    if nbrs >= 3:
-                        active[j, i] = True
+                    continue
+                lat0_f = round(float(lat0), 6)
+                lat1_f = round(float(lat0 + cell_size), 6)
+                lon0_f = round(float(lon0), 6)
+                lon1_f = round(float(lon0 + cell_size), 6)
+                clat = round(0.5 * (lat0_f + lat1_f), 6)
+                clon = round(0.5 * (lon0_f + lon1_f), 6)
 
-    quadrants: list[dict[str, Any]] = []
-    quadrant_streets: dict[str, list[list[float]]] = {}
-    quadrant_flood_flags: dict[str, list[int]] = {}
-    cell_id = 1
+                best_z = min(
+                    zones,
+                    key=lambda z: haversine_km(clat, clon, z["latitude"], z["longitude"])
+                    / (z["coverage_radius_km"] ** 0.35),
+                )
+                zid = int(best_z["zone_id"])
+                zname = str(best_z["zone_name"])
 
-    for j, lat0 in enumerate(lat_grid):
-        for i, lon0 in enumerate(lon_grid):
-            if not active[j, i]:
-                continue
-            lat0_f = round(float(lat0), 6)
-            lat1_f = round(float(lat0 + cell_size), 6)
-            lon0_f = round(float(lon0), 6)
-            lon1_f = round(float(lon0 + cell_size), 6)
-            clat = round(0.5 * (lat0_f + lat1_f), 6)
-            clon = round(0.5 * (lon0_f + lon1_f), 6)
+                norm_south = max(0.0, min(1.0, (12.164 - clat) / (12.164 - 12.086)))
+                alt_masl = int(round(46.0 + 195.0 * (norm_south ** 1.38)))
 
-            best_z = min(
-                zones,
-                key=lambda z: haversine_km(clat, clon, z["latitude"], z["longitude"])
-                / (z["coverage_radius_km"] ** 0.35),
-            )
-            zid = int(best_z["zone_id"])
-            zname = str(best_z["zone_name"])
+                nearest_hotspot = min(
+                    FLOOD_HOTSPOTS, key=lambda h: haversine_km(clat, clon, h["lat"], h["lon"])
+                )
+                dist_hotspot = haversine_km(clat, clon, nearest_hotspot["lat"], nearest_hotspot["lon"])
 
-            norm_south = max(0.0, min(1.0, (12.164 - clat) / (12.164 - 12.086)))
-            alt_masl = int(round(46.0 + 195.0 * (norm_south ** 1.38)))
+                if dist_hotspot <= nearest_hotspot["radius_km"] * 0.78 or (
+                    alt_masl <= 66 and zid in (7, 10, 11)
+                ):
+                    risk = "critico"
+                    cauce_desc = nearest_hotspot["name"]
+                elif dist_hotspot <= nearest_hotspot["radius_km"] * 1.25 or alt_masl <= 82:
+                    risk = "alto"
+                    cauce_desc = nearest_hotspot["name"] if dist_hotspot <= 1.2 else ZONE_CAUCES[zid]
+                elif alt_masl <= 135:
+                    risk = "medio"
+                    cauce_desc = ZONE_CAUCES[zid]
+                else:
+                    risk = "bajo"
+                    cauce_desc = ZONE_CAUCES[zid]
 
-            nearest_hotspot = min(
-                FLOOD_HOTSPOTS, key=lambda h: haversine_km(clat, clon, h["lat"], h["lon"])
-            )
-            dist_hotspot = haversine_km(clat, clon, nearest_hotspot["lat"], nearest_hotspot["lon"])
+                code = f"Q{cell_id:02d}-Z{zid:02d}"
+                name = f"{zname} - Cuadrante Q{cell_id:02d} (F{j+1}C{i+1})"
 
-            if dist_hotspot <= nearest_hotspot["radius_km"] * 0.78 or (
-                alt_masl <= 66 and zid in (7, 10, 11)
+                quadrants.append(
+                    {
+                        "quadrant_id": cell_id,
+                        "zone_id": zid,
+                        "quadrant_code": code,
+                        "quadrant_name": name,
+                        "grid_row": int(j),
+                        "grid_col": int(i),
+                        "lat_min": lat0_f,
+                        "lat_max": lat1_f,
+                        "lon_min": lon0_f,
+                        "lon_max": lon1_f,
+                        "mean_altitude_masl": alt_masl,
+                        "flood_risk": risk,
+                        "main_drainage_channels": cauce_desc,
+                    }
+                )
+                quad_bounds[cell_id] = (lat0_f, lat1_f, lon0_f, lon1_f)
+                cell_id += 1
+
+    # 3. Filter nodes strictly inside the 92 quadrants
+    node_to_quad: dict[int, tuple[int, int]] = {}
+    for nid, (lat, lon) in raw_nodes.items():
+        for q in quadrants:
+            if (
+                q["lat_min"] <= lat <= q["lat_max"]
+                and q["lon_min"] <= lon <= q["lon_max"]
             ):
-                risk = "critico"
-                cauce_desc = nearest_hotspot["name"]
-            elif dist_hotspot <= nearest_hotspot["radius_km"] * 1.25 or alt_masl <= 82:
-                risk = "alto"
-                cauce_desc = nearest_hotspot["name"] if dist_hotspot <= 1.2 else ZONE_CAUCES[zid]
-            elif alt_masl <= 135:
-                risk = "medio"
-                cauce_desc = ZONE_CAUCES[zid]
-            else:
-                risk = "bajo"
-                cauce_desc = ZONE_CAUCES[zid]
+                node_to_quad[nid] = (q["quadrant_id"], q["zone_id"])
+                break
 
-            code = f"Q{cell_id:02d}-Z{zid:02d}"
-            name = f"{zname} - Cuadrante Q{cell_id:02d} (F{j+1}C{i+1})"
+    # 4. Extract Largest Strongly Connected Component (LSCC) strictly within the 92 quadrants
+    adj = defaultdict(set)
+    for w in drivable_ways:
+        nids = w.get("nodes", [])
+        for k in range(len(nids) - 1):
+            u, v = nids[k], nids[k + 1]
+            if u in node_to_quad and v in node_to_quad:
+                adj[u].add(v)
+                adj[v].add(u)
 
-            quadrants.append(
-                {
-                    "quadrant_id": cell_id,
-                    "zone_id": zid,
-                    "quadrant_code": code,
-                    "quadrant_name": name,
-                    "grid_row": int(j),
-                    "grid_col": int(i),
-                    "lat_min": lat0_f,
-                    "lat_max": lat1_f,
-                    "lon_min": lon0_f,
-                    "lon_max": lon1_f,
-                    "mean_altitude_masl": alt_masl,
-                    "flood_risk": risk,
-                    "main_drainage_channels": cauce_desc,
-                }
-            )
+    visited = set()
+    comps = []
+    for n in adj:
+        if n not in visited:
+            comp = []
+            q = deque([n])
+            visited.add(n)
+            while q:
+                curr = q.popleft()
+                comp.append(curr)
+                for nxt in adj[curr]:
+                    if nxt not in visited:
+                        visited.add(nxt)
+                        q.append(nxt)
+            comps.append(comp)
 
-            cell_segs = []
-            cell_flags = []
-            for s_lat1, s_lon1, s_lat2, s_lon2 in unique_segs:
-                mlat = 0.5 * (s_lat1 + s_lat2)
-                mlon = 0.5 * (s_lon1 + s_lon2)
-                if (lat0_f <= mlat <= lat1_f) and (lon0_f <= mlon <= lon1_f):
-                    c_lat1 = round(min(max(s_lat1, lat0_f + 0.0001), lat1_f - 0.0001), 6)
-                    c_lon1 = round(min(max(s_lon1, lon0_f + 0.0001), lon1_f - 0.0001), 6)
-                    c_lat2 = round(min(max(s_lat2, lat0_f + 0.0001), lat1_f - 0.0001), 6)
-                    c_lon2 = round(min(max(s_lon2, lon0_f + 0.0001), lon1_f - 0.0001), 6)
-                    is_fl = any(
+    if not comps:
+        raise ValueError("No connected drivable components found in OSM data inside the 92 quadrants.")
+
+    largest_nodes = sorted(list(max(comps, key=len)))
+    node_to_idx = {nid: i for i, nid in enumerate(largest_nodes)}
+
+    # 5. Build node records strictly conforming to quadrant bounds
+    node_records: list[list[Any]] = []
+    q_node_indices: dict[str, list[int]] = {str(q["quadrant_id"]): [] for q in quadrants}
+
+    for idx, nid in enumerate(largest_nodes):
+        lat, lon = raw_nodes[nid]
+        assigned_qid, assigned_zid = node_to_quad[nid]
+        node_records.append([lat, lon, assigned_qid, assigned_zid])
+        q_node_indices[str(assigned_qid)].append(idx)
+
+    # 5. Build unique graph edges with road class, base speed, length, and flood flag
+    edge_records: list[list[Any]] = []
+    seen_edges: set[tuple[int, int]] = set()
+    arterials: list[list[float]] = []
+
+    for w in drivable_ways:
+        hw = w.get("tags", {}).get("highway", "residential")
+        base_spd = HIGHWAY_BASE_SPEEDS.get(hw, 25.0)
+        hw_idx = HW_TO_IDX.get(hw, 0)
+        nids = w.get("nodes", [])
+        for k in range(len(nids) - 1):
+            u, v = nids[k], nids[k + 1]
+            if u in node_to_idx and v in node_to_idx:
+                iu, iv = node_to_idx[u], node_to_idx[v]
+                pair = (min(iu, iv), max(iu, iv))
+                lat1, lon1 = raw_nodes[u]
+                lat2, lon2 = raw_nodes[v]
+                d = round(haversine_km(lat1, lon1, lat2, lon2), 4)
+                if d < 0.001:
+                    d = 0.001
+                mlat = 0.5 * (lat1 + lat2)
+                mlon = 0.5 * (lon1 + lon2)
+                is_fl = int(
+                    any(
                         haversine_km(mlat, mlon, h["lat"], h["lon"]) <= h["radius_km"]
                         for h in FLOOD_HOTSPOTS
                     )
-                    cell_segs.append([c_lat1, c_lon1, c_lat2, c_lon2])
-                    cell_flags.append(1 if (is_fl or risk == "critico") else 0)
+                )
+                eqid = node_records[iu][2]
+                if pair not in seen_edges:
+                    seen_edges.add(pair)
+                    edge_records.append([iu, iv, d, base_spd, eqid, is_fl, hw_idx])
+                    if hw in {"trunk", "primary", "secondary", "tertiary"}:
+                        arterials.append([lat1, lon1, lat2, lon2])
 
-            if len(cell_segs) < 3:
-                sorted_nearby = sorted(
-                    unique_segs,
-                    key=lambda s: (0.5 * (s[0] + s[2]) - clat) ** 2
-                    + (0.5 * (s[1] + s[3]) - clon) ** 2,
-                )[:8]
-                for s_lat1, s_lon1, s_lat2, s_lon2 in sorted_nearby:
-                    dlat = s_lat2 - s_lat1
-                    dlon = s_lon2 - s_lon1
-                    c_lat1 = round(
-                        min(max(clat - 0.35 * dlat, lat0_f + 0.0005), lat1_f - 0.0005), 6
-                    )
-                    c_lon1 = round(
-                        min(max(clon - 0.35 * dlon, lon0_f + 0.0005), lon1_f - 0.0005), 6
-                    )
-                    c_lat2 = round(
-                        min(max(clat + 0.35 * dlat, lat0_f + 0.0005), lat1_f - 0.0005), 6
-                    )
-                    c_lon2 = round(
-                        min(max(clon + 0.35 * dlon, lon0_f + 0.0005), lon1_f - 0.0005), 6
-                    )
-                    cell_segs.append([c_lat1, c_lon1, c_lat2, c_lon2])
-                    cell_flags.append(1 if risk in ("critico", "alto") else 0)
+    # 6. Build Liang-Barsky clipped quadrant streets for realistic on-street trip endpoints
+    quadrant_streets: dict[str, list[list[float]]] = {}
+    quadrant_flood_flags: dict[str, list[int]] = {}
 
-            quadrant_streets[str(cell_id)] = cell_segs[:120]
-            quadrant_flood_flags[str(cell_id)] = cell_flags[:120]
-            cell_id += 1
+    for q in quadrants:
+        qid = q["quadrant_id"]
+        lat0_f, lat1_f, lon0_f, lon1_f = quad_bounds[qid]
+        margin = 0.0001
+        cell_segs = []
+        cell_flags = []
 
-    zone_flood_flags: dict[str, list[int]] = {}
-    for zid, segs in base_network.get("zones", {}).items():
-        flags = []
-        for seg in segs:
-            mlat = 0.5 * (seg[0] + seg[2])
-            mlon = 0.5 * (seg[1] + seg[3])
-            is_fl = any(
-                haversine_km(mlat, mlon, h["lat"], h["lon"]) <= h["radius_km"]
-                for h in FLOOD_HOTSPOTS
+        # Find all edges touching this quadrant or crossing it
+        q_edge_candidates = []
+        for iu, iv, d, base_spd, eqid, is_fl, hw_idx in edge_records:
+            lat1, lon1 = node_records[iu][0], node_records[iu][1]
+            lat2, lon2 = node_records[iv][0], node_records[iv][1]
+            if (
+                min(lat1, lat2) <= lat1_f
+                and max(lat1, lat2) >= lat0_f
+                and min(lon1, lon2) <= lon1_f
+                and max(lon1, lon2) >= lon0_f
+            ):
+                clipped = clip_segment_liang_barsky(
+                    lat1,
+                    lon1,
+                    lat2,
+                    lon2,
+                    lat0_f + margin,
+                    lat1_f - margin,
+                    lon0_f + margin,
+                    lon1_f - margin,
+                )
+                if clipped is not None:
+                    c1, c2, c3, c4 = clipped
+                    if haversine_km(c1, c2, c3, c4) >= 0.005:
+                        cell_segs.append([c1, c2, c3, c4])
+                        cell_flags.append(
+                            1 if (is_fl or q["flood_risk"] == "critico") else 0
+                        )
+
+        quadrant_streets[str(qid)] = cell_segs[:120]
+        quadrant_flood_flags[str(qid)] = cell_flags[:120]
+
+    # 7. Select 1 representative hub intersection node per quadrant for fast corridor routing
+    quad_hubs: dict[str, int] = {}
+    for q in quadrants:
+        qid = q["quadrant_id"]
+        clat = 0.5 * (q["lat_min"] + q["lat_max"])
+        clon = 0.5 * (q["lon_min"] + q["lon_max"])
+        indices = q_node_indices[str(qid)]
+        if indices:
+            best_idx = min(
+                indices,
+                key=lambda i: (node_records[i][0] - clat) ** 2
+                + (node_records[i][1] - clon) ** 2,
             )
-            flags.append(1 if is_fl else 0)
-        zone_flood_flags[zid] = flags
+            quad_hubs[str(qid)] = best_idx
+        else:
+            quad_hubs[str(qid)] = 0
 
     enriched_network = {
-        "zones": base_network.get("zones", {}),
-        "arterials": base_network.get("arterials", []),
-        "zone_flood_flags": zone_flood_flags,
+        "nodes": node_records,
+        "edges": edge_records,
+        "quadrant_node_indices": q_node_indices,
+        "quad_hubs": quad_hubs,
         "quadrant_streets": quadrant_streets,
         "quadrant_flood_flags": quadrant_flood_flags,
+        "arterials": arterials[:1500],
     }
     return quadrants, enriched_network
 
@@ -599,20 +772,24 @@ def generate_deterministic_spatial_seeds(
 ) -> tuple[list[UrbanZone], list[Quadrant], dict[str, Any]]:
     """Deterministically generate and save urban_zones.json, quadrants.json, managua_street_network.json, users.json, drivers.json, and vehicles.json."""
     zones_dicts = build_deterministic_urban_zones()
-    net_path = output_dir / "managua_street_network.json"
+    raw_osm = fetch_or_load_osm_raw_elements(output_dir=output_dir, fetch_osm=fetch_osm)
 
-    if fetch_osm or not net_path.exists():
-        logger.info("Fetching drivable street segments from OpenStreetMap API v0.6 for Managua...")
-        base_net = fetch_osm_street_network_for_zones(zones_dicts)
-    else:
-        with open(net_path, encoding="utf-8") as f:
-            base_net = json.load(f)
+    quad_file = output_dir / "quadrants.json"
+    canonical_quads = None
+    if quad_file.exists():
+        try:
+            with open(quad_file, encoding="utf-8") as f:
+                canonical_quads = json.load(f)
+        except Exception:
+            canonical_quads = None
 
-    quadrants_dicts, enriched_net = build_deterministic_quadrants_and_street_index(
-        zones_dicts, base_net
+    quadrants_dicts, enriched_net = build_deterministic_quadrants_and_dense_osm_graph(
+        zones_dicts, raw_osm, canonical_quadrants=canonical_quads
     )
     users_dicts = build_deterministic_users(seed=seed, count=800)
-    drivers_dicts, vehicles_dicts = build_deterministic_drivers_and_vehicles(seed=seed, count=150)
+    drivers_dicts, vehicles_dicts = build_deterministic_drivers_and_vehicles(
+        seed=seed, count=150
+    )
 
     zones_models = [UrbanZone(**z) for z in zones_dicts]
     quadrants_models = [Quadrant(**q) for q in quadrants_dicts]
@@ -632,7 +809,7 @@ def generate_deterministic_spatial_seeds(
             json.dump(drivers_dicts, f, indent=2, ensure_ascii=False)
         with open(output_dir / "vehicles.json", "w", encoding="utf-8") as f:
             json.dump(vehicles_dicts, f, indent=2, ensure_ascii=False)
-        with open(net_path, "w", encoding="utf-8") as f:
+        with open(output_dir / "managua_street_network.json", "w", encoding="utf-8") as f:
             json.dump(enriched_net, f, separators=(",", ":"))
 
     return zones_models, quadrants_models, enriched_net

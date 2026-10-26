@@ -21,6 +21,8 @@ from datetime import datetime, date, timedelta, time
 from typing import Any
 import numpy as np
 import pandas as pd
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import dijkstra
 
 from movigo_sim.config import (
     DETERMINISTIC_SEEDS_DIR,
@@ -341,6 +343,58 @@ class MoviGoSimulationEngine:
             self.arterial_mid_lats = np.empty(0, dtype=float)
             self.arterial_mid_lons = np.empty(0, dtype=float)
 
+        # Dense OpenStreetMap Street Graph & Hub Predecessors
+        nodes_raw = self.street_network.get("nodes", [])
+        edges_raw = self.street_network.get("edges", [])
+        if nodes_raw and edges_raw:
+            self.node_coords = np.array([[n[0], n[1]] for n in nodes_raw], dtype=float)
+            self.node_quadrants = np.array([n[2] for n in nodes_raw], dtype=int)
+            self.node_zones = np.array([n[3] for n in nodes_raw], dtype=int)
+            self.num_nodes = len(nodes_raw)
+
+            edge_arr = np.array(edges_raw, dtype=float)
+            u_idx = edge_arr[:, 0].astype(int)
+            v_idx = edge_arr[:, 1].astype(int)
+            lengths = edge_arr[:, 2]
+            flood_flags = edge_arr[:, 5].astype(int)
+
+            rows = np.concatenate([u_idx, v_idx])
+            cols = np.concatenate([v_idx, u_idx])
+            dists = np.concatenate([lengths, lengths])
+            dists_flood = np.concatenate([
+                lengths * np.where(flood_flags == 1, 4.5, 1.0),
+                lengths * np.where(flood_flags == 1, 4.5, 1.0),
+            ])
+
+            self.csr_dist_normal = csr_matrix((dists, (rows, cols)), shape=(self.num_nodes, self.num_nodes))
+            self.csr_dist_flood = csr_matrix((dists_flood, (rows, cols)), shape=(self.num_nodes, self.num_nodes))
+
+            hub_dict = self.street_network.get("quad_hubs", {})
+            self.hub_node_indices = [hub_dict.get(str(q.quadrant_id), 0) for q in self.quadrants]
+            self.qid_to_hub_idx = {q.quadrant_id: idx for idx, q in enumerate(self.quadrants)}
+
+            self.dists_norm_hubs, self.preds_norm_hubs = dijkstra(
+                self.csr_dist_normal, indices=self.hub_node_indices, return_predecessors=True
+            )
+            self.dists_flood_hubs, self.preds_flood_hubs = dijkstra(
+                self.csr_dist_flood, indices=self.hub_node_indices, return_predecessors=True
+            )
+            self.quad_node_indices = self.street_network.get("quadrant_node_indices", {})
+        else:
+            self.node_coords = np.empty((0, 2), dtype=float)
+            self.node_quadrants = np.empty(0, dtype=int)
+            self.node_zones = np.empty(0, dtype=int)
+            self.num_nodes = 0
+            self.csr_dist_normal = None
+            self.csr_dist_flood = None
+            self.hub_node_indices = []
+            self.qid_to_hub_idx = {}
+            self.dists_norm_hubs = None
+            self.preds_norm_hubs = None
+            self.dists_flood_hubs = None
+            self.preds_flood_hubs = None
+            self.quad_node_indices = {}
+
         self.zones_map = {z.zone_id: z for z in self.zones}
         self.drivers_map = {c.driver_id: c for c in self.drivers}
         # All drivers except deactivated ('inactivo') operate shifts across the year
@@ -391,11 +445,13 @@ class MoviGoSimulationEngine:
         pair_idx = int(self.rng.choice(len(self.od_pairs), p=probs))
         return self.od_pairs[pair_idx]
 
-    def sample_street_coordinate(self, zone: UrbanZone) -> tuple[float, float, int, bool]:
+    def sample_street_coordinate(
+        self, zone: UrbanZone
+    ) -> tuple[float, float, int, bool, int]:
         """Sample a GPS coordinate strictly on a drivable street within one of the urban zone's square quadrants.
 
         Returns:
-            (latitude, longitude, quadrant_id, is_flood_prone_street)
+            (latitude, longitude, quadrant_id, is_flood_prone_street, nearest_node_idx)
         """
         quad_list = self.zone_quadrants.get(zone.zone_id) or self.quadrants
         q_idx = int(self.rng.integers(0, len(quad_list)))
@@ -403,20 +459,48 @@ class MoviGoSimulationEngine:
 
         segs = self.quadrant_streets.get(quad.quadrant_id)
         flags = self.quadrant_flood_flags.get(quad.quadrant_id)
+        q_node_idxs = self.quad_node_indices.get(str(quad.quadrant_id), [])
+
         if segs is not None and len(segs) > 0:
             idx = int(self.rng.integers(0, len(segs)))
             lat1, lon1, lat2, lon2 = segs[idx]
             t = float(self.rng.uniform(0.0, 1.0))
-            lat = lat1 + t * (lat2 - lat1)
-            lon = lon1 + t * (lon2 - lon1)
-            lat_clamped = round(float(np.clip(lat, quad.lat_min, quad.lat_max)), 6)
-            lon_clamped = round(float(np.clip(lon, quad.lon_min, quad.lon_max)), 6)
-            is_flood_street = bool(flags[idx]) if flags is not None and len(flags) > idx else (quad.flood_risk == "critico")
-            return lat_clamped, lon_clamped, quad.quadrant_id, is_flood_street
+            lat = round(lat1 + t * (lat2 - lat1), 6)
+            lon = round(lon1 + t * (lon2 - lon1), 6)
+            is_flood_street = (
+                bool(flags[idx])
+                if flags is not None and len(flags) > idx
+                else (quad.flood_risk == "critico")
+            )
+            if q_node_idxs and len(self.node_coords) > 0:
+                node_coords_q = self.node_coords[q_node_idxs]
+                d2 = (node_coords_q[:, 0] - lat) ** 2 + (node_coords_q[:, 1] - lon) ** 2
+                best_local_idx = int(np.argmin(d2))
+                best_node = q_node_idxs[best_local_idx]
+            elif self.hub_node_indices:
+                best_node = self.hub_node_indices[
+                    self.qid_to_hub_idx.get(quad.quadrant_id, 0)
+                ]
+            else:
+                best_node = 0
+            return lat, lon, quad.quadrant_id, is_flood_street, best_node
 
-        lat_f = round(float(self.rng.uniform(quad.lat_min + 0.0005, quad.lat_max - 0.0005)), 6)
-        lon_f = round(float(self.rng.uniform(quad.lon_min + 0.0005, quad.lon_max - 0.0005)), 6)
-        return lat_f, lon_f, quad.quadrant_id, (quad.flood_risk == "critico")
+        hub_idx = (
+            self.hub_node_indices[self.qid_to_hub_idx.get(quad.quadrant_id, 0)]
+            if self.hub_node_indices
+            else 0
+        )
+        h_lat = (
+            float(self.node_coords[hub_idx, 0])
+            if len(self.node_coords) > hub_idx
+            else float(quad.lat_min + 0.004)
+        )
+        h_lon = (
+            float(self.node_coords[hub_idx, 1])
+            if len(self.node_coords) > hub_idx
+            else float(quad.lon_min + 0.004)
+        )
+        return h_lat, h_lon, quad.quadrant_id, (quad.flood_risk == "critico"), hub_idx
 
     def snap_to_nearest_street_and_quadrant(
         self, target_lat: float, target_lon: float, fallback_zone: UrbanZone
@@ -426,7 +510,9 @@ class MoviGoSimulationEngine:
         Returns:
             (lat, lon, zone_id, quadrant_id)
         """
-        d2 = (self.quadrants_centers[:, 0] - target_lat) ** 2 + (self.quadrants_centers[:, 1] - target_lon) ** 2
+        d2 = (self.quadrants_centers[:, 0] - target_lat) ** 2 + (
+            self.quadrants_centers[:, 1] - target_lon
+        ) ** 2
         nearest_q_idx = int(np.argmin(d2))
         quad = self.quadrants[nearest_q_idx]
         segs = self.quadrant_streets.get(quad.quadrant_id)
@@ -438,8 +524,73 @@ class MoviGoSimulationEngine:
             lon = round(float(np.clip(lon1 + t * (lon2 - lon1), quad.lon_min, quad.lon_max)), 6)
             return lat, lon, quad.zone_id, quad.quadrant_id
 
-        lat, lon, qid, _ = self.sample_street_coordinate(fallback_zone)
+        lat, lon, qid, _, _ = self.sample_street_coordinate(fallback_zone)
         return lat, lon, fallback_zone.zone_id, qid
+
+    def get_osm_route(
+        self,
+        origin_node_idx: int,
+        dest_node_idx: int,
+        origin_qid: int,
+        dest_qid: int,
+        is_flood_aware: bool = False,
+        is_perturbed: bool = False,
+    ) -> tuple[list[int], float]:
+        """Reconstruct a continuous sequence of real OpenStreetMap street nodes between origin and destination."""
+        if origin_node_idx == dest_node_idx or self.preds_norm_hubs is None:
+            return [origin_node_idx], 0.20
+
+        lat_o, lon_o = float(self.node_coords[origin_node_idx, 0]), float(
+            self.node_coords[origin_node_idx, 1]
+        )
+        lat_d, lon_d = float(self.node_coords[dest_node_idx, 0]), float(
+            self.node_coords[dest_node_idx, 1]
+        )
+        hav = haversine_km(lat_o, lon_o, lat_d, lon_d)
+
+        if origin_qid == dest_qid or hav < 1.0:
+            route_km = max(0.45, round(hav * 1.25, 2))
+            return [origin_node_idx, dest_node_idx], route_km
+
+        h_idx = self.qid_to_hub_idx.get(origin_qid, 0)
+        hub_node = self.hub_node_indices[h_idx]
+        preds = (
+            self.preds_flood_hubs[h_idx]
+            if is_flood_aware
+            else self.preds_norm_hubs[h_idx]
+        )
+
+        path_rev = [dest_node_idx]
+        curr = dest_node_idx
+        for _ in range(350):
+            nxt = preds[curr]
+            if nxt < 0 or nxt == curr:
+                break
+            path_rev.append(int(nxt))
+            curr = int(nxt)
+            if curr == hub_node:
+                break
+
+        if path_rev[-1] == hub_node and origin_node_idx != hub_node:
+            path_rev.append(origin_node_idx)
+
+        path_nodes = path_rev[::-1]
+        coords = self.node_coords[path_nodes]
+        dp = np.radians(np.diff(coords[:, 0]))
+        dl = np.radians(np.diff(coords[:, 1]))
+        p1 = np.radians(coords[:-1, 0])
+        p2 = np.radians(coords[1:, 0])
+        a = np.sin(dp / 2.0) ** 2 + np.cos(p1) * np.cos(p2) * np.sin(dl / 2.0) ** 2
+        dists = 2.0 * 6371.0 * np.arcsin(np.minimum(1.0, np.sqrt(a)))
+        raw_km = float(np.sum(dists))
+
+        circuity = (
+            float(self.rng.uniform(1.08, 1.22))
+            if is_perturbed
+            else float(self.rng.uniform(1.02, 1.06))
+        )
+        route_km = round(max(0.65, max(raw_km * circuity, hav * 1.15)), 2)
+        return path_nodes, route_km
 
     def calculate_daily_demand(self, precip_mm: float, dow: int) -> int:
         """Daily ride requests driven by rain and day-of-week in Managua with realistic noise and mobility shocks."""
@@ -578,36 +729,38 @@ class MoviGoSimulationEngine:
         congestion_idx: float,
         effective_water_mm: float = 0.0,
         flood_affected_route: bool = False,
+        raw_route_km: float | None = None,
+        is_suboptimal: bool = False,
     ) -> tuple[float, float, bool]:
-        """Calculate road distance and duration from exact GPS coordinates with flood-induced detours."""
+        """Calculate road distance and duration from real OpenStreetMap route trajectory with flood/traffic physics."""
         hav_km = haversine_km(lat_o, lon_o, lat_d, lon_d)
 
-        is_suboptimal = bool(flood_affected_route or (self.rng.random() < 0.16))
-        if flood_affected_route:
-            circuity_factor = float(self.rng.uniform(1.55, 2.02))
-        elif is_suboptimal:
-            circuity_factor = float(self.rng.uniform(1.50, 1.88))
+        if raw_route_km is not None and raw_route_km > 0.0:
+            base_km = raw_route_km
         else:
-            circuity_factor = float(np.clip(self.rng.normal(1.30, 0.03), 1.24, 1.38))
+            base_km = max(0.65, hav_km * 1.25)
 
-        dist_km = round(max(0.65, hav_km * circuity_factor), 2)
+        subopt = bool(is_suboptimal or flood_affected_route or (self.rng.random() < 0.16))
+        if flood_affected_route:
+            detour_factor = float(self.rng.uniform(1.15, 1.45))
+        elif subopt:
+            detour_factor = float(self.rng.uniform(1.10, 1.28))
+        else:
+            detour_factor = float(self.rng.uniform(1.02, 1.08))
 
-        rain_speed_penalty = 1.0 + 0.025 * effective_water_mm + (0.28 if flood_affected_route else 0.0)
-        effective_speed_kmh = max(8.5, 30.5 / (congestion_idx * rain_speed_penalty))
+        dist_km = round(max(0.65, max(base_km * detour_factor, hav_km * 1.15)), 2)
+
+        if flood_affected_route:
+            effective_speed_kmh = float(self.rng.uniform(5.5, 12.0))
+        else:
+            rain_speed_penalty = 1.0 + 0.022 * effective_water_mm
+            effective_speed_kmh = max(8.5, 32.0 / (congestion_idx * rain_speed_penalty))
+
         duration_min = round(
-            max(2.5, (dist_km / effective_speed_kmh) * 60.0 + float(self.rng.uniform(1.0, 3.5))),
+            max(2.5, (dist_km / effective_speed_kmh) * 60.0 + float(self.rng.uniform(1.0, 3.0))),
             2,
         )
-
-        roll = float(self.rng.random())
-        if roll < OUTLIER_AIRPORT_TRIP_PROB:
-            dist_km = round(max(dist_km, float(self.rng.uniform(18.0, 32.0))), 2)
-            duration_min = round(float(dist_km * self.rng.uniform(1.6, 2.2) + self.rng.uniform(8.0, 18.0)), 2)
-            is_suboptimal = True
-        elif roll < (OUTLIER_AIRPORT_TRIP_PROB + OUTLIER_GRIDLOCK_DELAY_PROB):
-            duration_min = round(float(duration_min + self.rng.uniform(30.0, 55.0)), 2)
-
-        return dist_km, duration_min, is_suboptimal
+        return dist_km, duration_min, subopt
 
     def evaluate_cancellation(
         self,
@@ -703,10 +856,16 @@ class MoviGoSimulationEngine:
         cancellation_counter = 1
         telemetry_counter = 1
 
-        # Track when each operational driver finishes their current ride or cancellation window
-        driver_available_at: dict[int, datetime] = {
-            c.driver_id: datetime.min for c in self.operational_drivers
-        }
+        # Continuous stateful positioning of operational drivers on the Managua street network
+        driver_node: dict[int, int] = {}
+        driver_available_at: dict[int, datetime] = {}
+        for d in self.operational_drivers:
+            home_zid = (d.driver_id % len(self.zones)) + 1
+            home_quads = self.zone_quadrants.get(home_zid, self.quadrants)
+            hq = home_quads[d.driver_id % len(home_quads)].quadrant_id
+            h_idx = self.qid_to_hub_idx.get(hq, 0)
+            driver_node[d.driver_id] = self.hub_node_indices[h_idx] if self.hub_node_indices else 0
+            driver_available_at[d.driver_id] = datetime.min
 
         for day_idx, (_, row) in enumerate(weather_df.iterrows()):
             curr_date: date = row["date"]
@@ -743,9 +902,9 @@ class MoviGoSimulationEngine:
                     u_idx = int(self.rng.integers(0, len(eligible_users)))
                 user = eligible_users[u_idx]
 
-                # Street-snapped Origin and Destination GPS coordinates inside exact square quadrants
-                lat_o, lon_o, q_o, flood_street_o = self.sample_street_coordinate(origin_zone)
-                lat_d, lon_d, q_d, flood_street_d = self.sample_street_coordinate(destination_zone)
+                # Real OpenStreetMap coordinates inside exact square quadrants
+                lat_o, lon_o, q_o, flood_street_o, node_o = self.sample_street_coordinate(origin_zone)
+                lat_d, lon_d, q_d, flood_street_d, node_d = self.sample_street_coordinate(destination_zone)
 
                 # Look up localized hourly weather & cauce runoff for Origin and Destination Square Quadrants
                 t_idx = date_hour_to_idx.get((curr_date, hour)) if hourly_matrices else None
@@ -786,8 +945,25 @@ class MoviGoSimulationEngine:
                     preferred_method=user.preferred_payment_method,
                 )
 
+                # Route selection on dense OSM graph (45% habitual, 35% perturbed detour, 20% weather-aware)
+                beh_roll = float(self.rng.random())
+                if beh_roll < 0.45:
+                    is_fl_aware = False
+                    is_pert = False
+                elif beh_roll < 0.80:
+                    is_fl_aware = False
+                    is_pert = True
+                else:
+                    is_fl_aware = bool(flood_affected)
+                    is_pert = False
+
+                ride_nodes, raw_road_km = self.get_osm_route(
+                    node_o, node_d, q_o, q_d, is_flood_aware=is_fl_aware, is_perturbed=is_pert
+                )
+
                 dist_km, dur_min, is_suboptimal = self.estimate_distance_and_duration(
-                    lat_o, lon_o, lat_d, lon_d, effective_congestion, effective_water_mm, flood_affected
+                    lat_o, lon_o, lat_d, lon_d, effective_congestion, effective_water_mm, flood_affected,
+                    raw_route_km=raw_road_km, is_suboptimal=is_pert
                 )
 
                 flag_drop_fare = round(float(origin_zone.base_flag_drop_fare), 2)
@@ -796,31 +972,68 @@ class MoviGoSimulationEngine:
                 base_fare = round(flag_drop_fare + distance_charge + time_charge, 2)
                 final_fare = round(base_fare * surge, 2)
 
-                imbalance_ratio = d_t / max(1.0, float(s_t))
-                base_wait = (
-                    float(self.rng.uniform(2.5, 6.2))
-                    + 1.4 * max(0.0, imbalance_ratio - 0.9)
-                    + 1.2 * (effective_congestion - 1.0)
-                    + (3.2 if flood_affected else 0.0)
-                )
-                if effective_water_mm > 4.0 or hour in [7, 8, 17, 18]:
-                    base_wait += float(self.rng.exponential(2.0))
-                wait_min = round(float(np.clip(base_wait, 1.5, 25.0)), 2)
-
-                # Non-overlapping driver dispatch: select from operational drivers available at req_time
+                # Dispatch matching: stateful free drivers & greedy proximity dispatch
                 free_indices = [
                     idx for idx, d in enumerate(self.operational_drivers)
                     if driver_available_at[d.driver_id] <= req_time
                 ]
+
+                # Idle cruising: if a free driver was idle > 45 min, reposition along OSM graph
+                for idx in free_indices:
+                    d = self.operational_drivers[idx]
+                    idle_gap = (req_time - driver_available_at[d.driver_id]).total_seconds() / 60.0
+                    if idle_gap > 45.0 and self.rng.random() < 0.20:
+                        regime_name = get_gravity_regime_name(hour, dow)
+                        top_z = 9 if "rush" in regime_name else (4 if "night" in regime_name else 11)
+                        top_quads = self.zone_quadrants.get(top_z, self.quadrants)
+                        target_q = top_quads[int(self.rng.integers(0, len(top_quads)))].quadrant_id
+                        target_node = self.hub_node_indices[self.qid_to_hub_idx.get(target_q, 0)]
+                        driver_node[d.driver_id] = target_node
+                        driver_available_at[d.driver_id] = req_time
+
+                        if self.rng.random() < 0.35:
+                            c_lat = float(self.node_coords[target_node, 0])
+                            c_lon = float(self.node_coords[target_node, 1])
+                            telemetry.append(
+                                DriverTelemetry(
+                                    telemetry_id=telemetry_counter,
+                                    driver_id=d.driver_id,
+                                    trip_id=None,
+                                    quadrant_id=target_q,
+                                    recorded_at=req_time,
+                                    latitude=c_lat,
+                                    longitude=c_lon,
+                                    speed_kmh=round(float(self.rng.uniform(10.0, 24.0)), 2),
+                                    availability_status="disponible",
+                                )
+                            )
+                            telemetry_counter += 1
+
                 if free_indices:
-                    free_w = self.driver_base_weights[free_indices].copy()
-                    free_w /= free_w.sum()
-                    chosen_local_idx = int(self.rng.choice(len(free_indices), p=free_w))
+                    proximity_w = []
+                    for idx in free_indices:
+                        d = self.operational_drivers[idx]
+                        d_pos = self.node_coords[driver_node[d.driver_id]]
+                        d_hav = haversine_km(d_pos[0], d_pos[1], lat_o, lon_o)
+                        score = 1.0 / max(0.4, d_hav)
+                        w = score * (d.acceptance_rate_pct / 100.0) * (0.45 if d.status == "desconectado" else 1.0)
+                        proximity_w.append(w)
+                    proximity_w_arr = np.array(proximity_w, dtype=float)
+                    proximity_w_arr /= proximity_w_arr.sum()
+                    chosen_local_idx = int(self.rng.choice(len(free_indices), p=proximity_w_arr))
                     driver = self.operational_drivers[free_indices[chosen_local_idx]]
+                    extra_wait = 0.0
                 else:
                     driver = min(self.operational_drivers, key=lambda d: driver_available_at[d.driver_id])
                     extra_wait = max(0.0, (driver_available_at[driver.driver_id] - req_time).total_seconds() / 60.0)
-                    wait_min = round(wait_min + extra_wait, 2)
+
+                # Pickup leg traversal on OSM graph
+                drv_n = driver_node[driver.driver_id]
+                drv_q = int(self.node_quadrants[drv_n]) if len(self.node_quadrants) > drv_n else q_o
+                pickup_nodes, pickup_km = self.get_osm_route(drv_n, node_o, drv_q, q_o)
+                pickup_spd = max(10.0, 30.0 / effective_congestion)
+                base_wait = (pickup_km / pickup_spd) * 60.0 + float(self.rng.uniform(0.5, 2.0))
+                wait_min = round(float(np.clip(base_wait + extra_wait, 1.5, 25.0)), 2)
 
                 is_canceled, cancel_state, reason = self.evaluate_cancellation(
                     stratum=origin_zone.socioeconomic_stratum,
@@ -841,6 +1054,8 @@ class MoviGoSimulationEngine:
                     tip_amount = 0.0
                     payment_status = "anulado"
                     cancelled_by = "conductor" if trip_status == "cancelado_conductor" else "usuario"
+                    c_step = min(len(pickup_nodes) - 1, max(0, int(len(pickup_nodes) * min(1.0, wait_min / 12.0))))
+                    driver_node[driver.driver_id] = pickup_nodes[c_step]
                     driver_available_at[driver.driver_id] = req_time + timedelta(minutes=wait_min)
                     cancellations.append(
                         TripCancellation(
@@ -858,6 +1073,7 @@ class MoviGoSimulationEngine:
                     trip_status = "completado"
                     start_time = req_time + timedelta(minutes=wait_min)
                     end_time = start_time + timedelta(minutes=dur_min)
+                    driver_node[driver.driver_id] = node_d
                     driver_available_at[driver.driver_id] = end_time
                     rating_usr = float(self.rng.choice([5.0, 4.0, 3.0, 2.0, 1.0], p=[0.67, 0.20, 0.06, 0.04, 0.03]))
                     rating_drv = float(self.rng.choice([5.0, 4.0, 3.0, 2.0, 1.0], p=[0.75, 0.14, 0.05, 0.03, 0.03]))
@@ -915,43 +1131,43 @@ class MoviGoSimulationEngine:
                 )
                 payment_counter += 1
 
-                # Generate street-snapped telemetry breadcrumb trail & idle pings
-                if not is_canceled and self.rng.random() < 0.08:
+                # Generate real street-snapped telemetry checkpoints along actual traversed OSM nodes
+                if not is_canceled and self.rng.random() < 0.14:
                     avg_speed_kmh = max(9.0, min(75.0, (dist_km / max(0.05, dur_min / 60.0))))
-                    detour_lat_offset = float(self.rng.choice([-0.008, 0.008])) if is_suboptimal else 0.0
-                    detour_lon_offset = float(self.rng.choice([-0.009, 0.009])) if is_suboptimal else 0.0
 
-                    approach_lat, approach_lon, approach_q, _ = self.sample_street_coordinate(origin_zone)
+                    if len(pickup_nodes) > 1:
+                        mid_p_idx = pickup_nodes[len(pickup_nodes) // 2]
+                        p_lat = float(self.node_coords[mid_p_idx, 0])
+                        p_lon = float(self.node_coords[mid_p_idx, 1])
+                        p_qid = int(self.node_quadrants[mid_p_idx])
+                    else:
+                        p_lat, p_lon, p_qid = lat_o, lon_o, q_o
+
                     telemetry.append(
                         DriverTelemetry(
                             telemetry_id=telemetry_counter,
                             driver_id=driver.driver_id,
                             trip_id=trip_id,
-                            quadrant_id=approach_q,
+                            quadrant_id=p_qid,
                             recorded_at=req_time + timedelta(minutes=round(wait_min * 0.5, 2)),
-                            latitude=approach_lat,
-                            longitude=approach_lon,
-                            speed_kmh=round(float(np.clip(avg_speed_kmh * self.rng.uniform(0.75, 1.15), 8.0, 65.0)), 2),
+                            latitude=p_lat,
+                            longitude=p_lon,
+                            speed_kmh=round(float(np.clip(avg_speed_kmh * self.rng.uniform(0.75, 1.15), 8.0, 60.0)), 2),
                             availability_status="en_camino_recogida",
                         )
                     )
                     telemetry_counter += 1
 
-                    for frac in (0.15, 0.55, 0.90):
-                        raw_lat = lat_o + frac * (lat_d - lat_o) + (detour_lat_offset if frac == 0.55 else 0.0)
-                        raw_lon = lon_o + frac * (lon_d - lon_o) + (detour_lon_offset if frac == 0.55 else 0.0)
-                        fallback_z = origin_zone if frac < 0.5 else destination_zone
-                        wp_lat, wp_lon, _wp_zone_id, wp_quad_id = self.snap_to_nearest_street_and_quadrant(
-                            raw_lat, raw_lon, fallback_z
-                        )
+                    n_ride = len(ride_nodes)
+                    for frac in (0.20, 0.55, 0.88):
+                        step = min(n_ride - 1, max(0, int(n_ride * frac)))
+                        node_ckpt = ride_nodes[step]
+                        wp_lat = float(self.node_coords[node_ckpt, 0])
+                        wp_lon = float(self.node_coords[node_ckpt, 1])
+                        wp_qid = int(self.node_quadrants[node_ckpt])
 
-                        speed_roll = float(self.rng.random())
                         if flood_affected and frac == 0.55:
-                            wp_speed = float(self.rng.uniform(3.5, 11.5))
-                        elif speed_roll < 0.08:
-                            wp_speed = float(self.rng.uniform(0.0, 5.0))
-                        elif speed_roll < 0.16:
-                            wp_speed = float(self.rng.uniform(60.0, 76.0))
+                            wp_speed = float(self.rng.uniform(4.5, 11.5))
                         else:
                             wp_speed = float(np.clip(avg_speed_kmh * self.rng.uniform(0.80, 1.25), 12.0, 58.0))
 
@@ -960,7 +1176,7 @@ class MoviGoSimulationEngine:
                                 telemetry_id=telemetry_counter,
                                 driver_id=driver.driver_id,
                                 trip_id=trip_id,
-                                quadrant_id=wp_quad_id,
+                                quadrant_id=wp_qid,
                                 recorded_at=start_time + timedelta(minutes=round(dur_min * frac, 2)),
                                 latitude=wp_lat,
                                 longitude=wp_lon,
@@ -969,23 +1185,6 @@ class MoviGoSimulationEngine:
                             )
                         )
                         telemetry_counter += 1
-
-                elif self.rng.random() < 0.06:
-                    idle_lat, idle_lon, idle_q, _ = self.sample_street_coordinate(origin_zone)
-                    telemetry.append(
-                        DriverTelemetry(
-                            telemetry_id=telemetry_counter,
-                            driver_id=driver.driver_id,
-                            trip_id=None,
-                            quadrant_id=idle_q,
-                            recorded_at=req_time,
-                            latitude=idle_lat,
-                            longitude=idle_lon,
-                            speed_kmh=round(float(self.rng.uniform(0.0, 22.0)), 2),
-                            availability_status="disponible",
-                        )
-                    )
-                    telemetry_counter += 1
 
             if (day_idx + 1) % 60 == 0 or (day_idx + 1) == len(weather_df):
                 logger.info(f"Simulated {day_idx + 1}/{len(weather_df)} days... ({len(trips)} rides generated)")
