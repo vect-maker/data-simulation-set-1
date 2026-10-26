@@ -2,6 +2,7 @@
 
 Generates realistic urban mobility facts with strict mathematical guarantees:
 - Two-tier 3NF spatial architecture: 12 urban pricing zones (urban_zones) grouping 92 fine-grained square quadrants (quadrants, ~0.88 km x 0.88 km)
+- Time-of-day Origin-Destination (OD) Gravity Model capturing Managua's morning residential->hub commute, midday commercial/market activity, evening reverse commute, and nightlife corridors
 - Expanded deterministic population: 800 passengers (users) with Pareto/Zipf ride frequency and registration date enforcement, 150 drivers & 150 vehicles
 - Non-overlapping chronological driver dispatch via `driver_available_at` state clock
 - Normalized transactional entities:
@@ -76,6 +77,140 @@ HOURLY_TRIP_WEIGHTS = np.array([
     0.110, 0.085, 0.055, 0.040, 0.028, 0.020  # 18:00 - 23:59 (Evening rush & night close)
 ])
 HOURLY_TRIP_WEIGHTS /= HOURLY_TRIP_WEIGHTS.sum()
+
+# Time-of-Day Gravity Profiles: zone_id -> (push_origin_weight, pull_destination_weight)
+# Zones:
+#  1: Villa Fontana (alto - corporate/financial & residential)
+#  2: Las Colinas (alto - residential)
+#  3: Santo Domingo (alto - residential & Galerías)
+#  4: Los Robles (medio - Zona Hippos dining/nightlife, hotels, offices)
+#  5: Altamira (medio - mixed residential & services)
+#  6: Bolonia (medio - institutional, medical, embassies)
+#  7: Bello Horizonte (medio - high-density east residential)
+#  8: Linda Vista (medio - high-density west residential)
+#  9: Metrocentro / Eje Corporativo UCA (comercial - central mall, university & business hub)
+# 10: Ciudad Jardín (popular - commercial & residential)
+# 11: Mercado Oriental (popular - wholesale/retail market hub)
+# 12: Mercado Roberto Huembes (popular - bus terminal, market & residential)
+ZONE_GRAVITY_REGIMES: dict[str, dict[str, Any]] = {
+    "early_dawn": {
+        "beta": 0.35,
+        "weights": {
+            1: (0.7, 0.8),
+            2: (0.9, 0.7),
+            3: (0.8, 0.7),
+            4: (0.9, 1.0),
+            5: (1.5, 1.1),
+            6: (1.0, 1.3),
+            7: (2.6, 1.2),
+            8: (2.5, 1.1),
+            9: (1.1, 2.2),
+            10: (2.2, 1.8),
+            11: (1.4, 3.6),
+            12: (2.1, 3.2),
+        },
+    },
+    "morning_rush": {
+        "beta": 0.30,
+        "weights": {
+            1: (1.2, 3.1),
+            2: (2.6, 0.8),
+            3: (2.4, 0.9),
+            4: (1.3, 2.6),
+            5: (2.2, 1.5),
+            6: (1.3, 2.7),
+            7: (3.4, 0.9),
+            8: (3.2, 0.8),
+            9: (1.0, 4.0),
+            10: (2.3, 1.6),
+            11: (1.1, 3.3),
+            12: (2.1, 2.3),
+        },
+    },
+    "midday": {
+        "beta": 0.40,
+        "weights": {
+            1: (1.8, 1.9),
+            2: (1.2, 1.3),
+            3: (1.3, 1.5),
+            4: (2.1, 2.2),
+            5: (1.8, 1.8),
+            6: (1.9, 1.8),
+            7: (1.6, 1.7),
+            8: (1.5, 1.6),
+            9: (2.9, 3.0),
+            10: (2.0, 1.9),
+            11: (2.8, 2.7),
+            12: (2.3, 2.2),
+        },
+    },
+    "evening_rush": {
+        "beta": 0.30,
+        "weights": {
+            1: (3.1, 1.4),
+            2: (0.9, 2.7),
+            3: (1.0, 2.5),
+            4: (2.7, 1.9),
+            5: (1.6, 2.3),
+            6: (2.6, 1.3),
+            7: (1.1, 3.4),
+            8: (1.0, 3.2),
+            9: (3.9, 1.3),
+            10: (1.7, 2.2),
+            11: (3.1, 1.2),
+            12: (2.4, 2.1),
+        },
+    },
+    "nightlife_out": {
+        "beta": 0.28,
+        "weights": {
+            1: (2.2, 3.4),
+            2: (2.0, 1.3),
+            3: (2.1, 2.9),
+            4: (2.4, 3.9),
+            5: (1.9, 1.7),
+            6: (1.4, 1.2),
+            7: (2.2, 2.0),
+            8: (1.8, 1.4),
+            9: (2.5, 2.8),
+            10: (1.3, 1.1),
+            11: (0.8, 0.6),
+            12: (1.4, 1.2),
+        },
+    },
+    "nightlife_return": {
+        "beta": 0.28,
+        "weights": {
+            1: (3.4, 2.0),
+            2: (1.2, 2.7),
+            3: (2.8, 2.4),
+            4: (3.9, 1.8),
+            5: (1.6, 2.5),
+            6: (1.2, 1.6),
+            7: (1.8, 3.1),
+            8: (1.2, 2.7),
+            9: (2.6, 1.5),
+            10: (1.0, 1.8),
+            11: (0.6, 0.7),
+            12: (1.1, 1.7),
+        },
+    },
+}
+
+
+def get_gravity_regime_name(hour: int, dow: int) -> str:
+    """Map (hour, day_of_week) to the active Managua urban mobility gravity regime."""
+    if 3 <= hour <= 5:
+        return "early_dawn"
+    if 6 <= hour <= 9:
+        return "midday" if dow == 6 else "morning_rush"
+    if 10 <= hour <= 15:
+        return "midday"
+    if 16 <= hour <= 19:
+        return "midday" if dow == 6 else "evening_rush"
+    if 20 <= hour <= 22:
+        return "nightlife_out"
+    return "nightlife_return"
 
 
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -210,6 +345,44 @@ class MoviGoSimulationEngine:
             dtype=float,
         )
 
+        # Precompute time-of-day Gravity OD matrices across the 132 directed inter-zone pairs
+        self.od_pairs: list[tuple[UrbanZone, UrbanZone]] = []
+        zone_dists: list[float] = []
+        for zo in self.zones:
+            for zd in self.zones:
+                if zo.zone_id != zd.zone_id:
+                    self.od_pairs.append((zo, zd))
+                    zone_dists.append(
+                        max(1.2, haversine_km(zo.latitude, zo.longitude, zd.latitude, zd.longitude))
+                    )
+        zone_dists_arr = np.array(zone_dists, dtype=float)
+
+        self.od_regime_probs: dict[str, np.ndarray] = {}
+        self.regime_origin_push_factor: dict[str, dict[int, float]] = {}
+        for regime_name, cfg in ZONE_GRAVITY_REGIMES.items():
+            beta = float(cfg["beta"])
+            w_map: dict[int, tuple[float, float]] = cfg["weights"]
+            raw_w = np.array(
+                [
+                    w_map[zo.zone_id][0] * w_map[zd.zone_id][1]
+                    for zo, zd in self.od_pairs
+                ],
+                dtype=float,
+            ) / (zone_dists_arr ** beta)
+            self.od_regime_probs[regime_name] = raw_w / raw_w.sum()
+
+            mean_push = float(np.mean([v[0] for v in w_map.values()]))
+            self.regime_origin_push_factor[regime_name] = {
+                zid: round(v[0] / mean_push, 3) for zid, v in w_map.items()
+            }
+
+    def sample_origin_destination_zones(self, hour: int, dow: int) -> tuple[UrbanZone, UrbanZone]:
+        """Sample (origin_zone, destination_zone) from the active time-of-day Gravity OD matrix."""
+        regime = get_gravity_regime_name(hour, dow)
+        probs = self.od_regime_probs[regime]
+        pair_idx = int(self.rng.choice(len(self.od_pairs), p=probs))
+        return self.od_pairs[pair_idx]
+
     def sample_street_coordinate(self, zone: UrbanZone) -> tuple[float, float, int, bool]:
         """Sample a GPS coordinate strictly on a drivable street within one of the urban zone's square quadrants.
 
@@ -297,7 +470,7 @@ class MoviGoSimulationEngine:
 
         Couples Dt and St to the excess demand equation:
             f(m) = Dt * exp(-alpha * (m - 1)) - St * (1 + gamma * ln(m)) = 0
-        driven by localized hourly quadrant rainfall and cauce runoff.
+        driven by localized hourly quadrant rainfall, cauce runoff, and time-of-day gravity push.
         """
         hour_weight = HOURLY_TRIP_WEIGHTS[hour] / HOURLY_TRIP_WEIGHTS.mean()
         stratum_demand_factor = {
@@ -307,11 +480,15 @@ class MoviGoSimulationEngine:
             "alto": 0.90,
         }.get(origin_zone.socioeconomic_stratum, 1.0)
 
+        regime = get_gravity_regime_name(hour, dow)
+        gravity_push = self.regime_origin_push_factor[regime].get(origin_zone.zone_id, 1.0)
+        zone_demand_factor = 0.65 * stratum_demand_factor + 0.35 * gravity_push
+
         weekend_boost = 1.15 if dow in [4, 5] else 1.00
         effective_water_mm = max(hourly_precip_mm, 0.75 * runoff_mm)
 
         # Active trip requests in origin zone during that hour (Dt)
-        expected_d = (14.0 * hour_weight * stratum_demand_factor * weekend_boost) + (1.45 * effective_water_mm)
+        expected_d = (14.0 * hour_weight * zone_demand_factor * weekend_boost) + (1.45 * effective_water_mm)
         if flooded_roads:
             expected_d *= 1.22
         d_t = max(2, int(round(self.rng.normal(expected_d, max(1.8, 0.12 * expected_d)))))
@@ -319,7 +496,7 @@ class MoviGoSimulationEngine:
         # Available driver supply in origin zone during that hour (St)
         rain_supply_penalty = max(0.45, 1.0 - 0.032 * effective_water_mm - (0.18 if flooded_roads else 0.0))
         peak_supply_factor = 0.82 if hour in [7, 8, 17, 18] else (0.90 if hour in [12, 13, 19] else 1.12)
-        expected_s = (13.5 * hour_weight * stratum_demand_factor * peak_supply_factor * rain_supply_penalty) + 2.0
+        expected_s = (13.5 * hour_weight * zone_demand_factor * peak_supply_factor * rain_supply_penalty) + 2.0
         s_t = max(1, int(round(self.rng.normal(expected_s, max(1.5, 0.10 * expected_s)))))
 
         # Solve market-clearing surge multiplier m* from excess demand ratio Dt / St
@@ -468,7 +645,7 @@ class MoviGoSimulationEngine:
         list[TripCancellation],
         list[DriverTelemetry],
     ]:
-        """Run full year MoviGo simulation emitting 3NF OLTP transactional tables with non-overlapping driver dispatch."""
+        """Run full year MoviGo simulation emitting 3NF OLTP transactional tables with Gravity OD & non-overlapping dispatch."""
         self.rng = np.random.default_rng(self.random_seed)
         logger.info(f"Starting MoviGo 3NF simulation across {len(weather_df)} days (seed={self.random_seed})...")
 
@@ -520,9 +697,7 @@ class MoviGoSimulationEngine:
                 u_idx = int(self.rng.choice(len(eligible_users), p=eligible_user_probs))
                 user = eligible_users[u_idx]
 
-                origin_zone = self.zones[int(self.rng.integers(0, len(self.zones)))]
-                dest_candidates = [z for z in self.zones if z.zone_id != origin_zone.zone_id]
-                destination_zone = dest_candidates[int(self.rng.integers(0, len(dest_candidates)))]
+                origin_zone, destination_zone = self.sample_origin_destination_zones(hour, dow)
 
                 # Street-snapped Origin and Destination GPS coordinates inside exact square quadrants
                 lat_o, lon_o, q_o, flood_street_o = self.sample_street_coordinate(origin_zone)

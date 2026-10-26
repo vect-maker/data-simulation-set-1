@@ -150,6 +150,22 @@ class TestRelationalIntegrity(unittest.TestCase):
             self.assertGreaterEqual(v.distance_km, 0.0)
             self.assertGreaterEqual(v.duration_minutes, 0.0)
 
+        # Verify Time-of-Day Gravity OD directional asymmetry
+        hub_zones = {1, 4, 6, 9, 11}  # Villa Fontana, Los Robles, Bolonia, Metrocentro, Mercado Oriental
+        res_zones = {2, 3, 5, 7, 8, 10}  # Las Colinas, Santo Domingo, Altamira, Bello Horizonte, Linda Vista, Ciudad Jardín
+        morning_to_hubs = sum(
+            1 for v in trips
+            if 6 <= v.requested_at.hour <= 9 and valid_quadrants[v.destination_quadrant_id].zone_id in hub_zones
+        )
+        morning_total = max(1, sum(1 for v in trips if 6 <= v.requested_at.hour <= 9))
+        evening_to_res = sum(
+            1 for v in trips
+            if 16 <= v.requested_at.hour <= 19 and valid_quadrants[v.destination_quadrant_id].zone_id in res_zones
+        )
+        evening_total = max(1, sum(1 for v in trips if 16 <= v.requested_at.hour <= 19))
+        self.assertGreater(morning_to_hubs / morning_total, 0.50)
+        self.assertGreater(evening_to_res / evening_total, 0.50)
+
         # Verify 1:1 trips <-> trip_payments and derived fare formula
         self.assertEqual(len(payments), len(trips))
         for p in payments:
