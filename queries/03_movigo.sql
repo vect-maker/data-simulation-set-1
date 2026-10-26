@@ -146,3 +146,21 @@ LEFT JOIN quadrant_weather w
    AND EXTRACT(HOUR FROM t.requested_at)::int = w.hour
 GROUP BY zo.zone_name, q.quadrant_code, q.flood_risk, w.date, w.hour, w.precipitation_mm, w.channel_runoff_mm, w.flooded_roads, w.congestion_index
 ORDER BY w.date, w.hour, q.quadrant_code;
+
+-- ------------------------------------------------------------------------------
+-- 7. Campañas Estacionales de Incentivos y Zonas Objetivo (incentive_campaigns -> urban_zones)
+-- ------------------------------------------------------------------------------
+SELECT
+    ic.campaign_id,
+    ic.bonus_name,
+    ic.incentive_type,
+    uz.zone_name AS target_zone,
+    uz.socioeconomic_stratum,
+    ic.budget_cost_nio,
+    ic.online_hours_increase,
+    ic.start_date,
+    ic.end_date,
+    ic.status
+FROM incentive_campaigns ic
+JOIN urban_zones uz ON ic.target_zone_id = uz.zone_id
+ORDER BY ic.start_date ASC;

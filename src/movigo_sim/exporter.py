@@ -158,6 +158,7 @@ CREATE TABLE vehicles (
 
 CREATE TABLE incentive_campaigns (
     campaign_id INT PRIMARY KEY,
+    target_zone_id INT NOT NULL REFERENCES urban_zones(zone_id),
     bonus_name VARCHAR(100) NOT NULL,
     budget_cost_nio DECIMAL(10,2) NOT NULL,
     online_hours_increase DECIMAL(10,2) NOT NULL,
@@ -382,6 +383,7 @@ def compute_movigo_simulation_summary(
     payments: list[TripPayment],
     weather: Any,
     campaigns: list[IncentiveCampaign],
+    cancellations: list[TripCancellation] | None = None,
     seed: int = SIMULATION_SEED,
     summary_path: Path | None = None,
 ) -> dict[str, Any]:
@@ -390,6 +392,7 @@ def compute_movigo_simulation_summary(
     df_payments = pd.DataFrame([p.model_dump() for p in payments])
     df_zones = pd.DataFrame([z.model_dump() for z in zones])
     df_quadrants = pd.DataFrame([q.model_dump() for q in quadrants])
+    df_cancellations = pd.DataFrame([c.model_dump() for c in cancellations]) if cancellations else pd.DataFrame()
 
     if isinstance(weather, pd.DataFrame):
         df_weather = weather
@@ -449,8 +452,8 @@ def compute_movigo_simulation_summary(
     chi2_res = compute_contingency_chi2(merged_trips, "socioeconomic_stratum", "payment_method")
 
     est_results = compute_movigo_estadistica_ii(df_trips, df_payments, df_quadrants, df_weather, df_zones)
-    num_results = compute_movigo_metodos_numericos()
-    opt_results = compute_movigo_optimizacion()
+    num_results = compute_movigo_metodos_numericos(df_trips, df_payments, df_cancellations)
+    opt_results = compute_movigo_optimizacion(df_trips, df_payments, df_quadrants, df_zones, df_campaigns, df_weather)
 
     summary = {
         "case_name": "MoviGo (Transporte por Aplicación)",

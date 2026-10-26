@@ -1092,6 +1092,11 @@ class IncentiveCampaignOut(BaseModel):
         description="Identificador único del programa de incentivos.",
         examples=[8],
     )
+    target_zone_id: int = Field(
+        ...,
+        description="Clave foránea de la zona urbana de Managua donde se focaliza la campaña.",
+        examples=[2],
+    )
     bonus_name: str = Field(
         ...,
         description="Nombre del bono o reto operativo (ej. 'Bono Aguacero Nocturno').",

@@ -116,6 +116,7 @@ Table driver_telemetry {
 
 Table incentive_campaigns {
   campaign_id int [pk]
+  target_zone_id int [not null, ref: > urban_zones.zone_id]
   bonus_name varchar(100) [not null]
   budget_cost_nio decimal(10,2) [not null, note: 'Costo del bono (peso en Mochila)']
   online_hours_increase decimal(10,2) [not null, note: 'Retorno operativo a maximizar']

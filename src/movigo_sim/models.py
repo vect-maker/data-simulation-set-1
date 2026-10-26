@@ -145,10 +145,11 @@ class DriverTelemetry(BaseModel):
 
 
 class IncentiveCampaign(BaseModel):
-    """Driver bonus incentive campaign for Knapsack modeling."""
+    """Driver bonus incentive campaign for Knapsack modeling and zone supply boosts."""
     model_config = ConfigDict(from_attributes=True)
 
     campaign_id: int = Field(ge=1)
+    target_zone_id: int = Field(ge=1)
     bonus_name: str
     budget_cost_nio: float = Field(ge=2000.0, le=50000.0)
     online_hours_increase: float = Field(ge=50.0, le=1200.0)

@@ -473,12 +473,13 @@ class MoviGoSimulationEngine:
         flooded_roads: bool,
         hour: int,
         dow: int,
+        curr_date: date | None = None,
     ) -> tuple[int, int, float]:
         """Simulate origin zone active demand (Dt), available drivers (St), and equilibrium surge multiplier m*.
 
         Couples Dt and St to the excess demand equation:
             f(m) = Dt * exp(-alpha * (m - 1)) - St * (1 + gamma * ln(m)) = 0
-        driven by localized hourly quadrant rainfall, cauce runoff, and time-of-day gravity push.
+        driven by localized hourly quadrant rainfall, cauce runoff, time-of-day gravity push, and active incentive campaigns.
         """
         hour_weight = HOURLY_TRIP_WEIGHTS[hour] / HOURLY_TRIP_WEIGHTS.mean()
         stratum_demand_factor = {
@@ -501,10 +502,23 @@ class MoviGoSimulationEngine:
             expected_d *= 1.22
         d_t = max(2, int(round(self.rng.normal(expected_d, max(1.8, 0.12 * expected_d)))))
 
-        # Available driver supply in origin zone during that hour (St)
+        # Available driver supply in origin zone during that hour (St), coupled with active incentive campaigns
         rain_supply_penalty = max(0.45, 1.0 - 0.032 * effective_water_mm - (0.18 if flooded_roads else 0.0))
         peak_supply_factor = 0.82 if hour in [7, 8, 17, 18] else (0.90 if hour in [12, 13, 19] else 1.12)
-        expected_s = (13.5 * hour_weight * zone_demand_factor * peak_supply_factor * rain_supply_penalty) + 2.0
+        campaign_supply_boost = 1.0
+        if curr_date is not None:
+            for camp in self.campaigns:
+                if camp.start_date <= curr_date <= camp.end_date:
+                    hours_factor = camp.online_hours_increase / 1000.0
+                    if camp.target_zone_id == origin_zone.zone_id:
+                        campaign_supply_boost += 0.14 * hours_factor
+                    elif camp.incentive_type == "hora_pico_lluvia" and effective_water_mm >= 1.0:
+                        campaign_supply_boost += 0.12 * hours_factor
+                    else:
+                        campaign_supply_boost += 0.04 * hours_factor
+        expected_s = (
+            13.5 * hour_weight * zone_demand_factor * peak_supply_factor * rain_supply_penalty * campaign_supply_boost
+        ) + 2.0
         s_t = max(1, int(round(self.rng.normal(expected_s, max(1.5, 0.10 * expected_s)))))
 
         # Solve market-clearing surge multiplier m* from excess demand ratio Dt / St
@@ -764,7 +778,7 @@ class MoviGoSimulationEngine:
 
                 # Supply & Demand state at request time and equilibrium surge multiplier
                 d_t, s_t, surge = self.simulate_supply_demand_and_surge(
-                    origin_zone, h_precip_o, h_esc_o, h_aneg_o, hour, dow
+                    origin_zone, h_precip_o, h_esc_o, h_aneg_o, hour, dow, curr_date=curr_date
                 )
 
                 payment_method = self.sample_payment_method_for_stratum(

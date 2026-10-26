@@ -78,14 +78,18 @@ def display_movigo_rich_summary(summary: dict):
         opt = summary["optimizacion"]
         eq = num.get("equilibrio_mercado_raices", {})
         elast = num.get("diferenciacion_numerica_elasticidad", {})
+        integ = num.get("integracion_numerica_demanda_diaria", {})
         hung = opt.get("algoritmo_hungaro_despacho", {})
         dijk = opt.get("ruta_mas_corta_red_vial", {})
+        knap = opt.get("optimizacion_mochila_campanas", {})
 
         math_rows = [
             ("Raíces (Multiplicador de Equilibrio)", f"Bisección: {eq.get('multiplicador_optimo_biseccion')}x | Newton: {eq.get('multiplicador_optimo_newton')}x ({eq.get('interpretacion')})"),
             ("Diferenciación (Elasticidad Tarifa)", f"ε_p({elast.get('multiplicador_evaluado')}x) = {elast.get('elasticidad_precio_demanda')} -> {elast.get('clasificacion')}"),
+            ("Integración Numérica (Demanda Diaria)", f"Simpson 1/3: {integ.get('simpson')} viajes/día | Trapecio: {integ.get('trapecio')} | Suma Discreta: {integ.get('suma_discreta')}"),
             ("Asignación Conductores (Húngaro)", f"Tiempo Total Espera: {hung.get('tiempo_total_espera_minutos')} min | Ahorro Medio: {hung.get('ahorro_promedio_por_viaje_min')} min/viaje"),
             ("Ruta Más Corta (Dijkstra Managua)", f"{dijk.get('origen')} -> {dijk.get('destino')} | {dijk.get('distancia_optima_km')} km ({dijk.get('tiempo_viaje_condicion_normal_min')} min despejado / {dijk.get('tiempo_viaje_congestion_lluvia_min')} min lluvia)"),
+            ("Mochila 0/1 (Campañas de Bonos)", f"Presupuesto: C$ {knap.get('costo_total', 0):,} / C$ {knap.get('capacidad_presupuesto', 120000):,} -> +{knap.get('retorno_maximo', 0)} hrs ({len(knap.get('items_seleccionados', []))} campañas)"),
         ]
         render_math_optimization_table("Métodos Numéricos & Optimización Prescriptiva", math_rows, border_style="cyan")
 
@@ -147,6 +151,7 @@ def run_generation(
         payments=payments,
         weather=weather_records,
         campaigns=engine.campaigns,
+        cancellations=cancellations,
         seed=seed,
         summary_path=summary_path,
     )

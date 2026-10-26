@@ -94,7 +94,7 @@ def generate_movigo_llm_bundle(
 
     prompt = """
     Genera el catálogo semántico y de campañas para MoviGo (app de movilidad urbana en Managua, Nicaragua):
-    1. campaigns (exactamente 12): campaign_id enteros del 1 al 12 campañas de incentivos y bonos para optimización de mochila año 2024 (meta_viajes, hora_pico_lluvia, zona_alta_demanda).
+    1. campaigns (exactamente 12, una por cada mes de 2024): campaign_id enteros del 1 al 12, target_zone_id del 1 al 12. Las campañas 'hora_pico_lluvia' deben ubicarse exclusivamente en el invierno lluvioso de Managua (mayo a octubre, meses 5 a 10). Los meses enero a noviembre deben tener status='finalizada' y diciembre status='activa'.
     2. semantic_templates: cancellation_reasons, driver_cancellation_reasons, user_cancellation_reasons y trip_comments con vernáculo urbano de Managua.
     """
 

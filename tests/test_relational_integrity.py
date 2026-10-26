@@ -226,6 +226,41 @@ class TestRelationalIntegrity(unittest.TestCase):
             else:
                 self.assertIn(t.trip_id, valid_trips)
 
+        # Verify seasonal and relational integrity of incentive_campaigns
+        self.assertEqual(len(engine.campaigns), 12)
+        for camp in engine.campaigns:
+            self.assertIn(camp.target_zone_id, valid_zones)
+            if camp.incentive_type == "hora_pico_lluvia":
+                self.assertIn(camp.start_date.month, range(5, 11))
+            if camp.end_date.month < 12:
+                self.assertEqual(camp.status, "finalizada")
+            else:
+                self.assertEqual(camp.status, "activa")
+
+        # Verify data-driven numerical and optimization benchmarks
+        import pandas as pd
+        from movigo_sim.analytics import compute_movigo_metodos_numericos, compute_movigo_optimizacion
+
+        df_trips = pd.DataFrame([v.model_dump() for v in trips])
+        df_payments = pd.DataFrame([p.model_dump() for p in payments])
+        df_cancellations = pd.DataFrame([c.model_dump() for c in cancellations])
+        df_quadrants = pd.DataFrame([q.model_dump() for q in engine.quadrants])
+        df_zones = pd.DataFrame([z.model_dump() for z in engine.zones])
+        df_campaigns = pd.DataFrame([c.model_dump() for c in engine.campaigns])
+
+        num_res = compute_movigo_metodos_numericos(df_trips, df_payments, df_cancellations)
+        self.assertIn("equilibrio_mercado_raices", num_res)
+        self.assertIn("diferenciacion_numerica_elasticidad", num_res)
+        self.assertIn("integracion_numerica_demanda_diaria", num_res)
+        self.assertGreater(num_res["integracion_numerica_demanda_diaria"]["simpson"], 0.0)
+
+        opt_res = compute_movigo_optimizacion(df_trips, df_payments, df_quadrants, df_zones, df_campaigns, weather_df.head(3))
+        self.assertIn("algoritmo_hungaro_despacho", opt_res)
+        self.assertIn("ruta_mas_corta_red_vial", opt_res)
+        self.assertIn("optimizacion_mochila_campanas", opt_res)
+        self.assertLessEqual(opt_res["optimizacion_mochila_campanas"]["costo_total"], 120000)
+        self.assertGreater(opt_res["optimizacion_mochila_campanas"]["retorno_maximo"], 2500.0)
+
     def test_movigo_deterministic_reproducibility(self):
         import numpy as np
         from movigo_sim.config import SIMULATION_SEED

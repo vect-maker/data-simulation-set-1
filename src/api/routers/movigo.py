@@ -388,7 +388,7 @@ def get_campaigns(
     if status:
         filters.append(("status", "=", status))
 
-    allowed = {"campaign_id", "budget_cost_nio", "incentive_type", "start_date", "end_date", "status"}
+    allowed = {"campaign_id", "target_zone_id", "budget_cost_nio", "incentive_type", "start_date", "end_date", "status"}
     return execute_paginated_query(
         schema=SCHEMA,
         table="incentive_campaigns",
