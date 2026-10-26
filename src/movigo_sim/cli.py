@@ -114,7 +114,7 @@ def run_generation(
             weather_records = [c for c in weather_records if c.date in valid_dates]
 
     engine = MoviGoSimulationEngine(random_seed=seed)
-    trips, payments, ratings, cancellations, telemetry = engine.run_simulation(weather_df)
+    trips, payments, ratings, cancellations, telemetry, maintenance = engine.run_simulation(weather_df)
 
     enricher = MoviGoSemanticEnricher(
         templates=engine.templates,
@@ -140,6 +140,7 @@ def run_generation(
         ratings=ratings,
         cancellations=cancellations,
         telemetry=telemetry,
+        maintenance=maintenance,
         output_dir=csv_dir,
         quadrants=engine.quadrants,
     )
@@ -152,6 +153,7 @@ def run_generation(
         weather=weather_records,
         campaigns=engine.campaigns,
         cancellations=cancellations,
+        maintenance=maintenance,
         seed=seed,
         summary_path=summary_path,
     )
@@ -192,7 +194,7 @@ def run_loading(schema: str = POSTGRES_SCHEMA, seed: int = SIMULATION_SEED):
     """Programmatic entry point for loading to PostgreSQL."""
     engine = MoviGoSimulationEngine(random_seed=seed)
     weather_df, weather_records = get_movigo_weather_series(seed=seed)
-    trips, payments, ratings, cancellations, telemetry = engine.run_simulation(weather_df)
+    trips, payments, ratings, cancellations, telemetry, maintenance = engine.run_simulation(weather_df)
     enricher = MoviGoSemanticEnricher(engine.templates, random_seed=seed)
     cancellations = enricher.enrich_cancellations(cancellations)
 

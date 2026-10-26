@@ -8,7 +8,7 @@ Captures all lifecycle events from the simulation engine, guaranteeing:
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, date
 from typing import Any
 import pandas as pd
 
@@ -18,6 +18,7 @@ from movigo_sim.models import (
     TripRating,
     TripCancellation,
     DriverTelemetry,
+    VehicleMaintenance,
 )
 
 
@@ -30,12 +31,14 @@ class SimulationRecorder:
         self.rating_counter: int = 1
         self.cancellation_counter: int = 1
         self.telemetry_counter: int = 1
+        self.maintenance_counter: int = 1
 
         self.trips: list[Trip] = []
         self.payments: list[TripPayment] = []
         self.ratings: list[TripRating] = []
         self.cancellations: list[TripCancellation] = []
         self.telemetry: list[DriverTelemetry] = []
+        self.maintenance: list[VehicleMaintenance] = []
 
     def record_trip(
         self,
@@ -178,6 +181,35 @@ class SimulationRecorder:
         )
         return t_id
 
+    def record_maintenance(
+        self,
+        vehicle_id: int,
+        service_date: date,
+        maintenance_type: str,
+        odometer_km: float,
+        description: str,
+        cost_nio: float,
+        downtime_hours: float,
+        workshop_name: str,
+    ) -> int:
+        """Record a scheduled preventive or unscheduled corrective vehicle maintenance event."""
+        m_id = self.maintenance_counter
+        self.maintenance_counter += 1
+        self.maintenance.append(
+            VehicleMaintenance(
+                maintenance_id=m_id,
+                vehicle_id=vehicle_id,
+                service_date=service_date,
+                maintenance_type=maintenance_type,
+                odometer_km=odometer_km,
+                description=description,
+                cost_nio=cost_nio,
+                downtime_hours=downtime_hours,
+                workshop_name=workshop_name,
+            )
+        )
+        return m_id
+
     def get_results(
         self,
     ) -> tuple[
@@ -186,6 +218,7 @@ class SimulationRecorder:
         list[TripRating],
         list[TripCancellation],
         list[DriverTelemetry],
+        list[VehicleMaintenance],
     ]:
         """Return the collected 3NF entity lists."""
         return (
@@ -194,4 +227,5 @@ class SimulationRecorder:
             self.ratings,
             self.cancellations,
             self.telemetry,
+            self.maintenance,
         )

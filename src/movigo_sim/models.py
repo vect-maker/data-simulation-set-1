@@ -69,6 +69,24 @@ class Vehicle(BaseModel):
     vehicle_model: str
     vehicle_year: int = Field(ge=2010, le=2024)
     license_plate: str
+    fuel_type: str = Field(default="gasolina_regular", pattern=r"^(gasolina_regular|gasolina_super|diesel)$")
+    fuel_efficiency_km_l: float = Field(ge=5.0, le=45.0, default=13.5)
+    initial_odometer_km: float = Field(ge=0.0, default=35000.0)
+
+
+class VehicleMaintenance(BaseModel):
+    """Vehicle maintenance and repair service record in 3NF."""
+    model_config = ConfigDict(from_attributes=True)
+
+    maintenance_id: int = Field(ge=1)
+    vehicle_id: int = Field(ge=1)
+    service_date: date
+    maintenance_type: str = Field(pattern=r"^(preventivo|correctivo)$")
+    odometer_km: float = Field(ge=0.0)
+    description: str
+    cost_nio: float = Field(ge=500.0, le=35000.0)
+    downtime_hours: float = Field(ge=1.0, le=48.0)
+    workshop_name: str
 
 
 class Trip(BaseModel):

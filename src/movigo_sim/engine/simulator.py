@@ -35,6 +35,7 @@ from movigo_sim.models import (
     TripCancellation,
     DriverTelemetry,
     IncentiveCampaign,
+    VehicleMaintenance,
 )
 from movigo_sim.engine.entities import DriverAgent, RiderAgent, RiderPersona
 from movigo_sim.engine.world import (
@@ -159,6 +160,8 @@ class MoviGoSimulationEngine:
                 mb_start, mb_end = time(2, 0), time(2, 40)
 
             weekly_rest = d.driver_id % 7
+            base_odo = round(18000.0 + (2024 - v_model.vehicle_year) * 8500.0 + ((d.driver_id * 137) % 3000), 2)
+            init_service_km = round(float((d.driver_id * 739) % 4600), 2)
 
             self.driver_agents.append(
                 DriverAgent(
@@ -177,6 +180,8 @@ class MoviGoSimulationEngine:
                     meal_break_start=mb_start,
                     meal_break_end=mb_end,
                     weekly_rest_dow=weekly_rest,
+                    odometer_km=base_odo,
+                    km_since_service=init_service_km,
                 )
             )
 
@@ -448,6 +453,11 @@ class MoviGoSimulationEngine:
             )
             agent.current_node = initial_node
             agent.available_at = datetime.min
+            agent.maintenance_until = datetime.min
+            agent.km_since_service = round(float((agent.driver_id * 739) % 4600), 2)
+            agent.odometer_km = round(18000.0 + (2024 - agent.vehicle_model.vehicle_year) * 8500.0 + ((agent.driver_id * 137) % 3000), 2)
+            agent.cumulative_fuel_liters = 0.0
+            agent.flood_exposure_count = 0
 
         for day_idx, (_, row) in enumerate(weather_df.iterrows()):
             curr_date: date = row["date"]
@@ -669,6 +679,8 @@ class MoviGoSimulationEngine:
                     cancelled_by = "conductor" if trip_status == "cancelado_conductor" else "usuario"
                     c_step = min(len(pickup_nodes) - 1, max(0, int(len(pickup_nodes) * min(1.0, wait_min / 12.0))))
                     driver_agent.assign_trip(pickup_nodes[c_step], req_time + timedelta(minutes=wait_min))
+                    pickup_fuel = driver_agent.compute_trip_fuel_liters(pickup_km, wait_min, effective_congestion, False)
+                    driver_agent.accumulate_distance_and_fuel(pickup_km, pickup_fuel, False)
 
                     trip_id = recorder.record_trip(
                         user_id=user.user_id,
@@ -699,6 +711,45 @@ class MoviGoSimulationEngine:
                     start_time = req_time + timedelta(minutes=wait_min)
                     end_time = start_time + timedelta(minutes=dur_min)
                     driver_agent.assign_trip(node_d, end_time)
+                    trip_fuel = driver_agent.compute_trip_fuel_liters(dist_km, dur_min, effective_congestion, flood_affected)
+                    driver_agent.accumulate_distance_and_fuel(dist_km, trip_fuel, flood_affected)
+
+                    # Scheduled preventive maintenance check (every 5,000 km)
+                    if driver_agent.km_since_service >= 5000.0:
+                        service_odo = driver_agent.odometer_km
+                        maint_cost = round(float(self.rng.uniform(2400.0, 4800.0)), 2)
+                        down_hrs = round(float(self.rng.uniform(3.0, 6.5)), 1)
+                        w_names = ["Taller Central MoviGo Bolonia", "AutoServicio Masaya MoviGo", "Centro Automotriz Carretera Norte"]
+                        w_name = w_names[driver_agent.driver_id % len(w_names)]
+                        milestone = int(round(service_odo / 5000.0) * 5000)
+                        recorder.record_maintenance(
+                            vehicle_id=driver_agent.vehicle_model.vehicle_id,
+                            service_date=curr_date,
+                            maintenance_type="preventivo",
+                            odometer_km=service_odo,
+                            description=f"Mantenimiento preventivo {milestone} km: cambio de aceite sintético, filtro y revisión de frenos",
+                            cost_nio=maint_cost,
+                            downtime_hours=down_hrs,
+                            workshop_name=w_name,
+                        )
+                        driver_agent.send_to_maintenance(end_time + timedelta(hours=down_hrs))
+                    elif flood_affected and self.rng.random() < 0.035:
+                        # Corrective maintenance triggered by flooded cauce transit
+                        maint_cost = round(float(self.rng.uniform(6500.0, 15500.0)), 2)
+                        down_hrs = round(float(self.rng.uniform(8.0, 24.0)), 1)
+                        w_names = ["Taller Central MoviGo Bolonia", "AutoServicio Masaya MoviGo", "Centro Automotriz Carretera Norte"]
+                        w_name = w_names[driver_agent.driver_id % len(w_names)]
+                        recorder.record_maintenance(
+                            vehicle_id=driver_agent.vehicle_model.vehicle_id,
+                            service_date=curr_date,
+                            maintenance_type="correctivo",
+                            odometer_km=driver_agent.odometer_km,
+                            description="Mantenimiento correctivo: reparación de suspensión y secado de sistema de frenos por anegamiento en cauce pluvial",
+                            cost_nio=maint_cost,
+                            downtime_hours=down_hrs,
+                            workshop_name=w_name,
+                        )
+                        driver_agent.send_to_maintenance(end_time + timedelta(hours=down_hrs))
 
                     rating_usr, rating_drv = self.platform.sample_ratings(self.rng)
                     tip_amount = self.platform.sample_tip(self.rng)
@@ -786,9 +837,11 @@ class MoviGoSimulationEngine:
             if (day_idx + 1) % 60 == 0 or (day_idx + 1) == len(weather_df):
                 logger.info(f"Simulated {day_idx + 1}/{len(weather_df)} days... ({len(recorder.trips)} rides generated)")
 
-        trips, payments, ratings, cancellations, telemetry = recorder.get_results()
+        trips, payments, ratings, cancellations, telemetry, maintenance = recorder.get_results()
+        self.maintenance_records = maintenance
         logger.info(
             f"MoviGo simulation completed! Produced {len(trips)} trips, {len(payments)} payments, "
-            f"{len(ratings)} ratings, {len(cancellations)} cancellations, and {len(telemetry)} telemetry pings."
+            f"{len(ratings)} ratings, {len(cancellations)} cancellations, {len(telemetry)} telemetry pings, "
+            f"and {len(maintenance)} maintenance services."
         )
-        return trips, payments, ratings, cancellations, telemetry
+        return trips, payments, ratings, cancellations, telemetry, maintenance

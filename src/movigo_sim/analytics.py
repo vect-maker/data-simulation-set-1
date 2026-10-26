@@ -227,8 +227,9 @@ def compute_movigo_optimizacion(
     df_zones: pd.DataFrame | None = None,
     df_campaigns: pd.DataFrame | None = None,
     df_weather: pd.DataFrame | None = None,
+    df_maintenance: pd.DataFrame | None = None,
 ) -> dict[str, Any]:
-    """Solve data-driven Hungarian Dispatch, Dijkstra Shortest Path on Managua road graph, and 0/1 Knapsack."""
+    """Solve data-driven Hungarian Dispatch, Dijkstra Shortest Path on Managua road graph, 0/1 Knapsack bonos, and fleet maintenance optimization."""
     # 1. Data-driven 5x5 Hungarian Dispatch Matrix from peak-hour trip requests & quadrant driver positions
     if (
         df_trips is not None
@@ -365,6 +366,21 @@ def compute_movigo_optimizacion(
             capacity=120000,
         )
 
+    # 4. Fleet Maintenance Scheduling Optimization (Knapsack / ILP Workshop Bay Allocation under C$ 35,000 budget)
+    if df_maintenance is not None and not df_maintenance.empty:
+        m_sample = df_maintenance.head(8).copy()
+        m_items = [f"Vehículo #{row['vehicle_id']} ({row['maintenance_type']})" for _, row in m_sample.iterrows()]
+        m_costs = [int(round(float(row["cost_nio"]))) for _, row in m_sample.iterrows()]
+        m_values = [round(float(row["odometer_km"]) / 100.0 + float(row["downtime_hours"]) * 12.0, 1) for _, row in m_sample.iterrows()]
+        maint_opt_res = knapsack_01(m_items, m_costs, m_values, capacity=35000)
+    else:
+        maint_opt_res = knapsack_01(
+            ["Vehículo #12 (Preventivo 5k)", "Vehículo #45 (Correctivo Cauce)", "Vehículo #78 (Preventivo 10k)"],
+            [3500, 12000, 4800],
+            [450.0, 1250.0, 580.0],
+            capacity=35000,
+        )
+
     return {
         "algoritmo_hungaro_despacho": {
             "descripcion": "Emparejamiento optimo de 5 conductores con 5 solicitudes de viaje simultaneas",
@@ -383,4 +399,8 @@ def compute_movigo_optimizacion(
             "tiempo_viaje_congestion_lluvia_min": travel_time_rain_min,
         },
         "optimizacion_mochila_campanas": knapsack_res,
+        "programacion_mantenimiento_flota": {
+            "descripcion": "Optimizacion prescriptiva (Mochila 0/1 / ILP) para ingreso a taller de mantenimiento vehicular bajo restriccion presupuestaria (C$ 35,000 NIO) garantizando operatividad de flota.",
+            "resultado_optimo": maint_opt_res,
+        },
     }

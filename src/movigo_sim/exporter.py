@@ -58,10 +58,11 @@ def export_movigo_to_csv(
     ratings: list[TripRating],
     cancellations: list[TripCancellation],
     telemetry: list[DriverTelemetry],
+    maintenance: list[Any] | None = None,
     output_dir: Path = CSV_ARTIFACTS_DIR,
     quadrants: list[Quadrant] | None = None,
 ) -> dict[str, Path]:
-    """Export all 12 relational 3NF OLTP tables to CSV format with standardized English table names."""
+    """Export all 13 relational 3NF OLTP tables to CSV format with standardized English table names."""
     if quadrants is None:
         quadrants = load_movigo_quadrants()
     tables = {
@@ -78,6 +79,8 @@ def export_movigo_to_csv(
         "trip_cancellations": cancellations,
         "driver_telemetry": telemetry,
     }
+    if maintenance is not None:
+        tables["vehicle_maintenance"] = maintenance
     return export_models_to_csv(tables, output_dir)
 
 
@@ -90,6 +93,7 @@ def generate_movigo_postgresql_ddl() -> str:
 CREATE SCHEMA IF NOT EXISTS raw_staging_movigo;
 SET search_path TO raw_staging_movigo, public;
 
+DROP TABLE IF EXISTS vehicle_maintenance CASCADE;
 DROP TABLE IF EXISTS driver_telemetry CASCADE;
 DROP TABLE IF EXISTS trip_cancellations CASCADE;
 DROP TABLE IF EXISTS trip_ratings CASCADE;
@@ -153,7 +157,10 @@ CREATE TABLE vehicles (
     service_type VARCHAR(20) NOT NULL CHECK (service_type IN ('movigo_estandar', 'movigo_comfort', 'movigo_moto')),
     vehicle_model VARCHAR(100) NOT NULL,
     vehicle_year INT NOT NULL,
-    license_plate VARCHAR(20) NOT NULL UNIQUE
+    license_plate VARCHAR(20) NOT NULL UNIQUE,
+    fuel_type VARCHAR(25) NOT NULL DEFAULT 'gasolina_regular' CHECK (fuel_type IN ('gasolina_regular', 'gasolina_super', 'diesel')),
+    fuel_efficiency_km_l DECIMAL(5,2) NOT NULL DEFAULT 13.50,
+    initial_odometer_km DECIMAL(9,2) NOT NULL DEFAULT 35000.00
 );
 
 CREATE TABLE incentive_campaigns (
@@ -240,6 +247,18 @@ CREATE TABLE driver_telemetry (
     availability_status VARCHAR(30) NOT NULL CHECK (availability_status IN ('disponible', 'ocupado', 'en_camino_recogida', 'descanso'))
 );
 
+CREATE TABLE vehicle_maintenance (
+    maintenance_id INT PRIMARY KEY,
+    vehicle_id INT NOT NULL REFERENCES vehicles(vehicle_id),
+    service_date DATE NOT NULL,
+    maintenance_type VARCHAR(25) NOT NULL CHECK (maintenance_type IN ('preventivo', 'correctivo')),
+    odometer_km DECIMAL(9,2) NOT NULL,
+    description TEXT NOT NULL,
+    cost_nio DECIMAL(10,2) NOT NULL,
+    downtime_hours DECIMAL(4,1) NOT NULL,
+    workshop_name VARCHAR(100) NOT NULL
+);
+
 CREATE TABLE trip_audit_logs (
     audit_id SERIAL PRIMARY KEY,
     trip_id INT NOT NULL,
@@ -301,6 +320,7 @@ CREATE INDEX idx_cancellations_trip ON trip_cancellations(trip_id);
 CREATE INDEX idx_telemetry_driver ON driver_telemetry(driver_id);
 CREATE INDEX idx_telemetry_trip ON driver_telemetry(trip_id);
 CREATE INDEX idx_telemetry_quadrant ON driver_telemetry(quadrant_id);
+CREATE INDEX idx_maintenance_vehicle ON vehicle_maintenance(vehicle_id);
 """
 
 
@@ -365,6 +385,7 @@ def export_movigo_to_sql_dump(
         "trip_ratings",
         "trip_cancellations",
         "driver_telemetry",
+        "vehicle_maintenance",
     ]
     return build_sql_dump(
         output_file=output_file,
@@ -384,6 +405,7 @@ def compute_movigo_simulation_summary(
     weather: Any,
     campaigns: list[IncentiveCampaign],
     cancellations: list[TripCancellation] | None = None,
+    maintenance: list[Any] | None = None,
     seed: int = SIMULATION_SEED,
     summary_path: Path | None = None,
 ) -> dict[str, Any]:
@@ -393,6 +415,7 @@ def compute_movigo_simulation_summary(
     df_zones = pd.DataFrame([z.model_dump() for z in zones])
     df_quadrants = pd.DataFrame([q.model_dump() for q in quadrants])
     df_cancellations = pd.DataFrame([c.model_dump() for c in cancellations]) if cancellations else pd.DataFrame()
+    df_maintenance = pd.DataFrame([m.model_dump() for m in maintenance]) if maintenance else pd.DataFrame()
 
     if isinstance(weather, pd.DataFrame):
         df_weather = weather
@@ -453,7 +476,9 @@ def compute_movigo_simulation_summary(
 
     est_results = compute_movigo_estadistica_ii(df_trips, df_payments, df_quadrants, df_weather, df_zones)
     num_results = compute_movigo_metodos_numericos(df_trips, df_payments, df_cancellations)
-    opt_results = compute_movigo_optimizacion(df_trips, df_payments, df_quadrants, df_zones, df_campaigns, df_weather)
+    opt_results = compute_movigo_optimizacion(
+        df_trips, df_payments, df_quadrants, df_zones, df_campaigns, df_weather, df_maintenance=df_maintenance
+    )
 
     summary = {
         "case_name": "MoviGo (Transporte por Aplicación)",

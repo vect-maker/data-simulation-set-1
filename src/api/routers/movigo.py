@@ -19,6 +19,7 @@ from src.api.schemas import (
     UrbanZoneOut,
     UserOut,
     VehicleOut,
+    VehicleMaintenanceOut,
 )
 from src.api.utils import execute_paginated_query, fetch_single_resource
 
@@ -900,6 +901,65 @@ def get_telemetry(
         filters=filters,
         allowed_sort_columns=allowed,
         default_sort="-recorded_at",
+        sort=sort,
+        offset=offset,
+        limit=limit,
+    )
+
+
+@router.get(
+    "/maintenance",
+    response_model=PaginatedResponse[VehicleMaintenanceOut],
+    summary="Listar servicios de mantenimiento preventivo y correctivo de la flota",
+    description=(
+        "### Bitácora de Mantenimiento Vehicular, Kilometraje y Tiempos de Taller\n\n"
+        "Consulta el historial de servicios técnicos preventivos (cada 5,000 km) y correctivos "
+        "(averías mecánicas o impacto por cauces pluviales anegados) ejecutados sobre las unidades vehiculares "
+        "de la flota corporativa MoviGo, con lecturas de odómetro (`odometer_km`), costos (`cost_nio`) y horas de inactividad (`downtime_hours`)."
+    ),
+    response_description="Colección paginada de registros de mantenimiento vehicular",
+    responses={
+        200: {"description": "Página de registros de mantenimiento obtenida exitosamente."},
+        400: {"description": "Parámetro de ordenamiento o filtro inválido."},
+        422: {"description": "Error de validación en parámetros de consulta."},
+    },
+)
+def get_vehicle_maintenance(
+    vehicle_id: Annotated[
+        int | None,
+        Query(description="Filtrar por identificador de la unidad vehicular (1 a 150).", examples=[12]),
+    ] = None,
+    maintenance_type: Annotated[
+        str | None,
+        Query(description="Filtrar por tipo de mantenimiento ('preventivo', 'correctivo').", examples=["preventivo"]),
+    ] = None,
+    sort: Annotated[
+        str | None,
+        Query(description="Campo de ordenamiento (ej. '-service_date', '-odometer_km', 'cost_nio').", examples=["-service_date"]),
+    ] = None,
+    offset: Annotated[
+        int,
+        Query(ge=0, description="Desplazamiento para paginación.", examples=[0]),
+    ] = 0,
+    limit: Annotated[
+        int,
+        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+    ] = 50,
+):
+    """Historial de mantenimiento preventivo y correctivo de la flota automotriz MoviGo."""
+    filters: list[tuple[str, str, Any]] = []
+    if vehicle_id:
+        filters.append(("vehicle_id", "=", vehicle_id))
+    if maintenance_type:
+        filters.append(("maintenance_type", "=", maintenance_type))
+
+    allowed = {"maintenance_id", "vehicle_id", "service_date", "odometer_km", "cost_nio", "downtime_hours"}
+    return execute_paginated_query(
+        schema=SCHEMA,
+        table="vehicle_maintenance",
+        filters=filters,
+        allowed_sort_columns=allowed,
+        default_sort="-service_date",
         sort=sort,
         offset=offset,
         limit=limit,

@@ -78,6 +78,7 @@ class TestAPIService(unittest.TestCase):
             "/movigo/ratings",
             "/movigo/cancellations",
             "/movigo/telemetry",
+            "/movigo/maintenance",
         ]
         for path in expected_collection_paths:
             self.assertIn(path, paths, f"Missing collection endpoint {path} in OpenAPI spec")
@@ -159,6 +160,7 @@ class TestAPIService(unittest.TestCase):
             "TripRatingOut",
             "TripCancellationOut",
             "DriverTelemetryOut",
+            "VehicleMaintenanceOut",
         ]
         for model_name in all_model_names:
             self.assertIn(model_name, schemas, f"Missing schema '{model_name}' in OpenAPI components")
@@ -207,6 +209,7 @@ class TestAPIService(unittest.TestCase):
             ("/movigo/ratings", "raw_staging_movigo", "trip_ratings"),
             ("/movigo/cancellations", "raw_staging_movigo", "trip_cancellations"),
             ("/movigo/telemetry", "raw_staging_movigo", "driver_telemetry"),
+            ("/movigo/maintenance", "raw_staging_movigo", "vehicle_maintenance"),
         ]
         for route, expected_schema, expected_table in endpoint_table_map:
             mock_count.reset_mock()

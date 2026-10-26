@@ -1080,6 +1080,73 @@ class VehicleOut(BaseModel):
         description="Matrícula vehicular de Managua (ej. 'M-123456').",
         examples=["M-123456"],
     )
+    fuel_type: str = Field(
+        default="gasolina_regular",
+        description="Tipo de combustible utilizado por la unidad vehicular.",
+        examples=["gasolina_regular"],
+    )
+    fuel_efficiency_km_l: float = Field(
+        default=13.5,
+        description="Rendimiento promedio de combustible en kilómetros por litro.",
+        examples=[13.5],
+    )
+    initial_odometer_km: float = Field(
+        default=35000.0,
+        description="Kilometraje acumulado del odómetro al inicio del periodo operativo.",
+        examples=[35000.0],
+    )
+
+
+class VehicleMaintenanceOut(BaseModel):
+    """Registro de mantenimiento preventivo o correctivo de unidades de la flota MoviGo."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    maintenance_id: int = Field(
+        ...,
+        description="Identificador único del registro de mantenimiento.",
+        examples=[1],
+    )
+    vehicle_id: int = Field(
+        ...,
+        description="Clave foránea de la unidad vehicular atendida en taller.",
+        examples=[12],
+    )
+    service_date: date = Field(
+        ...,
+        description="Fecha en que se ejecutó el servicio de mantenimiento.",
+        examples=["2024-03-15"],
+    )
+    maintenance_type: str = Field(
+        ...,
+        description="Tipo de intervención técnica ('preventivo' por kilometraje o 'correctivo' por avería).",
+        examples=["preventivo"],
+    )
+    odometer_km: float = Field(
+        ...,
+        description="Lectura del odómetro en kilómetros al momento de ingresar al taller.",
+        examples=[40250.5],
+    )
+    description: str = Field(
+        ...,
+        description="Descripción detallada de los trabajos técnicos ejecutados.",
+        examples=["Cambio de aceite, filtro y revisión de frenos 5,000 km"],
+    )
+    cost_nio: float = Field(
+        ...,
+        description="Costo total de mano de obra y repuestos en Córdobas (NIO).",
+        examples=[3450.0],
+    )
+    downtime_hours: float = Field(
+        ...,
+        description="Horas de inactividad de la unidad vehicular en taller.",
+        examples=[4.5],
+    )
+    workshop_name: str = Field(
+        ...,
+        description="Nombre del taller mecánico autorizado en Managua.",
+        examples=["Taller Central MoviGo Bolonia"],
+    )
 
 
 class IncentiveCampaignOut(BaseModel):

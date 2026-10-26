@@ -91,7 +91,7 @@ class TestRelationalIntegrity(unittest.TestCase):
         weather_df = weather_df.head(3)
 
         engine = MoviGoSimulationEngine(random_seed=42)
-        trips, payments, ratings, cancellations, telemetry = engine.run_simulation(weather_df)
+        trips, payments, ratings, cancellations, telemetry, maintenance = engine.run_simulation(weather_df)
 
         valid_quadrants = {q.quadrant_id: q for q in engine.quadrants}
         valid_zones = {z.zone_id: z for z in engine.zones}
@@ -239,6 +239,15 @@ class TestRelationalIntegrity(unittest.TestCase):
             else:
                 self.assertEqual(camp.status, "activa")
 
+        # Verify vehicle maintenance records
+        valid_vehicles = {v.vehicle_id: v for v in engine.vehicles}
+        for m in maintenance:
+            self.assertIn(m.vehicle_id, valid_vehicles)
+            self.assertIn(m.maintenance_type, ["preventivo", "correctivo"])
+            self.assertGreater(m.cost_nio, 0.0)
+            self.assertGreater(m.downtime_hours, 0.0)
+            self.assertGreaterEqual(m.odometer_km, 18000.0)
+
         # Verify data-driven numerical and optimization benchmarks
         import pandas as pd
         from movigo_sim.analytics import compute_movigo_metodos_numericos, compute_movigo_optimizacion
@@ -246,6 +255,7 @@ class TestRelationalIntegrity(unittest.TestCase):
         df_trips = pd.DataFrame([v.model_dump() for v in trips])
         df_payments = pd.DataFrame([p.model_dump() for p in payments])
         df_cancellations = pd.DataFrame([c.model_dump() for c in cancellations])
+        df_maintenance = pd.DataFrame([m.model_dump() for m in maintenance])
         df_quadrants = pd.DataFrame([q.model_dump() for q in engine.quadrants])
         df_zones = pd.DataFrame([z.model_dump() for z in engine.zones])
         df_campaigns = pd.DataFrame([c.model_dump() for c in engine.campaigns])
@@ -256,12 +266,16 @@ class TestRelationalIntegrity(unittest.TestCase):
         self.assertIn("integracion_numerica_demanda_diaria", num_res)
         self.assertGreater(num_res["integracion_numerica_demanda_diaria"]["simpson"], 0.0)
 
-        opt_res = compute_movigo_optimizacion(df_trips, df_payments, df_quadrants, df_zones, df_campaigns, weather_df.head(3))
+        opt_res = compute_movigo_optimizacion(
+            df_trips, df_payments, df_quadrants, df_zones, df_campaigns, weather_df.head(3), df_maintenance=df_maintenance
+        )
         self.assertIn("algoritmo_hungaro_despacho", opt_res)
         self.assertIn("ruta_mas_corta_red_vial", opt_res)
         self.assertIn("optimizacion_mochila_campanas", opt_res)
+        self.assertIn("programacion_mantenimiento_flota", opt_res)
         self.assertLessEqual(opt_res["optimizacion_mochila_campanas"]["costo_total"], 120000)
         self.assertGreater(opt_res["optimizacion_mochila_campanas"]["retorno_maximo"], 2500.0)
+        self.assertLessEqual(opt_res["programacion_mantenimiento_flota"]["resultado_optimo"]["costo_total"], 35000)
 
     def test_movigo_deterministic_reproducibility(self):
         import numpy as np
@@ -278,14 +292,14 @@ class TestRelationalIntegrity(unittest.TestCase):
         engine = MoviGoSimulationEngine(random_seed=SIMULATION_SEED)
         enricher = MoviGoSemanticEnricher(engine.templates, random_seed=SIMULATION_SEED)
 
-        trips_1, pay_1, rat_1, canc_1, tel_1 = engine.run_simulation(w_df_1.head(3))
+        trips_1, pay_1, rat_1, canc_1, tel_1, maint_1 = engine.run_simulation(w_df_1.head(3))
         canc_1 = enricher.enrich_cancellations(canc_1)
 
         # Mutate global np.random in between to prove complete RNG isolation
         np.random.seed(99999)
         _ = np.random.rand(100)
 
-        trips_2, pay_2, rat_2, canc_2, tel_2 = engine.run_simulation(w_df_2.head(3))
+        trips_2, pay_2, rat_2, canc_2, tel_2, maint_2 = engine.run_simulation(w_df_2.head(3))
         canc_2 = enricher.enrich_cancellations(canc_2)
 
         self.assertEqual([v.model_dump() for v in trips_1], [v.model_dump() for v in trips_2])
@@ -293,6 +307,7 @@ class TestRelationalIntegrity(unittest.TestCase):
         self.assertEqual([r.model_dump() for r in rat_1], [r.model_dump() for r in rat_2])
         self.assertEqual([c.model_dump() for c in canc_1], [c.model_dump() for c in canc_2])
         self.assertEqual([t.model_dump() for t in tel_1], [t.model_dump() for t in tel_2])
+        self.assertEqual([m.model_dump() for m in maint_1], [m.model_dump() for m in maint_2])
 
 
 if __name__ == "__main__":
