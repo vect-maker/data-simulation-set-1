@@ -53,14 +53,24 @@ class Viaje(BaseModel):
     id_conductor: int | None = None
     id_zona_origen: int = Field(ge=1)
     id_zona_destino: int = Field(ge=1)
+    latitud_origen: float = Field(ge=12.00, le=12.30)
+    longitud_origen: float = Field(ge=-86.45, le=-86.10)
+    latitud_destino: float = Field(ge=12.00, le=12.30)
+    longitud_destino: float = Field(ge=-86.45, le=-86.10)
     fecha_hora_solicitud: datetime
     fecha_hora_inicio: datetime | None = None
     fecha_hora_fin: datetime | None = None
+    tiempo_espera_minutos: float = Field(ge=0.0)
     distancia_km: float = Field(ge=0.5)
     duracion_minutos: float = Field(ge=2.0)
+    tarifa_bajada_bandera: float = Field(ge=0.0)
+    cargo_distancia: float = Field(ge=0.0)
+    cargo_tiempo: float = Field(ge=0.0)
     tarifa_base: float = Field(ge=0.0)
     multiplicador_dinamico: float = Field(ge=1.0, le=3.5)
     tarifa_final: float = Field(ge=0.0)
+    solicitudes_activas_origen: int = Field(ge=1)
+    conductores_disponibles_origen: int = Field(ge=1)
     metodo_pago: str = Field(pattern=r"^(efectivo|tarjeta|billetera_digital)$")
     estado_viaje: str = Field(pattern=r"^(completado|cancelado_usuario|cancelado_conductor|no_asignado)$")
     calificacion_usuario: float | None = Field(None, ge=1.0, le=5.0)
@@ -75,6 +85,7 @@ class TelemetriaConductor(BaseModel):
 
     id_telemetria: int = Field(ge=1)
     id_conductor: int = Field(ge=1)
+    id_viaje: int | None = None
     id_zona: int = Field(ge=1)
     fecha_hora: datetime
     latitud: float = Field(ge=12.00, le=12.30)

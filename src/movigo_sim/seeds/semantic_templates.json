@@ -1,24 +1,19 @@
 {
   "motivos_cancelacion": [
-    "El pasajero demoró demasiado en salir.",
-    "Traficazo tremendo en la pista Juan Pablo II.",
-    "El conductor canceló por pinchazo de llanta.",
-    "Calle inundada cerca del cauce.",
-    "El pasajero tomó caponera por apuro."
+    "Tarifa dinámica sobrepasa presupuesto",
+    "Tiempo de llegada excesivo",
+    "Vía anegada / cauce intransitable",
+    "Conductor no avanza",
+    "Falla mecánica / imprevisto del conductor"
   ],
   "motivos_cancelacion_conductor": [
-    "Se armó un tapón tremendo en la Pista El Mayoreo y no pude avanzar.",
-    "Cayunazo de agua fuerte y el cauce se desbordó por la zona.",
-    "Pinché llanta pasando por el adoquinado feo de Linda Vista.",
-    "El pasajero me mandó una ubicación errónea y no lo hallo.",
-    "Me dio viaje largo hacia Tipitapa y ya me iba a retirar."
+    "Vía anegada / cauce intransitable",
+    "Falla mecánica / imprevisto del conductor"
   ],
   "motivos_cancelacion_usuario": [
-    "El brother se demoró una eternidad en llegar al punto.",
-    "Mejor me fui en caponera porque el tráfico estaba impossible.",
-    "El carro se veía muy chavalo y me dio desconfianza.",
-    "Me equivoqué de punto de partida, iba para otro lado.",
-    "El conductor me llamó pidiendo que cancelara el viaje."
+    "Tarifa dinámica sobrepasa presupuesto",
+    "Tiempo de llegada excesivo",
+    "Conductor no avanza"
   ],
   "comentarios_viaje": [
     "Excelente servicio, el conductor muy amable y puso buena música de los Chavalos del K-B.",

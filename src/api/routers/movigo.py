@@ -416,7 +416,21 @@ def get_viajes(
     if metodo_pago:
         filters.append(("metodo_pago", "=", metodo_pago))
 
-    allowed = {"id_viaje", "fecha_hora_solicitud", "distancia_km", "duracion_minutos", "multiplicador_dinamico", "tarifa_final"}
+    allowed = {
+        "id_viaje",
+        "fecha_hora_solicitud",
+        "tiempo_espera_minutos",
+        "distancia_km",
+        "duracion_minutos",
+        "tarifa_bajada_bandera",
+        "cargo_distancia",
+        "cargo_tiempo",
+        "tarifa_base",
+        "multiplicador_dinamico",
+        "tarifa_final",
+        "solicitudes_activas_origen",
+        "conductores_disponibles_origen",
+    }
     return execute_paginated_query(
         schema=SCHEMA,
         table="viajes",
@@ -474,6 +488,10 @@ def get_telemetria(
         int | None,
         Query(description="Filtrar por identificador de conductor monitoreado.", examples=[205]),
     ] = None,
+    id_viaje: Annotated[
+        int | None,
+        Query(description="Filtrar por identificador de viaje asociado al recorrido GPS.", examples=[10042]),
+    ] = None,
     id_zona: Annotated[
         int | None,
         Query(description="Filtrar por cuadrante urbano donde se emitió la señal.", examples=[1]),
@@ -505,12 +523,14 @@ def get_telemetria(
     filters: list[tuple[str, str, Any]] = []
     if id_conductor:
         filters.append(("id_conductor", "=", id_conductor))
+    if id_viaje:
+        filters.append(("id_viaje", "=", id_viaje))
     if id_zona:
         filters.append(("id_zona", "=", id_zona))
     if estado_disponibilidad:
         filters.append(("estado_disponibilidad", "=", estado_disponibilidad))
 
-    allowed = {"id_telemetria", "fecha_hora", "velocidad_kmh"}
+    allowed = {"id_telemetria", "id_viaje", "fecha_hora", "velocidad_kmh"}
     return execute_paginated_query(
         schema=SCHEMA,
         table="telemetria_conductores",

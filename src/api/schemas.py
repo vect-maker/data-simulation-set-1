@@ -1102,6 +1102,26 @@ class ViajeOut(BaseModel):
         description="Clave foránea del cuadrante urbano de destino.",
         examples=[4],
     )
+    latitud_origen: float = Field(
+        ...,
+        description="Latitud exacta en la vía pública del punto de recogida (WGS84).",
+        examples=[12.11542],
+    )
+    longitud_origen: float = Field(
+        ...,
+        description="Longitud exacta en la vía pública del punto de recogida (WGS84).",
+        examples=[-86.25481],
+    )
+    latitud_destino: float = Field(
+        ...,
+        description="Latitud exacta en la vía pública del punto de destino (WGS84).",
+        examples=[12.12834],
+    )
+    longitud_destino: float = Field(
+        ...,
+        description="Longitud exacta en la vía pública del punto de destino (WGS84).",
+        examples=[-86.26512],
+    )
     fecha_hora_solicitud: datetime = Field(
         ...,
         description="Marca de tiempo en que el pasajero pidió el viaje (ISO 8601).",
@@ -1117,6 +1137,11 @@ class ViajeOut(BaseModel):
         description="Marca de tiempo de finalización del viaje en destino.",
         examples=["2024-05-18T18:22:00"],
     )
+    tiempo_espera_minutos: float = Field(
+        ...,
+        description="Tiempo de espera de despacho desde la solicitud hasta el arribo o cancelación en minutos.",
+        examples=[7.0],
+    )
     distancia_km: float = Field(
         ...,
         description="Distancia real del trayecto en kilómetros (km).",
@@ -1127,20 +1152,45 @@ class ViajeOut(BaseModel):
         description="Tiempo total transcurrido del viaje en minutos.",
         examples=[30.0],
     )
+    tarifa_bajada_bandera: float = Field(
+        ...,
+        description="Tarifa de arranque o bajada de bandera según la zona de origen en Córdobas (NIO).",
+        examples=[70.0],
+    )
+    cargo_distancia: float = Field(
+        ...,
+        description="Componente tarifario por kilómetros recorridos (18.00 NIO * distancia_km).",
+        examples=[122.4],
+    )
+    cargo_tiempo: float = Field(
+        ...,
+        description="Componente tarifario por minutos de viaje (4.50 NIO * duracion_minutos).",
+        examples=[135.0],
+    )
     tarifa_base: float = Field(
         ...,
-        description="Tarifa base regular antes de aplicar recargos dinámicos en Córdobas (NIO).",
-        examples=[85.0],
+        description="Tarifa base regular antes de aplicar recargos dinámicos (bajada + distancia + tiempo) en Córdobas (NIO).",
+        examples=[327.4],
     )
     multiplicador_dinamico: float = Field(
         ...,
-        description="Factor multiplicador por alta demanda o lluvia (surge pricing, 1.00x a 2.80x).",
-        examples=[1.45],
+        description="Factor multiplicador por alta demanda o lluvia (surge pricing, 1.00x a 3.20x).",
+        examples=[1.35],
     )
     tarifa_final: float = Field(
         ...,
-        description="Monto final efectivamente facturado al pasajero en Córdobas (NIO).",
-        examples=[158.25],
+        description="Monto final efectivamente facturado al pasajero (tarifa_base * multiplicador_dinamico) en Córdobas (NIO).",
+        examples=[441.99],
+    )
+    solicitudes_activas_origen: int = Field(
+        ...,
+        description="Demanda activa instantánea (Dt) de viajes en el cuadrante de origen en esa hora.",
+        examples=[42],
+    )
+    conductores_disponibles_origen: int = Field(
+        ...,
+        description="Oferta instantánea (St) de conductores disponibles en el cuadrante de origen en esa hora.",
+        examples=[28],
     )
     metodo_pago: str = Field(
         ...,
@@ -1169,7 +1219,7 @@ class ViajeOut(BaseModel):
     )
     motivo_cancelacion: str | None = Field(
         default=None,
-        description="Motivo registrado en caso de viaje cancelado.",
+        description="Motivo categórico registrado en caso de viaje cancelado.",
         examples=[None],
     )
 
@@ -1189,6 +1239,11 @@ class TelemetriaConductorOut(BaseModel):
         description="Clave foránea del conductor monitoreado.",
         examples=[205],
     )
+    id_viaje: int | None = Field(
+        default=None,
+        description="Clave foránea del viaje activo asociado al ping GPS (None cuando el conductor está disponible).",
+        examples=[10042],
+    )
     id_zona: int = Field(
         ...,
         description="Clave foránea del cuadrante urbano donde se captó la señal.",
@@ -1201,12 +1256,12 @@ class TelemetriaConductorOut(BaseModel):
     )
     latitud: float = Field(
         ...,
-        description="Coordenada de latitud en grados decimales WGS84.",
+        description="Coordenada de latitud en grados decimales WGS84 sobre la red vial.",
         examples=[12.1288],
     )
     longitud: float = Field(
         ...,
-        description="Coordenada de longitud en grados decimales WGS84.",
+        description="Coordenada de longitud en grados decimales WGS84 sobre la red vial.",
         examples=[-86.2642],
     )
     velocidad_kmh: float = Field(

@@ -41,14 +41,24 @@ Table viajes {
   id_conductor int [ref: > conductores.id_conductor]
   id_zona_origen int [not null, ref: > zonas_urbanas.id_zona]
   id_zona_destino int [not null, ref: > zonas_urbanas.id_zona]
+  latitud_origen decimal(9,6) [not null]
+  longitud_origen decimal(9,6) [not null]
+  latitud_destino decimal(9,6) [not null]
+  longitud_destino decimal(9,6) [not null]
   fecha_hora_solicitud timestamp [not null]
   fecha_hora_inicio timestamp
   fecha_hora_fin timestamp
+  tiempo_espera_minutos decimal(6,2) [not null]
   distancia_km decimal(6,2) [not null]
   duracion_minutos decimal(6,2) [not null]
+  tarifa_bajada_bandera decimal(8,2) [not null]
+  cargo_distancia decimal(8,2) [not null]
+  cargo_tiempo decimal(8,2) [not null]
   tarifa_base decimal(8,2) [not null]
-  multiplicador_dinamico decimal(4,2) [not null, note: '1.0 a 2.8x segun lluvia y hora pico']
+  multiplicador_dinamico decimal(4,2) [not null, note: '1.0 a 3.2x segun lluvia, hora pico y exceso de demanda']
   tarifa_final decimal(8,2) [not null]
+  solicitudes_activas_origen int [not null, note: 'Demanda activa Dt en la zona de origen al momento de la solicitud']
+  conductores_disponibles_origen int [not null, note: 'Oferta de conductores disponibles St en la zona de origen']
   metodo_pago varchar(30) [not null, note: 'efectivo, tarjeta, billetera_digital']
   estado_viaje varchar(25) [not null, note: 'completado, cancelado_usuario, cancelado_conductor, no_asignado']
   calificacion_usuario decimal(2,1)
@@ -60,6 +70,7 @@ Table viajes {
 Table telemetria_conductores {
   id_telemetria int [pk]
   id_conductor int [not null, ref: > conductores.id_conductor]
+  id_viaje int [ref: > viajes.id_viaje, note: 'NULL cuando estado_disponibilidad = disponible']
   id_zona int [not null, ref: > zonas_urbanas.id_zona]
   fecha_hora timestamp [not null]
   latitud decimal(9,6) [not null]

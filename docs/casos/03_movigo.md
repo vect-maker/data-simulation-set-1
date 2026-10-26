@@ -21,8 +21,8 @@ Principales desafíos operativos:
 | `conductores` | `id_conductor` | - | Flota vehicular registrada con año, modelo, tasa de aceptación y estado. |
 | `campanas_incentivos` | `id_campana` | - | Programas de bonos a conductores con presupuesto y horas de conexión estimadas (Mochila). |
 | `clima_cuadrantes` | `id_registro` | `id_zona` | Variables climáticas e índice de congestión vial por cuadrante y fecha. |
-| `viajes` | `id_viaje` | `id_usuario`, `id_conductor`, `id_zona_origen`, `id_zona_destino` | Registro de solicitudes de viaje con distancia, duración, multiplicador y tarifa cobrada. |
-| `telemetria_conductores` | `id_telemetria` | `id_conductor`, `id_viaje` | Registros de GPS, velocidad media e incidencias de frenado brusco. |
+| `viajes` | `id_viaje` | `id_usuario`, `id_conductor`, `id_zona_origen`, `id_zona_destino` | Registro de solicitudes de viaje con coordenadas GPS en vía pública (`latitud_origen`, `longitud_origen`, `latitud_destino`, `longitud_destino`), tiempo de espera (`tiempo_espera_minutos`), distancia, duración, desglose tarifario (`tarifa_bajada_bandera`, `cargo_distancia`, `cargo_tiempo`, `tarifa_base`, `multiplicador_dinamico`, `tarifa_final`) y estado de oferta/demanda (`solicitudes_activas_origen`, `conductores_disponibles_origen`). |
+| `telemetria_conductores` | `id_telemetria` | `id_conductor`, `id_viaje`, `id_zona` | Registros de trayectoria GPS en calles de Managua (`id_viaje` nulo cuando está `disponible`, poblado durante `en_camino_recogida` y `ocupado`), velocidad instantánea y estado de disponibilidad. |
 | `auditoria_viajes` | `id_auditoria` | - | Tabla de auditoría poblada automáticamente ante transiciones de estado de viaje. |
 
 ---

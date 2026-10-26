@@ -34,8 +34,8 @@ OPEN_METEO_LONGITUDE = -86.2514
 
 # Fare and Surge parameters (Nicaraguan Córdobas NIO)
 BASE_FLAG_DROP_NIO = 45.00
-BASE_PER_KM_NIO = 22.00
-BASE_PER_MINUTE_NIO = 3.50
+BASE_PER_KM_NIO = 18.00
+BASE_PER_MINUTE_NIO = 4.50
 
 # Surge pricing sensitivity to rain and peak traffic:
 # Multiplier = 1.0 + 0.032 * Pt + Rush_Hour_Boost + eps

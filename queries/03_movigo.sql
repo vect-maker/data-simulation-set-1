@@ -25,7 +25,7 @@ UNION ALL
 SELECT 'telemetria_conductores', COUNT(*) FROM telemetria_conductores;
 
 -- ------------------------------------------------------------------------------
--- 2. Análisis de Matriz Origen-Destino entre Zonas de Managua
+-- 2. Análisis de Matriz Origen-Destino y Coordenadas GPS en Vías de Managua
 -- ------------------------------------------------------------------------------
 SELECT 
     zo.nombre_zona AS origen,
@@ -33,7 +33,7 @@ SELECT
     COUNT(v.id_viaje) AS total_viajes,
     ROUND(AVG(v.distancia_km)::numeric, 2) AS distancia_promedio_km,
     ROUND(AVG(v.duracion_minutos)::numeric, 2) AS duracion_promedio_min,
-    ROUND(AVG(v.tarifa_total_nio)::numeric, 2) AS tarifa_promedio_nio
+    ROUND(AVG(v.tarifa_final)::numeric, 2) AS tarifa_promedio_nio
 FROM viajes v
 JOIN zonas_urbanas zo ON v.id_zona_origen = zo.id_zona
 JOIN zonas_urbanas zd ON v.id_zona_destino = zd.id_zona
@@ -43,37 +43,49 @@ ORDER BY total_viajes DESC
 LIMIT 10;
 
 -- ------------------------------------------------------------------------------
--- 3. Prueba de la Función Determinista: fn_liquidar_tarifa_viaje
--- Valida la fórmula de liquidación: (tarifa_base + km * 18 + min * 4.5) * multiplicador
+-- 3. Prueba de Desglose Tarifario y Función Determinista: fn_liquidar_tarifa_viaje
+-- Valida: tarifa_base = tarifa_bajada_bandera + cargo_distancia + cargo_tiempo
+--         tarifa_final = ROUND(tarifa_base * multiplicador_dinamico, 2)
 -- ------------------------------------------------------------------------------
 SELECT 
     v.id_viaje,
-    v.tarifa_total_nio AS tarifa_registrada,
+    v.tarifa_bajada_bandera,
+    v.cargo_distancia,
+    v.cargo_tiempo,
+    v.tarifa_base,
+    v.multiplicador_dinamico,
+    v.tarifa_final AS tarifa_registrada,
     ROUND(fn_liquidar_tarifa_viaje(
-        zo.tarifa_base_bajada_bandera,
+        v.tarifa_bajada_bandera,
         v.distancia_km,
         v.duracion_minutos,
         v.multiplicador_dinamico
     )::numeric, 2) AS tarifa_calculada_plpgsql,
-    ROUND(ABS(v.tarifa_total_nio - fn_liquidar_tarifa_viaje(
-        zo.tarifa_base_bajada_bandera,
+    ROUND(ABS(v.tarifa_final - fn_liquidar_tarifa_viaje(
+        v.tarifa_bajada_bandera,
         v.distancia_km,
         v.duracion_minutos,
         v.multiplicador_dinamico
     ))::numeric, 2) AS discrepancia
 FROM viajes v
-JOIN zonas_urbanas zo ON v.id_zona_origen = zo.id_zona
 WHERE v.estado_viaje = 'completado'
 LIMIT 5;
 
 -- ------------------------------------------------------------------------------
--- 4. Demostración del Trigger de Auditoría de Viajes (trg_auditar_viajes)
+-- 4. Análisis Micro-Conductual de Cancelaciones y Equilibrio Oferta/Demanda
 -- ------------------------------------------------------------------------------
-UPDATE viajes 
-SET estado_viaje = 'cancelado_usuario'
-WHERE id_viaje = (SELECT id_viaje FROM viajes WHERE estado_viaje = 'solicitado' LIMIT 1);
-
-SELECT * FROM auditoria_viajes ORDER BY fecha_cambio DESC LIMIT 5;
+SELECT
+    v.motivo_cancelacion,
+    v.estado_viaje,
+    COUNT(*) AS total_cancelados,
+    ROUND(AVG(v.multiplicador_dinamico)::numeric, 2) AS surge_promedio,
+    ROUND(AVG(v.tiempo_espera_minutos)::numeric, 2) AS espera_promedio_min,
+    ROUND(AVG(v.solicitudes_activas_origen)::numeric, 1) AS demanda_activa_dt,
+    ROUND(AVG(v.conductores_disponibles_origen)::numeric, 1) AS oferta_conductores_st
+FROM viajes v
+WHERE v.estado_viaje IN ('cancelado_usuario', 'cancelado_conductor')
+GROUP BY v.motivo_cancelacion, v.estado_viaje
+ORDER BY total_cancelados DESC;
 
 -- ------------------------------------------------------------------------------
 -- 5. Consulta a la Vista Materializada: mv_kpis_movilidad_horaria

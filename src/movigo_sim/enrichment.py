@@ -24,8 +24,13 @@ class MoviGoSemanticEnricher:
         np.random.seed(random_seed)
         self.motivos_cancel = (
             self.templates.get("motivos_cancelacion")
-            or (self.templates.get("motivos_cancelacion_conductor", []) + self.templates.get("motivos_cancelacion_usuario", []))
-            or ["Tranque en rotonda Centroamérica", "Lluvia torrencial inundó la vía", "Pasajero no apareció"]
+            or [
+                "Tarifa dinámica sobrepasa presupuesto",
+                "Tiempo de llegada excesivo",
+                "Vía anegada / cauce intransitable",
+                "Conductor no avanza",
+                "Falla mecánica / imprevisto del conductor",
+            ]
         )
 
     def enrich_trips(self, viajes: list[Viaje]) -> list[Viaje]:

@@ -103,16 +103,36 @@ class TestRelationalIntegrity(unittest.TestCase):
                 self.assertIn(v.id_conductor, valid_conductores)
             self.assertIn(v.id_zona_origen, valid_zonas)
             self.assertIn(v.id_zona_destino, valid_zonas)
+            self.assertTrue(12.00 <= v.latitud_origen <= 12.30)
+            self.assertTrue(-86.45 <= v.longitud_origen <= -86.10)
+            self.assertTrue(12.00 <= v.latitud_destino <= 12.30)
+            self.assertTrue(-86.45 <= v.longitud_destino <= -86.10)
+            self.assertGreaterEqual(v.tiempo_espera_minutos, 0.0)
             self.assertGreaterEqual(v.distancia_km, 0.0)
             self.assertGreaterEqual(v.duracion_minutos, 0.0)
+            self.assertAlmostEqual(
+                v.tarifa_base,
+                v.tarifa_bajada_bandera + v.cargo_distancia + v.cargo_tiempo,
+                delta=0.02,
+            )
             self.assertGreaterEqual(v.multiplicador_dinamico, 1.0)
-            self.assertGreaterEqual(v.tarifa_final, 0.0)
+            self.assertAlmostEqual(
+                v.tarifa_final,
+                round(v.tarifa_base * v.multiplicador_dinamico, 2),
+                delta=0.02,
+            )
+            self.assertGreaterEqual(v.solicitudes_activas_origen, 1)
+            self.assertGreaterEqual(v.conductores_disponibles_origen, 1)
 
         for t in telemetria:
             self.assertIn(t.id_conductor, valid_conductores)
             self.assertIn(t.id_zona, valid_zonas)
             self.assertGreaterEqual(t.velocidad_kmh, 0.0)
             self.assertIn(t.estado_disponibilidad, ["disponible", "ocupado", "en_camino_recogida"])
+            if t.estado_disponibilidad == "disponible":
+                self.assertIsNone(t.id_viaje)
+            else:
+                self.assertIn(t.id_viaje, valid_viajes)
 
 
 if __name__ == "__main__":
