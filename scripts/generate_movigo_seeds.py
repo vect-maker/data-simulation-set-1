@@ -17,6 +17,7 @@ sys.path.insert(0, str(BASE_DIR))
 sys.path.insert(0, str(BASE_DIR / "src"))
 
 from movigo_sim.models import (
+    Cuadrante,
     ZonaUrbana,
     Usuario,
     Conductor,

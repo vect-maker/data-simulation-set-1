@@ -4,8 +4,27 @@ from datetime import date, datetime
 from pydantic import BaseModel, Field, ConfigDict
 
 
+class Cuadrante(BaseModel):
+    """Fine-grained geographical square quadrant (~0.88 km x 0.88 km) inside an urban zone."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id_cuadrante: int = Field(ge=1)
+    id_zona: int = Field(ge=1)
+    codigo_cuadrante: str
+    nombre_cuadrante: str
+    fila_grid: int = Field(ge=0)
+    columna_grid: int = Field(ge=0)
+    lat_min: float = Field(ge=12.00, le=12.30)
+    lat_max: float = Field(ge=12.00, le=12.30)
+    lon_min: float = Field(ge=-86.45, le=-86.10)
+    lon_max: float = Field(ge=-86.45, le=-86.10)
+    altitud_media_msnm: int = Field(ge=30, le=950)
+    riesgo_inundacion: str = Field(pattern=r"^(bajo|medio|alto|critico)$")
+    cauces_principales: str
+
+
 class ZonaUrbana(BaseModel):
-    """Urban zone in Managua."""
+    """Urban pricing and mobility zone in Managua (groups multiple square cuadrantes)."""
     model_config = ConfigDict(from_attributes=True)
 
     id_zona: int = Field(ge=1)
@@ -53,6 +72,8 @@ class Viaje(BaseModel):
     id_conductor: int | None = None
     id_zona_origen: int = Field(ge=1)
     id_zona_destino: int = Field(ge=1)
+    id_cuadrante_origen: int = Field(ge=1)
+    id_cuadrante_destino: int = Field(ge=1)
     latitud_origen: float = Field(ge=12.00, le=12.30)
     longitud_origen: float = Field(ge=-86.45, le=-86.10)
     latitud_destino: float = Field(ge=12.00, le=12.30)
@@ -87,6 +108,7 @@ class TelemetriaConductor(BaseModel):
     id_conductor: int = Field(ge=1)
     id_viaje: int | None = None
     id_zona: int = Field(ge=1)
+    id_cuadrante: int = Field(ge=1)
     fecha_hora: datetime
     latitud: float = Field(ge=12.00, le=12.30)
     longitud: float = Field(ge=-86.45, le=-86.10)
@@ -109,11 +131,17 @@ class CampanaIncentivo(BaseModel):
 
 
 class ClimaCuadrantes(BaseModel):
-    """Urban weather and traffic congestion driver."""
+    """Hourly urban weather, cauce runoff, and traffic congestion per quadrant."""
     model_config = ConfigDict(from_attributes=True)
 
+    id_clima: int = Field(ge=1)
+    id_cuadrante: int = Field(ge=1)
+    fecha_hora: datetime
     fecha: date
+    hora: int = Field(ge=0, le=23)
     precipitacion_mm: float = Field(ge=0.0)
-    temperatura_c: float = Field(ge=18.0, le=42.0)
+    escorrentia_cauce_mm: float = Field(ge=0.0)
+    temperatura_c: float = Field(ge=15.0, le=43.0)
     indice_congestion: float = Field(ge=1.00, le=4.00)
+    vias_anegadas: bool = False
     condicion_cielo: str = Field(pattern=r"^(despejado|lluvia_ligera|tormenta|nublado)$")

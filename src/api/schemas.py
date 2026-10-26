@@ -862,20 +862,92 @@ class EmbarqueExportacionOut(BaseModel):
 # =========================================================
 
 
+class CuadranteOut(BaseModel):
+    """Cuadrante cuadrado fino (~0.88 km x 0.88 km) dentro de una zona urbana de Managua."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id_cuadrante: int = Field(
+        ...,
+        description="Identificador único numérico del cuadrante cuadrado en la grilla de Managua (1 a 92).",
+        examples=[53],
+    )
+    id_zona: int = Field(
+        ...,
+        description="Clave foránea de la zona urbana padre a la que pertenece el cuadrante (1 a 12).",
+        examples=[11],
+    )
+    codigo_cuadrante: str = Field(
+        ...,
+        description="Código corto estandarizado del cuadrante y su zona urbana.",
+        examples=["Q53-Z11"],
+    )
+    nombre_cuadrante: str = Field(
+        ...,
+        description="Nombre descriptivo de la zona, cuadrante y coordenadas de fila/columna en la grilla.",
+        examples=["Mercado Oriental - Cuadrante Q53 (F7C9)"],
+    )
+    fila_grid: int = Field(
+        ...,
+        description="Índice de fila de sur a norte en la grilla espacial de Managua.",
+        examples=[6],
+    )
+    columna_grid: int = Field(
+        ...,
+        description="Índice de columna de oeste a este en la grilla espacial de Managua.",
+        examples=[8],
+    )
+    lat_min: float = Field(
+        ...,
+        description="Límite sur de latitud del cuadrante cuadrado (WGS84).",
+        examples=[12.134],
+    )
+    lat_max: float = Field(
+        ...,
+        description="Límite norte de latitud del cuadrante cuadrado (WGS84).",
+        examples=[12.142],
+    )
+    lon_min: float = Field(
+        ...,
+        description="Límite oeste de longitud del cuadrante cuadrado (WGS84).",
+        examples=[-86.252],
+    )
+    lon_max: float = Field(
+        ...,
+        description="Límite este de longitud del cuadrante cuadrado (WGS84).",
+        examples=[-86.244],
+    )
+    altitud_media_msnm: int = Field(
+        ...,
+        description="Altitud media sobre el nivel del mar en metros (msnm). Determina el drenaje sur-norte.",
+        examples=[58],
+    )
+    riesgo_inundacion: str = Field(
+        ...,
+        description="Nivel de vulnerabilidad a anegamientos por cauces ('bajo', 'medio', 'alto', 'critico').",
+        examples=["critico"],
+    )
+    cauces_principales: str = Field(
+        ...,
+        description="Principales cauces pluviales, pasos a desnivel y arterias dentro o contiguas al cuadrante.",
+        examples=["Cauce Oriental / Gancho de Camino"],
+    )
+
+
 class ZonaUrbanaOut(BaseModel):
-    """Cuadrante o sector urbano de Managua para movilidad y transporte."""
+    """Zona urbana comercial y de tarifación en Managua (agrupa múltiples cuadrantes cuadrados)."""
 
     model_config = ConfigDict(from_attributes=True)
 
     id_zona: int = Field(
         ...,
-        description="Identificador único numérico del cuadrante urbano de Managua.",
+        description="Identificador único numérico de la zona urbana de Managua (1 a 12).",
         examples=[1],
     )
     nombre_zona: str = Field(
         ...,
-        description="Nombre comercial o referencia urbana (ej. Metrocentro, Plaza España, Villa Fontana).",
-        examples=["Metrocentro"],
+        description="Nombre comercial o referencia urbana (ej. Metrocentro, Villa Fontana, Mercado Oriental).",
+        examples=["Villa Fontana"],
     )
     estrato_socioeconomico: str = Field(
         ...,
@@ -1041,33 +1113,63 @@ class CampanaIncentivoOut(BaseModel):
 
 
 class ClimaCuadranteOut(BaseModel):
-    """Condición climática e índice de congestión vehicular por cuadrante en Managua."""
+    """Condición climática horaria, escorrentía de cauces e índice de congestión vehicular por cuadrante en Managua."""
 
     model_config = ConfigDict(from_attributes=True)
 
+    id_clima: int = Field(
+        ...,
+        description="Identificador único del registro horario de clima por cuadrante.",
+        examples=[1024],
+    )
+    id_cuadrante: int = Field(
+        ...,
+        description="Clave foránea del macro-cuadrante geográfico monitoreado (1 a 6).",
+        examples=[4],
+    )
+    fecha_hora: datetime = Field(
+        ...,
+        description="Marca de tiempo horaria del registro meteorológico y vial (ISO 8601).",
+        examples=["2024-05-18T17:00:00"],
+    )
     fecha: date = Field(
         ...,
-        description="Fecha del registro meteorológico y de tráfico (YYYY-MM-DD).",
+        description="Fecha calendario de la observación (YYYY-MM-DD).",
         examples=["2024-05-18"],
+    )
+    hora: int = Field(
+        ...,
+        description="Hora del día en formato 24 horas (0 a 23).",
+        examples=[17],
     )
     precipitacion_mm: float = Field(
         ...,
-        description="Milímetros de lluvia caída en el cuadrante (mm). Driver exógeno principal.",
-        examples=[22.0],
+        description="Milímetros de lluvia caída directamente sobre el cuadrante en esa hora (mm).",
+        examples=[8.4],
+    )
+    escorrentia_cauce_mm: float = Field(
+        ...,
+        description="Lámina de agua efectiva y escorrentía pluvial acumulada en cauces desde cuadrantes altos del sur (mm).",
+        examples=[12.6],
     )
     temperatura_c: float = Field(
         ...,
-        description="Temperatura ambiente media en grados Celsius (°C).",
-        examples=[31.2],
+        description="Temperatura ambiente horaria en el cuadrante en grados Celsius (°C).",
+        examples=[27.8],
     )
     indice_congestion: float = Field(
         ...,
-        description="Índice de saturación vial (1.00 flujo totalmente despejado a 3.50 colapso por lluvias).",
-        examples=[2.45],
+        description="Índice horario de saturación vial en el cuadrante (1.00 flujo libre a 3.95 colapso por inundación).",
+        examples=[2.85],
+    )
+    vias_anegadas: bool = Field(
+        ...,
+        description="Indica si la escorrentía superó el umbral de drenaje del cuadrante anegando calles y pasos a desnivel.",
+        examples=[True],
     )
     condicion_cielo: str = Field(
         ...,
-        description="Condición atmosférica ('despejado', 'nublado', 'lluvia_ligera', 'tormenta').",
+        description="Condición atmosférica horaria ('despejado', 'nublado', 'lluvia_ligera', 'tormenta').",
         examples=["tormenta"],
     )
 
@@ -1094,13 +1196,23 @@ class ViajeOut(BaseModel):
     )
     id_zona_origen: int = Field(
         ...,
-        description="Clave foránea del cuadrante urbano de origen.",
+        description="Clave foránea de la zona urbana de origen (1 a 12).",
         examples=[1],
     )
     id_zona_destino: int = Field(
         ...,
-        description="Clave foránea del cuadrante urbano de destino.",
+        description="Clave foránea de la zona urbana de destino (1 a 12).",
         examples=[4],
+    )
+    id_cuadrante_origen: int = Field(
+        ...,
+        description="Clave foránea del cuadrante cuadrado exacto de origen en la grilla de Managua (1 a 92).",
+        examples=[15],
+    )
+    id_cuadrante_destino: int = Field(
+        ...,
+        description="Clave foránea del cuadrante cuadrado exacto de destino en la grilla de Managua (1 a 92).",
+        examples=[41],
     )
     latitud_origen: float = Field(
         ...,
@@ -1246,8 +1358,13 @@ class TelemetriaConductorOut(BaseModel):
     )
     id_zona: int = Field(
         ...,
-        description="Clave foránea del cuadrante urbano donde se captó la señal.",
+        description="Clave foránea de la zona urbana donde se captó la señal (1 a 12).",
         examples=[1],
+    )
+    id_cuadrante: int = Field(
+        ...,
+        description="Clave foránea del cuadrante cuadrado exacto donde se captó la señal GPS (1 a 92).",
+        examples=[15],
     )
     fecha_hora: datetime = Field(
         ...,

@@ -16,13 +16,14 @@ Principales desafíos operativos:
 
 | Tabla | Clave Primaria | Claves Foráneas | Descripción |
 | :--- | :--- | :--- | :--- |
-| `zonas_urbanas` | `id_zona` | - | Zonas de Managua (estrato alto, medio, popular, comercial) con tarifa base de bajada de bandera. |
+| `zonas_urbanas` | `id_zona` | - | Las 12 zonas comerciales/residenciales de Managua (estrato alto, medio, popular, comercial) con tarifa base de bajada de bandera. |
+| `cuadrantes` | `id_cuadrante` | `id_zona` | Grilla continua de 92 cuadrantes cuadrados (`~0.88 km × 0.88 km`) agrupados por zona urbana, con límites `lat_min..lat_max`, `lon_min..lon_max`, altitud media en msnm, riesgo de inundación y cauces principales. |
 | `usuarios` | `id_usuario` | - | Usuarios registrados, método de pago habitual y calificación. |
 | `conductores` | `id_conductor` | - | Flota vehicular registrada con año, modelo, tasa de aceptación y estado. |
 | `campanas_incentivos` | `id_campana` | - | Programas de bonos a conductores con presupuesto y horas de conexión estimadas (Mochila). |
-| `clima_cuadrantes` | `id_registro` | `id_zona` | Variables climáticas e índice de congestión vial por cuadrante y fecha. |
-| `viajes` | `id_viaje` | `id_usuario`, `id_conductor`, `id_zona_origen`, `id_zona_destino` | Registro de solicitudes de viaje con coordenadas GPS en vía pública (`latitud_origen`, `longitud_origen`, `latitud_destino`, `longitud_destino`), tiempo de espera (`tiempo_espera_minutos`), distancia, duración, desglose tarifario (`tarifa_bajada_bandera`, `cargo_distancia`, `cargo_tiempo`, `tarifa_base`, `multiplicador_dinamico`, `tarifa_final`) y estado de oferta/demanda (`solicitudes_activas_origen`, `conductores_disponibles_origen`). |
-| `telemetria_conductores` | `id_telemetria` | `id_conductor`, `id_viaje`, `id_zona` | Registros de trayectoria GPS en calles de Managua (`id_viaje` nulo cuando está `disponible`, poblado durante `en_camino_recogida` y `ocupado`), velocidad instantánea y estado de disponibilidad. |
+| `clima_cuadrantes` | `id_clima` | `id_cuadrante` | Serie horaria por cuadrante cuadrado con precipitación local (`precipitacion_mm`), escorrentía de cauces (`escorrentia_cauce_mm`), anegamiento vial (`vias_anegadas`) e índice de congestión. |
+| `viajes` | `id_viaje` | `id_usuario`, `id_conductor`, `id_zona_origen`, `id_zona_destino`, `id_cuadrante_origen`, `id_cuadrante_destino` | Registro de solicitudes de viaje con coordenadas GPS en vía pública (`latitud_origen`, `longitud_origen`, `latitud_destino`, `longitud_destino`), tiempo de espera (`tiempo_espera_minutos`), distancia, duración, desglose tarifario (`tarifa_bajada_bandera`, `cargo_distancia`, `cargo_tiempo`, `tarifa_base`, `multiplicador_dinamico`, `tarifa_final`) y estado de oferta/demanda (`solicitudes_activas_origen`, `conductores_disponibles_origen`). |
+| `telemetria_conductores` | `id_telemetria` | `id_conductor`, `id_viaje`, `id_zona`, `id_cuadrante` | Registros de trayectoria GPS en calles de Managua (`id_viaje` nulo cuando está `disponible`, poblado durante `en_camino_recogida` y `ocupado`), velocidad instantánea y estado de disponibilidad. |
 | `auditoria_viajes` | `id_auditoria` | - | Tabla de auditoría poblada automáticamente ante transiciones de estado de viaje. |
 
 ---

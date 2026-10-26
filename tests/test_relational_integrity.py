@@ -92,10 +92,20 @@ class TestRelationalIntegrity(unittest.TestCase):
         engine = MoviGoSimulationEngine(random_seed=42)
         viajes, telemetria = engine.run_simulation(weather_df)
 
+        valid_cuadrantes = {q.id_cuadrante: q for q in engine.cuadrantes}
         valid_zonas = {z.id_zona for z in engine.zonas}
         valid_usuarios = {u.id_usuario for u in engine.usuarios}
         valid_conductores = {c.id_conductor for c in engine.conductores}
         valid_viajes = {v.id_viaje for v in viajes}
+
+        self.assertEqual(len(engine.cuadrantes), 92)
+        for q in engine.cuadrantes:
+            self.assertIn(q.id_zona, valid_zonas)
+
+        for c in clima_records[:184]:
+            self.assertIn(c.id_cuadrante, valid_cuadrantes)
+            self.assertTrue(0 <= c.hora <= 23)
+            self.assertGreaterEqual(c.escorrentia_cauce_mm, 0.0)
 
         for v in viajes:
             self.assertIn(v.id_usuario, valid_usuarios)
@@ -103,10 +113,16 @@ class TestRelationalIntegrity(unittest.TestCase):
                 self.assertIn(v.id_conductor, valid_conductores)
             self.assertIn(v.id_zona_origen, valid_zonas)
             self.assertIn(v.id_zona_destino, valid_zonas)
-            self.assertTrue(12.00 <= v.latitud_origen <= 12.30)
-            self.assertTrue(-86.45 <= v.longitud_origen <= -86.10)
-            self.assertTrue(12.00 <= v.latitud_destino <= 12.30)
-            self.assertTrue(-86.45 <= v.longitud_destino <= -86.10)
+            self.assertIn(v.id_cuadrante_origen, valid_cuadrantes)
+            self.assertIn(v.id_cuadrante_destino, valid_cuadrantes)
+            qo = valid_cuadrantes[v.id_cuadrante_origen]
+            qd = valid_cuadrantes[v.id_cuadrante_destino]
+            self.assertEqual(qo.id_zona, v.id_zona_origen)
+            self.assertEqual(qd.id_zona, v.id_zona_destino)
+            self.assertTrue(qo.lat_min <= v.latitud_origen <= qo.lat_max)
+            self.assertTrue(qo.lon_min <= v.longitud_origen <= qo.lon_max)
+            self.assertTrue(qd.lat_min <= v.latitud_destino <= qd.lat_max)
+            self.assertTrue(qd.lon_min <= v.longitud_destino <= qd.lon_max)
             self.assertGreaterEqual(v.tiempo_espera_minutos, 0.0)
             self.assertGreaterEqual(v.distancia_km, 0.0)
             self.assertGreaterEqual(v.duracion_minutos, 0.0)
@@ -127,6 +143,11 @@ class TestRelationalIntegrity(unittest.TestCase):
         for t in telemetria:
             self.assertIn(t.id_conductor, valid_conductores)
             self.assertIn(t.id_zona, valid_zonas)
+            self.assertIn(t.id_cuadrante, valid_cuadrantes)
+            qt = valid_cuadrantes[t.id_cuadrante]
+            self.assertEqual(qt.id_zona, t.id_zona)
+            self.assertTrue(qt.lat_min <= t.latitud <= qt.lat_max)
+            self.assertTrue(qt.lon_min <= t.longitud <= qt.lon_max)
             self.assertGreaterEqual(t.velocidad_kmh, 0.0)
             self.assertIn(t.estado_disponibilidad, ["disponible", "ocupado", "en_camino_recogida"])
             if t.estado_disponibilidad == "disponible":

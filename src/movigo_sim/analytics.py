@@ -34,7 +34,18 @@ def compute_movigo_estadistica_ii(
     """Perform formal Estadistica II inferential battery on MoviGo urban mobility."""
     df_viajes["fecha"] = pd.to_datetime(df_viajes["fecha_hora_solicitud"]).dt.date
     daily_trips = df_viajes.groupby("fecha").size().reset_index(name="num_viajes")
-    merged_weather = pd.merge(df_clima, daily_trips, on="fecha", how="left").fillna(0)
+    if "id_cuadrante" in df_clima.columns:
+        n_quads = max(1, int(df_clima["id_cuadrante"].nunique()))
+        daily_clima = (
+            df_clima.groupby("fecha", as_index=False)
+            .agg(
+                precipitacion_mm=("precipitacion_mm", lambda s: float(s.sum()) / n_quads),
+                indice_congestion=("indice_congestion", "mean"),
+            )
+        )
+    else:
+        daily_clima = df_clima
+    merged_weather = pd.merge(daily_clima, daily_trips, on="fecha", how="left").fillna(0)
 
     # 1. Linear Regression: Daily Rain (mm) -> Daily Rides
     x = merged_weather["precipitacion_mm"].values.astype(float) if not merged_weather.empty else np.array([0.0, 10.0, 25.0])

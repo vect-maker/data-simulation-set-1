@@ -22,6 +22,7 @@ from movigo_sim.config import (
     CITY_NAME,
 )
 from movigo_sim.models import (
+    Cuadrante,
     ZonaUrbana,
     Usuario,
     Conductor,
@@ -30,6 +31,7 @@ from movigo_sim.models import (
     Viaje,
     TelemetriaConductor,
 )
+from movigo_sim.generator import load_movigo_cuadrantes
 from movigo_sim.analytics import (
     compute_movigo_estadistica_ii,
     compute_movigo_metodos_numericos,
@@ -44,14 +46,18 @@ def export_movigo_to_csv(
     usuarios: list[Usuario],
     conductores: list[Conductor],
     campanas: list[CampanaIncentivo],
-    clima: list[ClimaCuadrantes],
+    clima: Any,
     viajes: list[Viaje],
     telemetria: list[TelemetriaConductor],
     output_dir: Path = CSV_ARTIFACTS_DIR,
+    cuadrantes: list[Cuadrante] | None = None,
 ) -> dict[str, Path]:
     """Export all relational tables to CSV format."""
+    if cuadrantes is None:
+        cuadrantes = load_movigo_cuadrantes()
     tables = {
         "zonas_urbanas": zonas,
+        "cuadrantes": cuadrantes,
         "usuarios": usuarios,
         "conductores": conductores,
         "campanas_incentivos": campanas,
@@ -78,6 +84,7 @@ DROP TABLE IF EXISTS clima_cuadrantes CASCADE;
 DROP TABLE IF EXISTS campanas_incentivos CASCADE;
 DROP TABLE IF EXISTS conductores CASCADE;
 DROP TABLE IF EXISTS usuarios CASCADE;
+DROP TABLE IF EXISTS cuadrantes CASCADE;
 DROP TABLE IF EXISTS zonas_urbanas CASCADE;
 
 CREATE TABLE zonas_urbanas (
@@ -88,6 +95,22 @@ CREATE TABLE zonas_urbanas (
     longitud DECIMAL(9,6) NOT NULL,
     radio_cobertura_km DECIMAL(4,2) NOT NULL,
     tarifa_base_bajada_bandera DECIMAL(8,2) NOT NULL
+);
+
+CREATE TABLE cuadrantes (
+    id_cuadrante INT PRIMARY KEY,
+    id_zona INT NOT NULL REFERENCES zonas_urbanas(id_zona),
+    codigo_cuadrante VARCHAR(30) NOT NULL UNIQUE,
+    nombre_cuadrante VARCHAR(120) NOT NULL,
+    fila_grid INT NOT NULL,
+    columna_grid INT NOT NULL,
+    lat_min DECIMAL(9,6) NOT NULL,
+    lat_max DECIMAL(9,6) NOT NULL,
+    lon_min DECIMAL(9,6) NOT NULL,
+    lon_max DECIMAL(9,6) NOT NULL,
+    altitud_media_msnm INT NOT NULL,
+    riesgo_inundacion VARCHAR(20) NOT NULL CHECK (riesgo_inundacion IN ('bajo', 'medio', 'alto', 'critico')),
+    cauces_principales VARCHAR(200) NOT NULL
 );
 
 CREATE TABLE usuarios (
@@ -123,10 +146,16 @@ CREATE TABLE campanas_incentivos (
 );
 
 CREATE TABLE clima_cuadrantes (
-    fecha DATE PRIMARY KEY,
+    id_clima INT PRIMARY KEY,
+    id_cuadrante INT NOT NULL REFERENCES cuadrantes(id_cuadrante),
+    fecha_hora TIMESTAMP NOT NULL,
+    fecha DATE NOT NULL,
+    hora INT NOT NULL CHECK (hora BETWEEN 0 AND 23),
     precipitacion_mm DECIMAL(6,2) NOT NULL,
+    escorrentia_cauce_mm DECIMAL(6,2) NOT NULL,
     temperatura_c DECIMAL(4,1) NOT NULL,
     indice_congestion DECIMAL(4,2) NOT NULL,
+    vias_anegadas BOOLEAN NOT NULL DEFAULT FALSE,
     condicion_cielo VARCHAR(20) NOT NULL CHECK (condicion_cielo IN ('despejado', 'nublado', 'lluvia_ligera', 'tormenta'))
 );
 
@@ -136,6 +165,8 @@ CREATE TABLE viajes (
     id_conductor INT REFERENCES conductores(id_conductor),
     id_zona_origen INT NOT NULL REFERENCES zonas_urbanas(id_zona),
     id_zona_destino INT NOT NULL REFERENCES zonas_urbanas(id_zona),
+    id_cuadrante_origen INT NOT NULL REFERENCES cuadrantes(id_cuadrante),
+    id_cuadrante_destino INT NOT NULL REFERENCES cuadrantes(id_cuadrante),
     latitud_origen DECIMAL(9,6) NOT NULL,
     longitud_origen DECIMAL(9,6) NOT NULL,
     latitud_destino DECIMAL(9,6) NOT NULL,
@@ -167,6 +198,7 @@ CREATE TABLE telemetria_conductores (
     id_conductor INT NOT NULL REFERENCES conductores(id_conductor),
     id_viaje INT REFERENCES viajes(id_viaje),
     id_zona INT NOT NULL REFERENCES zonas_urbanas(id_zona),
+    id_cuadrante INT NOT NULL REFERENCES cuadrantes(id_cuadrante),
     fecha_hora TIMESTAMP NOT NULL,
     latitud DECIMAL(9,6) NOT NULL,
     longitud DECIMAL(9,6) NOT NULL,
@@ -221,11 +253,18 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Indices analiticos
+CREATE INDEX idx_cuadrantes_zona ON cuadrantes(id_zona);
+CREATE INDEX idx_clima_cuadrante_fh ON clima_cuadrantes(id_cuadrante, fecha_hora);
+CREATE INDEX idx_clima_fecha_hora ON clima_cuadrantes(fecha, hora);
 CREATE INDEX idx_viajes_solicitud ON viajes(fecha_hora_solicitud);
 CREATE INDEX idx_viajes_origen ON viajes(id_zona_origen);
 CREATE INDEX idx_viajes_destino ON viajes(id_zona_destino);
+CREATE INDEX idx_viajes_cuad_origen ON viajes(id_cuadrante_origen);
+CREATE INDEX idx_viajes_cuad_destino ON viajes(id_cuadrante_destino);
 CREATE INDEX idx_viajes_conductor ON viajes(id_conductor);
 CREATE INDEX idx_telemetria_conductor ON telemetria_conductores(id_conductor);
+CREATE INDEX idx_telemetria_viaje ON telemetria_conductores(id_viaje);
+CREATE INDEX idx_telemetria_cuadrante ON telemetria_conductores(id_cuadrante);
 """
 
 
@@ -277,6 +316,7 @@ def export_movigo_to_sql_dump(
     """Generate consolidated SQL file with DDL and COPY commands."""
     copy_order = [
         "zonas_urbanas",
+        "cuadrantes",
         "usuarios",
         "conductores",
         "campanas_incentivos",
@@ -297,13 +337,18 @@ def export_movigo_to_sql_dump(
 def compute_movigo_simulation_summary(
     zonas: list[ZonaUrbana],
     viajes: list[Viaje],
-    clima: list[ClimaCuadrantes],
+    clima: Any,
     campanas: list[CampanaIncentivo],
 ) -> dict[str, Any]:
     """Compute mathematical, inferential, and optimization properties of MoviGo dataset."""
     df_viajes = pd.DataFrame([v.model_dump() for v in viajes])
     df_zonas = pd.DataFrame([z.model_dump() for z in zonas])
-    df_clima = pd.DataFrame([c.model_dump() for c in clima])
+    if isinstance(clima, pd.DataFrame):
+        df_clima = clima
+    elif hasattr(clima, "to_dataframe"):
+        df_clima = clima.to_dataframe()
+    else:
+        df_clima = pd.DataFrame([c.model_dump() for c in clima])
     df_campanas = pd.DataFrame([cmp.model_dump() for cmp in campanas])
 
     total_trips = len(df_viajes)
@@ -317,14 +362,24 @@ def compute_movigo_simulation_summary(
     avg_dur = round(float(df_viajes["duracion_minutos"].mean()), 2) if not df_viajes.empty else 0.0
     avg_surge = round(float(df_viajes["multiplicador_dinamico"].mean()), 2) if not df_viajes.empty else 1.0
 
-    # Correlation between daily rain and daily trip demand
     df_viajes["fecha"] = pd.to_datetime(df_viajes["fecha_hora_solicitud"]).dt.date
     daily_trips = df_viajes.groupby("fecha").size().reset_index(name="num_viajes")
-    merged_weather = pd.merge(df_clima, daily_trips, on="fecha", how="left").fillna(0)
+    if "id_cuadrante" in df_clima.columns:
+        n_quads = max(1, int(df_clima["id_cuadrante"].nunique()))
+        daily_clima = (
+            df_clima.groupby("fecha", as_index=False)
+            .agg(
+                precipitacion_mm=("precipitacion_mm", lambda s: float(s.sum()) / n_quads),
+                indice_congestion=("indice_congestion", "mean"),
+            )
+        )
+    else:
+        daily_clima = df_clima
+
+    merged_weather = pd.merge(daily_clima, daily_trips, on="fecha", how="left").fillna(0)
     corr_rain = float(merged_weather["precipitacion_mm"].corr(merged_weather["num_viajes"])) if len(merged_weather) >= 3 else 0.92
     corr_congestion = float(merged_weather["indice_congestion"].corr(merged_weather["num_viajes"])) if len(merged_weather) >= 3 else 0.86
 
-    # Chi-Square test: Método de Pago vs Estrato Socioeconómico
     merged_trips = df_viajes.merge(
         df_zonas[["id_zona", "estrato_socioeconomico"]],
         left_on="id_zona_origen",
@@ -334,7 +389,6 @@ def compute_movigo_simulation_summary(
 
     chi2_res = compute_contingency_chi2(merged_trips, "estrato_socioeconomico", "metodo_pago")
 
-    # Multi-Pillar Analytics
     est_results = compute_movigo_estadistica_ii(df_viajes, df_clima, df_zonas)
     num_results = compute_movigo_metodos_numericos()
     opt_results = compute_movigo_optimizacion()

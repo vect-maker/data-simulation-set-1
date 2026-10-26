@@ -14,6 +14,22 @@ Table zonas_urbanas {
   tarifa_base_bajada_bandera decimal(8,2) [not null]
 }
 
+Table cuadrantes {
+  id_cuadrante int [pk]
+  id_zona int [not null, ref: > zonas_urbanas.id_zona]
+  codigo_cuadrante varchar(30) [not null, unique]
+  nombre_cuadrante varchar(120) [not null]
+  fila_grid int [not null]
+  columna_grid int [not null]
+  lat_min decimal(9,6) [not null]
+  lat_max decimal(9,6) [not null]
+  lon_min decimal(9,6) [not null]
+  lon_max decimal(9,6) [not null]
+  altitud_media_msnm int [not null]
+  riesgo_inundacion varchar(20) [not null, note: 'bajo, medio, alto, critico']
+  cauces_principales varchar(200) [not null]
+}
+
 Table usuarios {
   id_usuario int [pk]
   nombre varchar(100) [not null]
@@ -41,6 +57,8 @@ Table viajes {
   id_conductor int [ref: > conductores.id_conductor]
   id_zona_origen int [not null, ref: > zonas_urbanas.id_zona]
   id_zona_destino int [not null, ref: > zonas_urbanas.id_zona]
+  id_cuadrante_origen int [not null, ref: > cuadrantes.id_cuadrante]
+  id_cuadrante_destino int [not null, ref: > cuadrantes.id_cuadrante]
   latitud_origen decimal(9,6) [not null]
   longitud_origen decimal(9,6) [not null]
   latitud_destino decimal(9,6) [not null]
@@ -72,6 +90,7 @@ Table telemetria_conductores {
   id_conductor int [not null, ref: > conductores.id_conductor]
   id_viaje int [ref: > viajes.id_viaje, note: 'NULL cuando estado_disponibilidad = disponible']
   id_zona int [not null, ref: > zonas_urbanas.id_zona]
+  id_cuadrante int [not null, ref: > cuadrantes.id_cuadrante]
   fecha_hora timestamp [not null]
   latitud decimal(9,6) [not null]
   longitud decimal(9,6) [not null]
@@ -90,11 +109,17 @@ Table campanas_incentivos {
   estado varchar(20) [not null, note: 'activa, finalizada']
 }
 
-// Ingesta externa vía API (DataOps)
+// Ingesta horaria por cuadrante (Clima, Escorrentía de Cauces y Tráfico)
 Table clima_cuadrantes {
-  fecha date [pk]
-  precipitacion_mm decimal(5,2) [not null]
-  temperatura_c decimal(4,2) [not null]
-  indice_congestion decimal(4,2) [not null, note: '1.00 fluido a 3.50 colapso por aguacero']
+  id_clima int [pk]
+  id_cuadrante int [not null, ref: > cuadrantes.id_cuadrante]
+  fecha_hora timestamp [not null]
+  fecha date [not null]
+  hora int [not null, note: '0 a 23']
+  precipitacion_mm decimal(6,2) [not null]
+  escorrentia_cauce_mm decimal(6,2) [not null, note: 'Lluvia local + escorrentía acumulada desde la cuenca sur']
+  temperatura_c decimal(4,1) [not null]
+  indice_congestion decimal(4,2) [not null, note: '1.00 fluido a 3.95 colapso por aguacero y cauce desbordado']
+  vias_anegadas boolean [not null, default: false]
   condicion_cielo varchar(30) [not null, note: 'despejado, lluvia_ligera, tormenta, nublado']
 }

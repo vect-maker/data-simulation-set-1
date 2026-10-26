@@ -29,12 +29,15 @@ class WeatherClient:
         cache_path: Path,
         fallback_fn: Callable[[], dict[str, Any]],
         force_refresh: bool = False,
+        hourly_vars: str | None = None,
     ) -> dict[str, Any]:
-        """Fetch daily archive weather or retrieve from local cache, with synthetic fallback."""
+        """Fetch daily/hourly archive weather or retrieve from local cache, with synthetic fallback."""
         if cache_path.exists() and not force_refresh:
             logger.info(f"Loading weather from local cache: {cache_path}")
             with open(cache_path, encoding="utf-8") as f:
-                return json.load(f)
+                cached = json.load(f)
+            if hourly_vars is None or "hourly" in cached:
+                return cached
 
         params: dict[str, Any] = {
             "latitude": latitude,
@@ -44,6 +47,8 @@ class WeatherClient:
             "daily": daily_vars,
             "timezone": timezone,
         }
+        if hourly_vars:
+            params["hourly"] = hourly_vars
 
         cache_path.parent.mkdir(parents=True, exist_ok=True)
         logger.info(f"Querying Open-Meteo API ({start_date} to {end_date}) for ({latitude}, {longitude})...")

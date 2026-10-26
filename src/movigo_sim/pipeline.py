@@ -13,6 +13,7 @@ from movigo_sim.config import (
     POSTGRES_SCHEMA,
 )
 from movigo_sim.models import (
+    Cuadrante,
     ZonaUrbana,
     Usuario,
     Conductor,
@@ -21,12 +22,14 @@ from movigo_sim.models import (
     CampanaIncentivo,
     ClimaCuadrantes,
 )
+from movigo_sim.generator import load_movigo_cuadrantes
 
 logger = logging.getLogger(__name__)
 
 
 @dlt.source(name="movigo_ride_hailing")
 def movigo_source(
+    cuadrantes_data: list[dict[str, Any]],
     zonas_data: list[dict[str, Any]],
     usuarios_data: list[dict[str, Any]],
     conductores_data: list[dict[str, Any]],
@@ -35,7 +38,11 @@ def movigo_source(
     campanas_data: list[dict[str, Any]],
     clima_data: list[dict[str, Any]],
 ):
-    """dlt source bundling the 7 MoviGo relational tables."""
+    """dlt source bundling the 8 MoviGo relational tables."""
+
+    @dlt.resource(name="cuadrantes", write_disposition="replace", primary_key="id_cuadrante")
+    def cuadrantes():
+        yield cuadrantes_data
 
     @dlt.resource(name="zonas_urbanas", write_disposition="replace", primary_key="id_zona")
     def zonas_urbanas():
@@ -53,7 +60,7 @@ def movigo_source(
     def campanas_incentivos():
         yield campanas_data
 
-    @dlt.resource(name="clima_cuadrantes", write_disposition="replace", primary_key="fecha")
+    @dlt.resource(name="clima_cuadrantes", write_disposition="replace", primary_key="id_clima")
     def clima_cuadrantes():
         yield clima_data
 
@@ -67,6 +74,7 @@ def movigo_source(
 
     return (
         zonas_urbanas,
+        cuadrantes,
         usuarios,
         conductores,
         campanas_incentivos,
@@ -86,8 +94,11 @@ def load_movigo_to_postgres(
     clima: list[ClimaCuadrantes],
     schema_name: str = POSTGRES_SCHEMA,
     connection_url: str | None = None,
+    cuadrantes: list[Cuadrante] | None = None,
 ) -> Any:
     """Execute dlt pipeline loading all MoviGo tables into PostgreSQL."""
+    if cuadrantes is None:
+        cuadrantes = load_movigo_cuadrantes()
     if connection_url is None:
         connection_url = (
             f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@"
@@ -103,13 +114,18 @@ def load_movigo_to_postgres(
     )
 
     source = movigo_source(
+        cuadrantes_data=[q.model_dump() for q in cuadrantes],
         zonas_data=[z.model_dump() for z in zonas],
         usuarios_data=[u.model_dump(mode="json") for u in usuarios],
         conductores_data=[c.model_dump() for c in conductores],
         viajes_data=[v.model_dump(mode="json") for v in viajes],
         telemetria_data=[t.model_dump(mode="json") for t in telemetria],
         campanas_data=[cmp.model_dump(mode="json") for cmp in campanas],
-        clima_data=[cl.model_dump(mode="json") for cl in clima],
+        clima_data=(
+            clima.to_dataframe().to_dict("records")
+            if hasattr(clima, "to_dataframe")
+            else [cl.model_dump(mode="json") for cl in clima]
+        ),
     )
 
     info = pipeline.run(source)

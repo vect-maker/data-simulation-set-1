@@ -94,7 +94,11 @@ def run_generation(days=None, seed=42, live_llm=False, load_db=False, schema=POS
     weather_df, clima_records = get_movigo_weather_series()
     if days and days < len(weather_df):
         weather_df = weather_df.head(days)
-        clima_records = clima_records[:days]
+        valid_dates = set(weather_df["fecha"])
+        if hasattr(clima_records, "filter_dates"):
+            clima_records = clima_records.filter_dates(valid_dates)
+        else:
+            clima_records = [c for c in clima_records if c.fecha in valid_dates]
 
     engine = MoviGoSimulationEngine(random_seed=seed)
     viajes, telemetria = engine.run_simulation(weather_df)
@@ -116,6 +120,7 @@ def run_generation(days=None, seed=42, live_llm=False, load_db=False, schema=POS
         viajes=viajes,
         telemetria=telemetria,
         output_dir=csv_dir,
+        cuadrantes=engine.cuadrantes,
     )
     sql_file = export_movigo_to_sql_dump(csv_files)
     summary = compute_movigo_simulation_summary(

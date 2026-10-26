@@ -132,6 +132,12 @@ ENDPOINT_SPECS = [
     # Caso 3: MoviGo
     {
         "case": "movigo",
+        "endpoint": "/movigo/cuadrantes",
+        "csv_file": "movigo/csv/cuadrantes.csv",
+        "pk": "id_cuadrante",
+    },
+    {
+        "case": "movigo",
         "endpoint": "/movigo/zonas",
         "csv_file": "movigo/csv/zonas_urbanas.csv",
         "pk": "id_zona",
@@ -158,7 +164,7 @@ ENDPOINT_SPECS = [
         "case": "movigo",
         "endpoint": "/movigo/clima",
         "csv_file": "movigo/csv/clima_cuadrantes.csv",
-        "pk": "fecha",
+        "pk": "id_clima",
     },
     {
         "case": "movigo",

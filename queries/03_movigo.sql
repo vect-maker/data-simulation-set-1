@@ -10,7 +10,9 @@ SET search_path TO raw_staging_movigo, public;
 -- ------------------------------------------------------------------------------
 -- 1. Exploración Inicial y Verificación de Conteos de Tablas
 -- ------------------------------------------------------------------------------
-SELECT 'zonas_urbanas' AS tabla, COUNT(*) AS total_registros FROM zonas_urbanas
+SELECT 'cuadrantes' AS tabla, COUNT(*) AS total_registros FROM cuadrantes
+UNION ALL
+SELECT 'zonas_urbanas', COUNT(*) FROM zonas_urbanas
 UNION ALL
 SELECT 'usuarios', COUNT(*) FROM usuarios
 UNION ALL
@@ -105,16 +107,27 @@ LIMIT 15;
 REFRESH MATERIALIZED VIEW mv_kpis_movilidad_horaria;
 
 -- ------------------------------------------------------------------------------
--- 6. Dataset de Handoff para Estadística II: Lluvia vs Demanda y Multiplicador
+-- 6. Dataset de Handoff Horario por Cuadrante: Lluvia, Escorrentía de Cauces y Demanda
 -- ------------------------------------------------------------------------------
 SELECT 
-    DATE(v.fecha_hora_solicitud) AS fecha,
+    zo.nombre_zona AS zona_origen,
+    q.codigo_cuadrante,
+    q.riesgo_inundacion,
+    c.fecha,
+    c.hora,
     c.precipitacion_mm,
-    c.indice_congestion_pct,
+    c.escorrentia_cauce_mm,
+    c.vias_anegadas,
+    c.indice_congestion,
     COUNT(v.id_viaje) AS viajes_solicitados,
     ROUND(AVG(v.multiplicador_dinamico)::numeric, 3) AS multiplicador_promedio,
-    ROUND(SUM(v.tarifa_total_nio)::numeric, 2) AS facturacion_total_nio
+    ROUND(SUM(v.tarifa_final)::numeric, 2) AS facturacion_total_nio
 FROM viajes v
-LEFT JOIN clima_cuadrantes c ON DATE(v.fecha_hora_solicitud) = c.fecha AND v.id_zona_origen = c.id_zona
-GROUP BY DATE(v.fecha_hora_solicitud), c.precipitacion_mm, c.indice_congestion_pct
-ORDER BY fecha;
+JOIN zonas_urbanas zo ON v.id_zona_origen = zo.id_zona
+JOIN cuadrantes q ON v.id_cuadrante_origen = q.id_cuadrante
+LEFT JOIN clima_cuadrantes c 
+    ON q.id_cuadrante = c.id_cuadrante 
+   AND DATE(v.fecha_hora_solicitud) = c.fecha 
+   AND EXTRACT(HOUR FROM v.fecha_hora_solicitud)::int = c.hora
+GROUP BY zo.nombre_zona, q.codigo_cuadrante, q.riesgo_inundacion, c.fecha, c.hora, c.precipitacion_mm, c.escorrentia_cauce_mm, c.vias_anegadas, c.indice_congestion
+ORDER BY c.fecha, c.hora, q.codigo_cuadrante;

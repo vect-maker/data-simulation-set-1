@@ -50,6 +50,7 @@ class TestAPIService(unittest.TestCase):
         self.assertIn("/antojitos/zonas", paths)
         self.assertIn("/volcan/fincas", paths)
         self.assertIn("/volcan/lotes", paths)
+        self.assertIn("/movigo/cuadrantes", paths)
         self.assertIn("/movigo/zonas", paths)
         self.assertIn("/movigo/viajes", paths)
 
@@ -89,7 +90,7 @@ class TestAPIService(unittest.TestCase):
 
         # 4. Pydantic schema field descriptions in Spanish
         schemas = spec.get("components", {}).get("schemas", {})
-        for model_name in ["ZonaOut", "PlatilloOut", "FincaOut", "LoteAcopioOut", "ViajeOut"]:
+        for model_name in ["ZonaOut", "PlatilloOut", "FincaOut", "LoteAcopioOut", "CuadranteOut", "ClimaCuadranteOut", "ViajeOut"]:
             self.assertIn(model_name, schemas)
             properties = schemas[model_name].get("properties", {})
             for prop_name, prop_meta in properties.items():
@@ -245,6 +246,8 @@ class TestAPIService(unittest.TestCase):
             "id_conductor": 1,
             "id_zona_origen": 1,
             "id_zona_destino": 2,
+            "id_cuadrante_origen": 15,
+            "id_cuadrante_destino": 8,
             "latitud_origen": 12.1152,
             "longitud_origen": -86.2548,
             "latitud_destino": 12.1054,

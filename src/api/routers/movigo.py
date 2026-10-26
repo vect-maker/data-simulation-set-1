@@ -9,6 +9,7 @@ from src.api.schemas import (
     CampanaIncentivoOut,
     ClimaCuadranteOut,
     ConductorOut,
+    CuadranteOut,
     PaginatedResponse,
     TelemetriaConductorOut,
     UsuarioOut,
@@ -22,16 +23,80 @@ SCHEMA = "raw_staging_movigo"
 
 
 @router.get(
+    "/cuadrantes",
+    response_model=PaginatedResponse[CuadranteOut],
+    summary="Listar grilla de cuadrantes cuadrados de Managua",
+    description=(
+        "### Grilla Fina de Cuadrantes Cuadrados (~0.88 km × 0.88 km), Altitud y Vulnerabilidad a Cauces\n\n"
+        "Consulta los 92 cuadrantes cuadrados contiguos que cubren el 100% de la red vial de Managua y se agrupan "
+        "dentro de las 12 zonas urbanas (`id_zona`), con sus límites (`lat_min`, `lat_max`, `lon_min`, `lon_max`), "
+        "altitud media (msnm), nivel de riesgo de inundación y cauces pluviales principales."
+    ),
+    response_description="Colección paginada de cuadrantes cuadrados geográficos",
+    responses={
+        200: {"description": "Consulta exitosa de cuadrantes."},
+        422: {"description": "Error en los parámetros de consulta o paginación."},
+    },
+)
+def get_cuadrantes_movigo(
+    id_zona: Annotated[
+        int | None,
+        Query(ge=1, le=12, description="Filtrar por zona urbana padre (1 a 12).", examples=[11]),
+    ] = None,
+    riesgo_inundacion: Annotated[
+        str | None,
+        Query(
+            description="Filtrar por nivel de vulnerabilidad a inundaciones.",
+            examples=["bajo", "medio", "alto", "critico"],
+        ),
+    ] = None,
+    sort: Annotated[
+        str | None,
+        Query(
+            description="Campo de ordenamiento (ej. 'id_cuadrante', 'id_zona', '-altitud_media_msnm').",
+            examples=["id_cuadrante", "id_zona", "-altitud_media_msnm"],
+        ),
+    ] = None,
+    offset: Annotated[
+        int,
+        Query(ge=0, description="Desplazamiento para paginación.", examples=[0]),
+    ] = 0,
+    limit: Annotated[
+        int,
+        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+    ] = 50,
+):
+    """Consulta la grilla de 92 cuadrantes cuadrados geográficos e hidrológicos de Managua."""
+    filters: list[tuple[str, str, Any]] = []
+    if id_zona is not None:
+        filters.append(("id_zona", "=", id_zona))
+    if riesgo_inundacion:
+        filters.append(("riesgo_inundacion", "=", riesgo_inundacion))
+
+    allowed = {"id_cuadrante", "id_zona", "codigo_cuadrante", "nombre_cuadrante", "fila_grid", "columna_grid", "altitud_media_msnm", "riesgo_inundacion"}
+    return execute_paginated_query(
+        schema=SCHEMA,
+        table="cuadrantes",
+        filters=filters,
+        allowed_sort_columns=allowed,
+        default_sort="id_cuadrante",
+        sort=sort,
+        offset=offset,
+        limit=limit,
+    )
+
+
+@router.get(
     "/zonas",
     response_model=PaginatedResponse[ZonaUrbanaOut],
-    summary="Listar cuadrantes y zonas urbanas de Managua",
+    summary="Listar zonas urbanas de Managua",
     description=(
         "### Zonificación Urbana y Tarifas de Bajada de Bandera\n\n"
-        "Consulta la delimitación de cuadrantes en el área metropolitana de Managua (ej. Metrocentro, "
-        "Plaza España, Villa Fontana, Carretera a Masaya). Contiene estrato socioeconómico, radio de cobertura "
-        "y tarifa base de arranque (bajada de bandera) en Córdobas (NIO)."
+        "Consulta las 12 zonas urbanas comerciales del área metropolitana de Managua (ej. Metrocentro, "
+        "Villa Fontana, Mercado Oriental, Roberto Huembes) que agrupan los 92 cuadrantes cuadrados. "
+        "Contiene estrato socioeconómico, radio de cobertura y tarifa base de arranque en Córdobas (NIO)."
     ),
-    response_description="Colección paginada de cuadrantes urbanos y tarifas base",
+    response_description="Colección paginada de zonas urbanas y tarifas base",
     responses={
         200: {"description": "Consulta exitosa de zonas urbanas."},
         422: {"description": "Error en los parámetros de consulta o paginación."},
@@ -41,7 +106,7 @@ def get_zonas_movigo(
     estrato: Annotated[
         str | None,
         Query(
-            description="Filtrar por estrato socioeconómico del cuadrante.",
+            description="Filtrar por estrato socioeconómico de la zona urbana.",
             examples=["alto", "medio", "popular", "comercial"],
         ),
     ] = None,
@@ -285,6 +350,10 @@ def get_campanas(
     },
 )
 def get_clima_movigo(
+    id_cuadrante: Annotated[
+        int | None,
+        Query(ge=1, le=92, description="Filtrar por cuadrante cuadrado geográfico (1 a 92).", examples=[53]),
+    ] = None,
     fecha_desde: Annotated[
         date | None,
         Query(description="Fecha mínima en formato ISO (YYYY-MM-DD).", examples=["2024-01-01"]),
@@ -292,6 +361,14 @@ def get_clima_movigo(
     fecha_hasta: Annotated[
         date | None,
         Query(description="Fecha máxima en formato ISO (YYYY-MM-DD).", examples=["2024-12-31"]),
+    ] = None,
+    hora: Annotated[
+        int | None,
+        Query(ge=0, le=23, description="Filtrar por hora del día (0 a 23).", examples=[17]),
+    ] = None,
+    vias_anegadas: Annotated[
+        bool | None,
+        Query(description="Filtrar registros donde las calles y cauces se encuentran anegados.", examples=[True]),
     ] = None,
     condicion_cielo: Annotated[
         str | None,
@@ -303,8 +380,8 @@ def get_clima_movigo(
     sort: Annotated[
         str | None,
         Query(
-            description="Campo de ordenamiento (ej. 'fecha', '-indice_congestion', '-precipitacion_mm').",
-            examples=["fecha", "-fecha", "-indice_congestion"],
+            description="Campo de ordenamiento (ej. 'id_clima', 'fecha_hora', '-indice_congestion', '-escorrentia_cauce_mm').",
+            examples=["id_clima", "fecha_hora", "-indice_congestion", "-escorrentia_cauce_mm"],
         ),
     ] = None,
     offset: Annotated[
@@ -316,22 +393,39 @@ def get_clima_movigo(
         Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
     ] = 50,
 ):
-    """Series de microclima urbano e índice de congestión vial en Managua."""
+    """Series horarias de microclima urbano, escorrentía de cauces e índice de congestión vial por cuadrante en Managua."""
     filters: list[tuple[str, str, Any]] = []
+    if id_cuadrante is not None:
+        filters.append(("id_cuadrante", "=", id_cuadrante))
     if fecha_desde:
         filters.append(("fecha", ">=", fecha_desde))
     if fecha_hasta:
         filters.append(("fecha", "<=", fecha_hasta))
+    if hora is not None:
+        filters.append(("hora", "=", hora))
+    if vias_anegadas is not None:
+        filters.append(("vias_anegadas", "=", vias_anegadas))
     if condicion_cielo:
         filters.append(("condicion_cielo", "=", condicion_cielo))
 
-    allowed = {"fecha", "precipitacion_mm", "indice_congestion", "condicion_cielo"}
+    allowed = {
+        "id_clima",
+        "id_cuadrante",
+        "fecha_hora",
+        "fecha",
+        "hora",
+        "precipitacion_mm",
+        "escorrentia_cauce_mm",
+        "indice_congestion",
+        "vias_anegadas",
+        "condicion_cielo",
+    }
     return execute_paginated_query(
         schema=SCHEMA,
         table="clima_cuadrantes",
         filters=filters,
         allowed_sort_columns=allowed,
-        default_sort="fecha",
+        default_sort="id_clima",
         sort=sort,
         offset=offset,
         limit=limit,
@@ -357,11 +451,19 @@ def get_clima_movigo(
 def get_viajes(
     id_zona_origen: Annotated[
         int | None,
-        Query(description="Filtrar por cuadrante de origen en Managua.", examples=[1]),
+        Query(description="Filtrar por zona urbana de origen en Managua.", examples=[1]),
     ] = None,
     id_zona_destino: Annotated[
         int | None,
-        Query(description="Filtrar por cuadrante de destino en Managua.", examples=[4]),
+        Query(description="Filtrar por zona urbana de destino en Managua.", examples=[4]),
+    ] = None,
+    id_cuadrante_origen: Annotated[
+        int | None,
+        Query(description="Filtrar por cuadrante cuadrado de origen (1 a 92).", examples=[15]),
+    ] = None,
+    id_cuadrante_destino: Annotated[
+        int | None,
+        Query(description="Filtrar por cuadrante cuadrado de destino (1 a 92).", examples=[41]),
     ] = None,
     id_conductor: Annotated[
         int | None,
@@ -407,6 +509,10 @@ def get_viajes(
         filters.append(("id_zona_origen", "=", id_zona_origen))
     if id_zona_destino:
         filters.append(("id_zona_destino", "=", id_zona_destino))
+    if id_cuadrante_origen:
+        filters.append(("id_cuadrante_origen", "=", id_cuadrante_origen))
+    if id_cuadrante_destino:
+        filters.append(("id_cuadrante_destino", "=", id_cuadrante_destino))
     if id_conductor:
         filters.append(("id_conductor", "=", id_conductor))
     if id_usuario:
@@ -494,7 +600,11 @@ def get_telemetria(
     ] = None,
     id_zona: Annotated[
         int | None,
-        Query(description="Filtrar por cuadrante urbano donde se emitió la señal.", examples=[1]),
+        Query(description="Filtrar por zona urbana donde se emitió la señal.", examples=[1]),
+    ] = None,
+    id_cuadrante: Annotated[
+        int | None,
+        Query(description="Filtrar por cuadrante cuadrado donde se emitió la señal (1 a 92).", examples=[15]),
     ] = None,
     estado_disponibilidad: Annotated[
         str | None,
@@ -527,6 +637,8 @@ def get_telemetria(
         filters.append(("id_viaje", "=", id_viaje))
     if id_zona:
         filters.append(("id_zona", "=", id_zona))
+    if id_cuadrante:
+        filters.append(("id_cuadrante", "=", id_cuadrante))
     if estado_disponibilidad:
         filters.append(("estado_disponibilidad", "=", estado_disponibilidad))
 

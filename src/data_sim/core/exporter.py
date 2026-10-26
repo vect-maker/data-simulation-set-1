@@ -26,7 +26,11 @@ def export_models_to_csv(
 
     for table_name, records in tables.items():
         csv_path = output_dir / f"{table_name}.csv"
-        if not records:
+        if isinstance(records, pd.DataFrame):
+            df = records.copy()
+        elif hasattr(records, "to_dataframe"):
+            df = records.to_dataframe()
+        elif not records:
             df = pd.DataFrame()
         elif isinstance(records[0], BaseModel):
             df = pd.DataFrame([r.model_dump() if isinstance(r, BaseModel) else r for r in records])
