@@ -100,24 +100,24 @@ def run_generation(
     refresh_weather: bool = False,
 ):
     """Programmatic entry point for MoviGo simulation generation."""
-    weather_df, clima_records = get_movigo_weather_series(force_refresh=refresh_weather, seed=seed)
+    weather_df, weather_records = get_movigo_weather_series(force_refresh=refresh_weather, seed=seed)
     if days and days < len(weather_df):
         weather_df = weather_df.head(days)
-        valid_dates = set(weather_df["fecha"])
-        if hasattr(clima_records, "filter_dates"):
-            clima_records = clima_records.filter_dates(valid_dates)
+        valid_dates = set(weather_df["date"])
+        if hasattr(weather_records, "filter_dates"):
+            weather_records = weather_records.filter_dates(valid_dates)
         else:
-            clima_records = [c for c in clima_records if c.fecha in valid_dates]
+            weather_records = [c for c in weather_records if c.date in valid_dates]
 
     engine = MoviGoSimulationEngine(random_seed=seed)
-    viajes, telemetria = engine.run_simulation(weather_df)
+    trips, telemetry = engine.run_simulation(weather_df)
 
     enricher = MoviGoSemanticEnricher(
         templates=engine.templates,
         use_llm=live_llm,
         random_seed=seed,
     )
-    viajes = enricher.enrich_trips(viajes)
+    trips = enricher.enrich_trips(trips)
 
     csv_dir = Path(output_dir).resolve() if output_dir else CSV_ARTIFACTS_DIR.resolve()
     is_custom_dir = csv_dir != CSV_ARTIFACTS_DIR.resolve()
@@ -125,37 +125,37 @@ def run_generation(
     summary_path = (csv_dir.parent / "simulation_summary.json") if is_custom_dir else (ARTIFACTS_DIR / "simulation_summary.json")
 
     csv_files = export_movigo_to_csv(
-        zonas=engine.zonas,
-        usuarios=engine.usuarios,
-        conductores=engine.conductores,
-        campanas=engine.campanas,
-        clima=clima_records,
-        viajes=viajes,
-        telemetria=telemetria,
+        zones=engine.zones,
+        users=engine.users,
+        drivers=engine.drivers,
+        campaigns=engine.campaigns,
+        weather=weather_records,
+        trips=trips,
+        telemetry=telemetry,
         output_dir=csv_dir,
-        cuadrantes=engine.cuadrantes,
+        quadrants=engine.quadrants,
     )
     export_movigo_to_sql_dump(csv_files, output_file=sql_path)
     summary = compute_movigo_simulation_summary(
-        zonas=engine.zonas,
-        viajes=viajes,
-        clima=clima_records,
-        campanas=engine.campanas,
+        zones=engine.zones,
+        trips=trips,
+        weather=weather_records,
+        campaigns=engine.campaigns,
         seed=seed,
         summary_path=summary_path,
     )
 
     if load_db:
         load_movigo_to_postgres(
-            zonas=engine.zonas,
-            usuarios=engine.usuarios,
-            conductores=engine.conductores,
-            campanas=engine.campanas,
-            clima=clima_records,
-            viajes=viajes,
-            telemetria=telemetria,
+            zones=engine.zones,
+            users=engine.users,
+            drivers=engine.drivers,
+            campaigns=engine.campaigns,
+            weather=weather_records,
+            trips=trips,
+            telemetry=telemetry,
             schema_name=schema,
-            cuadrantes=engine.cuadrantes,
+            quadrants=engine.quadrants,
         )
 
     return summary
@@ -176,21 +176,21 @@ def run_inspection():
 def run_loading(schema: str = POSTGRES_SCHEMA, seed: int = SIMULATION_SEED):
     """Programmatic entry point for loading to PostgreSQL."""
     engine = MoviGoSimulationEngine(random_seed=seed)
-    weather_df, clima_records = get_movigo_weather_series(seed=seed)
-    viajes, telemetria = engine.run_simulation(weather_df)
+    weather_df, weather_records = get_movigo_weather_series(seed=seed)
+    trips, telemetry = engine.run_simulation(weather_df)
     enricher = MoviGoSemanticEnricher(engine.templates, random_seed=seed)
-    viajes = enricher.enrich_trips(viajes)
+    trips = enricher.enrich_trips(trips)
 
     load_movigo_to_postgres(
-        zonas=engine.zonas,
-        usuarios=engine.usuarios,
-        conductores=engine.conductores,
-        campanas=engine.campanas,
-        clima=clima_records,
-        viajes=viajes,
-        telemetria=telemetria,
+        zones=engine.zones,
+        users=engine.users,
+        drivers=engine.drivers,
+        campaigns=engine.campaigns,
+        weather=weather_records,
+        trips=trips,
+        telemetry=telemetry,
         schema_name=schema,
-        cuadrantes=engine.cuadrantes,
+        quadrants=engine.quadrants,
     )
 
 

@@ -7,7 +7,7 @@
 Principales desafíos operativos:
 1. **Puntos Críticos de Tráfico:** Managua carece de transporte masivo guiado y depende de corredores viales centrales con rotondas críticas propensas a colapsos en horas pico (Rotonda Rubén Darío, Rotonda Centroamérica, Metrocentro, Pista Juan Pablo II).
 2. **Impacto de Lluvias Torrenciales:** Las lluvias provocan corrientes y anegamientos en las partes bajas de la capital, lo que dispara exponencialmente la demanda de usuarios y reduce la oferta de conductores activos.
-3. **Tarifa Dinámica (Surge Pricing):** Para equilibrar oferta y demanda en momentos de alta fricción, el algoritmo ajusta un multiplicador continuo ($1.0\times$ a $2.5\times$).
+3. **Tarifa Dinámica (Surge Pricing):** Para equilibrar oferta y demanda en momentos de alta fricción, el algoritmo ajusta un multiplicador continuo ($1.0\times$ a $3.2\times$).
 4. **Segmentación Socioeconómica:** Heterogeneidad en los métodos de pago (efectivo vs. tarjetas bancarias vs. billeteras móviles como Billetera Banpro/Kash) según el estrato socioeconómico de la zona de origen.
 
 ---
@@ -16,30 +16,30 @@ Principales desafíos operativos:
 
 | Tabla | Clave Primaria | Claves Foráneas | Descripción |
 | :--- | :--- | :--- | :--- |
-| `zonas_urbanas` | `id_zona` | - | Las 12 zonas comerciales/residenciales de Managua (estrato alto, medio, popular, comercial) con tarifa base de bajada de bandera. |
-| `cuadrantes` | `id_cuadrante` | `id_zona` | Grilla continua de 92 cuadrantes cuadrados (`~0.88 km × 0.88 km`) agrupados por zona urbana, con límites `lat_min..lat_max`, `lon_min..lon_max`, altitud media en msnm, riesgo de inundación y cauces principales. |
-| `usuarios` | `id_usuario` | - | Usuarios registrados, método de pago habitual y calificación. |
-| `conductores` | `id_conductor` | - | Flota vehicular registrada con año, modelo, tasa de aceptación y estado. |
-| `campanas_incentivos` | `id_campana` | - | Programas de bonos a conductores con presupuesto y horas de conexión estimadas (Mochila). |
-| `clima_cuadrantes` | `id_clima` | `id_cuadrante` | Serie horaria por cuadrante cuadrado con precipitación local (`precipitacion_mm`), escorrentía de cauces (`escorrentia_cauce_mm`), anegamiento vial (`vias_anegadas`) e índice de congestión. |
-| `viajes` | `id_viaje` | `id_usuario`, `id_conductor`, `id_zona_origen`, `id_zona_destino`, `id_cuadrante_origen`, `id_cuadrante_destino` | Registro de solicitudes de viaje con coordenadas GPS en vía pública (`latitud_origen`, `longitud_origen`, `latitud_destino`, `longitud_destino`), tiempo de espera (`tiempo_espera_minutos`), distancia, duración, desglose tarifario (`tarifa_bajada_bandera`, `cargo_distancia`, `cargo_tiempo`, `tarifa_base`, `multiplicador_dinamico`, `tarifa_final`) y estado de oferta/demanda (`solicitudes_activas_origen`, `conductores_disponibles_origen`). |
-| `telemetria_conductores` | `id_telemetria` | `id_conductor`, `id_viaje`, `id_zona`, `id_cuadrante` | Registros de trayectoria GPS en calles de Managua (`id_viaje` nulo cuando está `disponible`, poblado durante `en_camino_recogida` y `ocupado`), velocidad instantánea y estado de disponibilidad. |
-| `auditoria_viajes` | `id_auditoria` | - | Tabla de auditoría poblada automáticamente ante transiciones de estado de viaje. |
+| `urban_zones` | `zone_id` | - | Las 12 zonas comerciales/residenciales de Managua (`socioeconomic_stratum`: alto, medio, popular, comercial) con tarifa base de bajada de bandera (`base_flag_drop_fare`). |
+| `quadrants` | `quadrant_id` | `zone_id` | Grilla continua de 92 cuadrantes cuadrados (`~0.88 km × 0.88 km`) agrupados por zona urbana, con límites `lat_min..lat_max`, `lon_min..lon_max`, altitud media (`mean_altitude_masl`), riesgo de inundación (`flood_risk`) y cauces principales (`main_drainage_channels`). |
+| `users` | `user_id` | - | Usuarios registrados, método de pago habitual (`preferred_payment_method`) y calificación (`average_rating`). |
+| `drivers` | `driver_id` | - | Flota vehicular registrada con año (`vehicle_year`), modelo (`vehicle_model`), tasa de aceptación (`acceptance_rate_pct`) y estado (`status`). |
+| `incentive_campaigns` | `campaign_id` | - | Programas de bonos a conductores con presupuesto (`budget_cost_nio`) y horas de conexión estimadas (`online_hours_increase`). |
+| `quadrant_weather` | `weather_id` | `quadrant_id` | Serie horaria por cuadrante cuadrado con precipitación local (`precipitation_mm`), escorrentía de cauces (`channel_runoff_mm`), anegamiento vial (`flooded_roads`) e índice de congestión (`congestion_index`). |
+| `trips` | `trip_id` | `user_id`, `driver_id`, `origin_zone_id`, `destination_zone_id`, `origin_quadrant_id`, `destination_quadrant_id` | Registro de solicitudes de viaje con coordenadas GPS en vía pública (`origin_latitude`, `origin_longitude`, `destination_latitude`, `destination_longitude`), tiempo de espera (`wait_time_minutes`), distancia, duración, desglose tarifario (`flag_drop_fare`, `distance_charge`, `time_charge`, `base_fare`, `surge_multiplier`, `final_fare`) y estado de oferta/demanda (`origin_active_requests`, `origin_available_drivers`). |
+| `driver_telemetry` | `telemetry_id` | `driver_id`, `trip_id`, `zone_id`, `quadrant_id` | Registros de trayectoria GPS en calles de Managua (`trip_id` nulo cuando está `disponible`, poblado durante `en_camino_recogida` y `ocupado`), velocidad instantánea (`speed_kmh`) y estado de disponibilidad (`availability_status`). |
+| `trip_audit_logs` | `audit_id` | - | Tabla de auditoría poblada automáticamente ante transiciones de estado de viaje. |
 
 ---
 
 ## 3. Objetos Avanzados de Base de Datos
 
-* **Trigger de Auditoría (`trg_auditar_viajes`):** Registra cambios en el estado del viaje (`solicitado`, `asignado`, `en_curso`, `completado`, `cancelado_usuario`, `cancelado_conductor`).
-* **Función PL/pgSQL Determinista (`fn_liquidar_tarifa_viaje`):** Calcula la tarifa final en córdobas: $(TarifaBase + km \cdot 18 + min \cdot 4.5) \cdot Multiplicador$.
-* **Vista Materializada Analítica (`mv_kpis_movilidad_horaria`):** Agrupa métricas de movilidad por hora y fecha con índices únicos para optimizar consultas de BI.
+* **Trigger de Auditoría (`trg_audit_trips`):** Registra cambios en el estado del viaje (`trip_status`).
+* **Función PL/pgSQL Determinista (`fn_calculate_trip_fare`):** Calcula la tarifa final en córdobas: $(FlagDropFare + km \cdot 18 + min \cdot 4.5) \cdot SurgeMultiplier$.
+* **Vista Materializada Analítica (`mv_hourly_mobility_kpis`):** Agrupa métricas de movilidad por hora y estrato socioeconómico con índices únicos para optimizar consultas de BI.
 
 ---
 
 ## 4. Retos y Entregables por Asignatura
 
 ### A. Bases de Datos Relacionales & Analíticas
-1. Modelar el *Star Schema* en **dbt** (`fact_viajes`, `dim_zona_origen`, `dim_zona_destino`, `dim_usuario`, `dim_conductor`, `dim_tiempo`).
+1. Modelar el *Star Schema* en **dbt** (`fact_trips`, `dim_origin_zone`, `dim_destination_zone`, `dim_user`, `dim_driver`, `dim_time`).
 2. Implementar pruebas de integridad referencial y tests de dbt sobre tarifas no negativas y multiplicadores $\ge 1.0$.
 3. Crear un dashboard en **Metabase** con mapas de calor de orígenes-destinos y horas con mayor tarifa dinámica.
 

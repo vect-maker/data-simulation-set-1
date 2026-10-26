@@ -131,7 +131,7 @@ def root_info() -> dict:
             "caso_3_movigo": {
                 "prefix": "/movigo",
                 "domain": "MoviGo (Transporte por Aplicación - Managua)",
-                "sample_endpoint": "/movigo/viajes?limit=10",
+                "sample_endpoint": "/movigo/trips?limit=10",
             },
         },
     }

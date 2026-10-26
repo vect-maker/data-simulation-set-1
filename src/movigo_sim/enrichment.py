@@ -5,7 +5,7 @@ from typing import Any
 import numpy as np
 
 from movigo_sim.config import SIMULATION_SEED
-from movigo_sim.models import Viaje
+from movigo_sim.models import Trip
 
 logger = logging.getLogger(__name__)
 
@@ -23,23 +23,20 @@ class MoviGoSemanticEnricher:
         self.use_llm = use_llm
         self.random_seed = random_seed
         self.rng = np.random.default_rng(self.random_seed)
-        self.motivos_cancel = (
-            self.templates.get("motivos_cancelacion")
-            or [
-                "Tarifa dinámica sobrepasa presupuesto",
-                "Tiempo de llegada excesivo",
-                "Vía anegada / cauce intransitable",
-                "Conductor no avanza",
-                "Falla mecánica / imprevisto del conductor",
-            ]
-        )
+        self.cancellation_reasons = self.templates.get("cancellation_reasons") or [
+            "Tarifa dinámica sobrepasa presupuesto",
+            "Tiempo de llegada excesivo",
+            "Vía anegada / cauce intransitable",
+            "Conductor no avanza",
+            "Falla mecánica / imprevisto del conductor",
+        ]
 
-    def enrich_trips(self, viajes: list[Viaje]) -> list[Viaje]:
+    def enrich_trips(self, trips: list[Trip]) -> list[Trip]:
         """Ensure all canceled trips have descriptive Managua cancellation notes."""
         self.rng = np.random.default_rng(self.random_seed)
-        logger.info(f"Enriching {len(viajes)} rides with semantic cancellation reasons...")
-        for viaje in viajes:
-            if "cancelado" in viaje.estado_viaje and not viaje.motivo_cancelacion:
-                idx = int(self.rng.integers(0, len(self.motivos_cancel)))
-                viaje.motivo_cancelacion = str(self.motivos_cancel[idx])
-        return viajes
+        logger.info(f"Enriching {len(trips)} rides with semantic cancellation reasons...")
+        for trip in trips:
+            if "cancelado" in trip.trip_status and not trip.cancellation_reason:
+                idx = int(self.rng.integers(0, len(self.cancellation_reasons)))
+                trip.cancellation_reason = str(self.cancellation_reasons[idx])
+        return trips

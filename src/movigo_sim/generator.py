@@ -1,14 +1,14 @@
 """Numerical and operational simulation engine for MoviGo ride-hailing app in Managua.
 
 Generates realistic urban mobility facts with strict mathematical guarantees:
-- Two-tier spatial architecture: 12 urban pricing zones (zonas_urbanas) grouping 92 fine-grained square quadrants (cuadrantes, ~0.88 km x 0.88 km)
-- Hourly localized weather, topographical cauce runoff (escorrentia_cauce_mm), and street flooding (vias_anegadas) per square quadrant
+- Two-tier spatial architecture: 12 urban pricing zones (urban_zones) grouping 92 fine-grained square quadrants (quadrants, ~0.88 km x 0.88 km)
+- Hourly localized weather, topographical cauce runoff (channel_runoff_mm), and street flooding (flooded_roads) per square quadrant
 - Street-snapped Origin, Destination, and Telemetry GPS coordinates from OpenStreetMap ways strictly within their square quadrant bounding box
 - Physical route consistency (Haversine * circuity factor) with forced detours when cauces flood
 - Micro-behavioral logistic cancellation model (stratum surge sensitivity, cash threshold C$200/C$500, dispatch wait > 10m, flooded streets)
-- Transparent parametric pricing breakdown (tarifa_bajada_bandera, cargo_distancia, cargo_tiempo, tarifa_base, multiplicador_dinamico, tarifa_final)
-- Supply & Demand snapshot at request time (solicitudes_activas_origen, conductores_disponibles_origen) coupled to f(m) = D(m) - S(m) = 0
-- Multi-point GPS breadcrumb trajectories in telemetria_conductores linked via id_viaje and id_cuadrante
+- Transparent parametric pricing breakdown (flag_drop_fare, distance_charge, time_charge, base_fare, surge_multiplier, final_fare)
+- Supply & Demand snapshot at request time (origin_active_requests, origin_available_drivers) coupled to f(m) = D(m) - S(m) = 0
+- Multi-point GPS breadcrumb trajectories in driver_telemetry linked via trip_id and quadrant_id
 """
 
 import json
@@ -32,13 +32,13 @@ from movigo_sim.config import (
     OUTLIER_GRIDLOCK_DELAY_PROB,
 )
 from movigo_sim.models import (
-    Cuadrante,
-    ZonaUrbana,
-    Usuario,
-    Conductor,
-    Viaje,
-    TelemetriaConductor,
-    CampanaIncentivo,
+    Quadrant,
+    UrbanZone,
+    User,
+    Driver,
+    Trip,
+    DriverTelemetry,
+    IncentiveCampaign,
 )
 
 logger = logging.getLogger(__name__)
@@ -83,36 +83,36 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return 2.0 * r_earth * math.asin(min(1.0, math.sqrt(a)))
 
 
-def load_movigo_cuadrantes() -> list[Cuadrante]:
+def load_movigo_quadrants() -> list[Quadrant]:
     """Load the 92 Managua geographical square quadrants from deterministic JSON seed fixture."""
-    with open(DETERMINISTIC_SEEDS_DIR / "cuadrantes.json", encoding="utf-8") as f:
-        return [Cuadrante(**c) for c in json.load(f)]
+    with open(DETERMINISTIC_SEEDS_DIR / "quadrants.json", encoding="utf-8") as f:
+        return [Quadrant(**c) for c in json.load(f)]
 
 
 def load_movigo_seed_catalogs() -> tuple[
-    list[ZonaUrbana],
-    list[Usuario],
-    list[Conductor],
-    list[CampanaIncentivo],
+    list[UrbanZone],
+    list[User],
+    list[Driver],
+    list[IncentiveCampaign],
     dict[str, Any],
 ]:
     """Load dimensional seed catalogs from deterministic/ and llm/ JSON fixtures."""
-    with open(DETERMINISTIC_SEEDS_DIR / "zonas_urbanas.json", encoding="utf-8") as f:
-        zonas = [ZonaUrbana(**z) for z in json.load(f)]
+    with open(DETERMINISTIC_SEEDS_DIR / "urban_zones.json", encoding="utf-8") as f:
+        zones = [UrbanZone(**z) for z in json.load(f)]
 
-    with open(LLM_SEEDS_DIR / "usuarios.json", encoding="utf-8") as f:
-        usuarios = [Usuario(**u) for u in json.load(f)]
+    with open(LLM_SEEDS_DIR / "users.json", encoding="utf-8") as f:
+        users = [User(**u) for u in json.load(f)]
 
-    with open(LLM_SEEDS_DIR / "conductores.json", encoding="utf-8") as f:
-        conductores = [Conductor(**c) for c in json.load(f)]
+    with open(LLM_SEEDS_DIR / "drivers.json", encoding="utf-8") as f:
+        drivers = [Driver(**c) for c in json.load(f)]
 
-    with open(LLM_SEEDS_DIR / "campanas_incentivos.json", encoding="utf-8") as f:
-        campanas = [CampanaIncentivo(**cmp) for cmp in json.load(f)]
+    with open(LLM_SEEDS_DIR / "incentive_campaigns.json", encoding="utf-8") as f:
+        campaigns = [IncentiveCampaign(**cmp) for cmp in json.load(f)]
 
     with open(LLM_SEEDS_DIR / "semantic_templates.json", encoding="utf-8") as f:
         templates = json.load(f)
 
-    return zonas, usuarios, conductores, campanas, templates
+    return zones, users, drivers, campaigns, templates
 
 
 def load_managua_street_network() -> dict[str, Any]:
@@ -121,7 +121,7 @@ def load_managua_street_network() -> dict[str, Any]:
     if network_path.exists():
         with open(network_path, encoding="utf-8") as f:
             return json.load(f)
-    return {"zones": {}, "arterials": [], "zone_flood_flags": {}, "cuadrante_streets": {}, "cuadrante_flood_flags": {}}
+    return {"zones": {}, "arterials": [], "zone_flood_flags": {}, "quadrant_streets": {}, "quadrant_flood_flags": {}}
 
 
 class MoviGoSimulationEngine:
@@ -132,40 +132,42 @@ class MoviGoSimulationEngine:
         self.rng = np.random.default_rng(self.random_seed)
         np.random.seed(self.random_seed)
 
-        self.cuadrantes = load_movigo_cuadrantes()
-        self.cuadrantes_map = {c.id_cuadrante: c for c in self.cuadrantes}
-        self.cuadrantes_centers = np.array(
-            [[0.5 * (c.lat_min + c.lat_max), 0.5 * (c.lon_min + c.lon_max)] for c in self.cuadrantes],
+        self.quadrants = load_movigo_quadrants()
+        self.quadrants_map = {c.quadrant_id: c for c in self.quadrants}
+        self.quadrants_centers = np.array(
+            [[0.5 * (c.lat_min + c.lat_max), 0.5 * (c.lon_min + c.lon_max)] for c in self.quadrants],
             dtype=float,
         )
 
         (
-            self.zonas,
-            self.usuarios,
-            self.conductores,
-            self.campanas,
+            self.zones,
+            self.users,
+            self.drivers,
+            self.campaigns,
             self.templates,
         ) = load_movigo_seed_catalogs()
 
-        self.zone_cuadrantes: dict[int, list[Cuadrante]] = {z.id_zona: [] for z in self.zonas}
-        for c in self.cuadrantes:
-            if c.id_zona in self.zone_cuadrantes:
-                self.zone_cuadrantes[c.id_zona].append(c)
+        self.zone_quadrants: dict[int, list[Quadrant]] = {z.zone_id: [] for z in self.zones}
+        for c in self.quadrants:
+            if c.zone_id in self.zone_quadrants:
+                self.zone_quadrants[c.zone_id].append(c)
 
         self.street_network = load_managua_street_network()
-        self.cuadrante_streets: dict[int, np.ndarray] = {}
-        self.cuadrante_flood_flags: dict[int, np.ndarray] = {}
-        for c in self.cuadrantes:
-            segs = self.street_network.get("cuadrante_streets", {}).get(str(c.id_cuadrante), [])
-            flags = self.street_network.get("cuadrante_flood_flags", {}).get(str(c.id_cuadrante), [])
+        self.quadrant_streets: dict[int, np.ndarray] = {}
+        self.quadrant_flood_flags: dict[int, np.ndarray] = {}
+        q_streets_dict = self.street_network.get("quadrant_streets", {})
+        q_flags_dict = self.street_network.get("quadrant_flood_flags", {})
+        for c in self.quadrants:
+            segs = q_streets_dict.get(str(c.quadrant_id), [])
+            flags = q_flags_dict.get(str(c.quadrant_id), [])
             if segs:
-                self.cuadrante_streets[c.id_cuadrante] = np.array(segs, dtype=float)
-                self.cuadrante_flood_flags[c.id_cuadrante] = (
+                self.quadrant_streets[c.quadrant_id] = np.array(segs, dtype=float)
+                self.quadrant_flood_flags[c.quadrant_id] = (
                     np.array(flags, dtype=bool) if len(flags) == len(segs) else np.zeros(len(segs), dtype=bool)
                 )
             else:
-                self.cuadrante_streets[c.id_cuadrante] = np.empty((0, 4), dtype=float)
-                self.cuadrante_flood_flags[c.id_cuadrante] = np.empty(0, dtype=bool)
+                self.quadrant_streets[c.quadrant_id] = np.empty((0, 4), dtype=float)
+                self.quadrant_flood_flags[c.quadrant_id] = np.empty(0, dtype=bool)
 
         arterials = self.street_network.get("arterials", [])
         self.arterial_segments = np.array(arterials, dtype=float) if arterials else np.empty((0, 4), dtype=float)
@@ -176,64 +178,59 @@ class MoviGoSimulationEngine:
             self.arterial_mid_lats = np.empty(0, dtype=float)
             self.arterial_mid_lons = np.empty(0, dtype=float)
 
-        self.zonas_map = {z.id_zona: z for z in self.zonas}
-        self.conductores_map = {c.id_conductor: c for c in self.conductores}
-        self.active_conductores = [c for c in self.conductores if c.estado == "activo"]
+        self.zones_map = {z.zone_id: z for z in self.zones}
+        self.drivers_map = {c.driver_id: c for c in self.drivers}
+        self.active_drivers = [c for c in self.drivers if c.status == "activo"]
 
-    @property
-    def semantic_templates(self):
-        """Backward-compatible alias for templates."""
-        return self.templates
-
-    def sample_street_coordinate(self, zona: ZonaUrbana) -> tuple[float, float, int, bool]:
-        """Sample a GPS coordinate strictly on a drivable street within one of the urban zone's square cuadrantes.
+    def sample_street_coordinate(self, zone: UrbanZone) -> tuple[float, float, int, bool]:
+        """Sample a GPS coordinate strictly on a drivable street within one of the urban zone's square quadrants.
 
         Returns:
-            (latitud, longitud, id_cuadrante, is_flood_prone_street)
+            (latitude, longitude, quadrant_id, is_flood_prone_street)
         """
-        quad_list = self.zone_cuadrantes.get(zona.id_zona) or self.cuadrantes
+        quad_list = self.zone_quadrants.get(zone.zone_id) or self.quadrants
         q_idx = int(self.rng.integers(0, len(quad_list)))
-        cuad = quad_list[q_idx]
+        quad = quad_list[q_idx]
 
-        segs = self.cuadrante_streets.get(cuad.id_cuadrante)
-        flags = self.cuadrante_flood_flags.get(cuad.id_cuadrante)
+        segs = self.quadrant_streets.get(quad.quadrant_id)
+        flags = self.quadrant_flood_flags.get(quad.quadrant_id)
         if segs is not None and len(segs) > 0:
             idx = int(self.rng.integers(0, len(segs)))
             lat1, lon1, lat2, lon2 = segs[idx]
             t = float(self.rng.uniform(0.0, 1.0))
             lat = lat1 + t * (lat2 - lat1)
             lon = lon1 + t * (lon2 - lon1)
-            lat_clamped = round(float(np.clip(lat, cuad.lat_min, cuad.lat_max)), 6)
-            lon_clamped = round(float(np.clip(lon, cuad.lon_min, cuad.lon_max)), 6)
-            is_flood_street = bool(flags[idx]) if flags is not None and len(flags) > idx else (cuad.riesgo_inundacion == "critico")
-            return lat_clamped, lon_clamped, cuad.id_cuadrante, is_flood_street
+            lat_clamped = round(float(np.clip(lat, quad.lat_min, quad.lat_max)), 6)
+            lon_clamped = round(float(np.clip(lon, quad.lon_min, quad.lon_max)), 6)
+            is_flood_street = bool(flags[idx]) if flags is not None and len(flags) > idx else (quad.flood_risk == "critico")
+            return lat_clamped, lon_clamped, quad.quadrant_id, is_flood_street
 
-        lat_f = round(float(self.rng.uniform(cuad.lat_min + 0.0005, cuad.lat_max - 0.0005)), 6)
-        lon_f = round(float(self.rng.uniform(cuad.lon_min + 0.0005, cuad.lon_max - 0.0005)), 6)
-        return lat_f, lon_f, cuad.id_cuadrante, (cuad.riesgo_inundacion == "critico")
+        lat_f = round(float(self.rng.uniform(quad.lat_min + 0.0005, quad.lat_max - 0.0005)), 6)
+        lon_f = round(float(self.rng.uniform(quad.lon_min + 0.0005, quad.lon_max - 0.0005)), 6)
+        return lat_f, lon_f, quad.quadrant_id, (quad.flood_risk == "critico")
 
-    def snap_to_nearest_street_and_cuadrante(
-        self, target_lat: float, target_lon: float, fallback_zona: ZonaUrbana
+    def snap_to_nearest_street_and_quadrant(
+        self, target_lat: float, target_lon: float, fallback_zone: UrbanZone
     ) -> tuple[float, float, int, int]:
-        """Snap an arbitrary waypoint coordinate onto the nearest real OpenStreetMap street inside an active square cuadrante.
+        """Snap an arbitrary waypoint coordinate onto the nearest real OpenStreetMap street inside an active square quadrant.
 
         Returns:
-            (lat, lon, id_zona, id_cuadrante)
+            (lat, lon, zone_id, quadrant_id)
         """
-        d2 = (self.cuadrantes_centers[:, 0] - target_lat) ** 2 + (self.cuadrantes_centers[:, 1] - target_lon) ** 2
+        d2 = (self.quadrants_centers[:, 0] - target_lat) ** 2 + (self.quadrants_centers[:, 1] - target_lon) ** 2
         nearest_q_idx = int(np.argmin(d2))
-        cuad = self.cuadrantes[nearest_q_idx]
-        segs = self.cuadrante_streets.get(cuad.id_cuadrante)
+        quad = self.quadrants[nearest_q_idx]
+        segs = self.quadrant_streets.get(quad.quadrant_id)
         if segs is not None and len(segs) > 0:
             seg_idx = int(self.rng.integers(0, len(segs)))
             lat1, lon1, lat2, lon2 = segs[seg_idx]
             t = float(self.rng.uniform(0.15, 0.85))
-            lat = round(float(np.clip(lat1 + t * (lat2 - lat1), cuad.lat_min, cuad.lat_max)), 6)
-            lon = round(float(np.clip(lon1 + t * (lon2 - lon1), cuad.lon_min, cuad.lon_max)), 6)
-            return lat, lon, cuad.id_zona, cuad.id_cuadrante
+            lat = round(float(np.clip(lat1 + t * (lat2 - lat1), quad.lat_min, quad.lat_max)), 6)
+            lon = round(float(np.clip(lon1 + t * (lon2 - lon1), quad.lon_min, quad.lon_max)), 6)
+            return lat, lon, quad.zone_id, quad.quadrant_id
 
-        lat, lon, qid, _ = self.sample_street_coordinate(fallback_zona)
-        return lat, lon, fallback_zona.id_zona, qid
+        lat, lon, qid, _ = self.sample_street_coordinate(fallback_zone)
+        return lat, lon, fallback_zone.zone_id, qid
 
     def calculate_daily_demand(self, precip_mm: float, dow: int) -> int:
         """Daily ride requests driven by rain and day-of-week in Managua with realistic noise and mobility shocks."""
@@ -261,10 +258,10 @@ class MoviGoSimulationEngine:
 
     def simulate_supply_demand_and_surge(
         self,
-        zona_origen: ZonaUrbana,
+        origin_zone: UrbanZone,
         hourly_precip_mm: float,
-        escorrentia_mm: float,
-        vias_anegadas: bool,
+        runoff_mm: float,
+        flooded_roads: bool,
         hour: int,
         dow: int,
     ) -> tuple[int, int, float]:
@@ -280,19 +277,19 @@ class MoviGoSimulationEngine:
             "popular": 1.20,
             "medio": 1.00,
             "alto": 0.90,
-        }.get(zona_origen.estrato_socioeconomico, 1.0)
+        }.get(origin_zone.socioeconomic_stratum, 1.0)
 
         weekend_boost = 1.15 if dow in [4, 5] else 1.00
-        effective_water_mm = max(hourly_precip_mm, 0.75 * escorrentia_mm)
+        effective_water_mm = max(hourly_precip_mm, 0.75 * runoff_mm)
 
         # Active trip requests in origin zone during that hour (Dt)
         expected_d = (14.0 * hour_weight * stratum_demand_factor * weekend_boost) + (1.45 * effective_water_mm)
-        if vias_anegadas:
+        if flooded_roads:
             expected_d *= 1.22
         d_t = max(2, int(round(self.rng.normal(expected_d, max(1.8, 0.12 * expected_d)))))
 
         # Available driver supply in origin zone during that hour (St)
-        rain_supply_penalty = max(0.45, 1.0 - 0.032 * effective_water_mm - (0.18 if vias_anegadas else 0.0))
+        rain_supply_penalty = max(0.45, 1.0 - 0.032 * effective_water_mm - (0.18 if flooded_roads else 0.0))
         peak_supply_factor = 0.82 if hour in [7, 8, 17, 18] else (0.90 if hour in [12, 13, 19] else 1.12)
         expected_s = (13.5 * hour_weight * stratum_demand_factor * peak_supply_factor * rain_supply_penalty) + 2.0
         s_t = max(1, int(round(self.rng.normal(expected_s, max(1.5, 0.10 * expected_s)))))
@@ -309,11 +306,11 @@ class MoviGoSimulationEngine:
                 df_val = -alpha * d_t * math.exp(-alpha * (m - 1.0)) - (s_t * gamma / m)
                 if abs(df_val) > 1e-6:
                     m = float(np.clip(m - f_val / df_val, 1.00, SURGE_MAX))
-            rain_boost = 0.045 * effective_water_mm + (0.18 if vias_anegadas else 0.0)
+            rain_boost = 0.045 * effective_water_mm + (0.18 if flooded_roads else 0.0)
             rush_boost = 0.12 if hour in [7, 8, 17, 18] else (0.06 if hour in [12, 13, 19] else 0.0)
             base_m = m + rain_boost + rush_boost + float(self.rng.normal(0.0, 0.04))
 
-        if (vias_anegadas or effective_water_mm > 8.0) and hour in [7, 8, 17, 18] and self.rng.random() < 0.22:
+        if (flooded_roads or effective_water_mm > 8.0) and hour in [7, 8, 17, 18] and self.rng.random() < 0.22:
             multiplier = float(self.rng.uniform(2.60, 3.20))
         else:
             multiplier = float(np.clip(base_m, 1.00, SURGE_MAX))
@@ -322,7 +319,7 @@ class MoviGoSimulationEngine:
 
     def calculate_surge_multiplier(self, precip_mm: float, hour: int) -> float:
         """Backward-compatible helper to calculate dynamic surge multiplier."""
-        _, _, m = self.simulate_supply_demand_and_surge(self.zonas[0], precip_mm, precip_mm, precip_mm > 12.0, hour, 2)
+        _, _, m = self.simulate_supply_demand_and_surge(self.zones[0], precip_mm, precip_mm, precip_mm > 12.0, hour, 2)
         return m
 
     def sample_payment_method_for_stratum(self, stratum: str) -> str:
@@ -373,9 +370,9 @@ class MoviGoSimulationEngine:
     def evaluate_cancellation(
         self,
         stratum: str,
-        metodo_pago: str,
+        payment_method: str,
         surge: float,
-        tarifa_final: float,
+        final_fare: float,
         wait_min: float,
         effective_water_mm: float,
         flood_affected: bool,
@@ -387,10 +384,10 @@ class MoviGoSimulationEngine:
         surge_term = beta_surge * (surge - 1.0)
 
         cash_term = 0.0
-        if metodo_pago == "efectivo":
-            if tarifa_final > 500.0:
+        if payment_method == "efectivo":
+            if final_fare > 500.0:
                 cash_term = 2.15
-            elif tarifa_final > 200.0:
+            elif final_fare > 200.0:
                 cash_term = 1.10
 
         delay_term = 0.0
@@ -436,7 +433,7 @@ class MoviGoSimulationEngine:
     def run_simulation(
         self,
         weather_df: pd.DataFrame,
-    ) -> tuple[list[Viaje], list[TelemetriaConductor]]:
+    ) -> tuple[list[Trip], list[DriverTelemetry]]:
         """Run full year MoviGo simulation coupled to hourly square-quadrant climate and street flood risk."""
         self.rng = np.random.default_rng(self.random_seed)
         logger.info(f"Starting MoviGo simulation across {len(weather_df)} days (seed={self.random_seed})...")
@@ -446,15 +443,15 @@ class MoviGoSimulationEngine:
             hourly_matrices["date_hour_to_idx"] if hourly_matrices else {}
         )
 
-        viajes: list[Viaje] = []
-        telemetria: list[TelemetriaConductor] = []
+        trips: list[Trip] = []
+        telemetry: list[DriverTelemetry] = []
         trip_counter = 1
         telemetry_counter = 1
 
         for day_idx, (_, row) in enumerate(weather_df.iterrows()):
-            curr_date: date = row["fecha"]
-            daily_precip_mm: float = float(row["precipitacion_mm"])
-            daily_cong_idx: float = float(row["indice_congestion"])
+            curr_date: date = row["date"]
+            daily_precip_mm: float = float(row["precipitation_mm"])
+            daily_cong_idx: float = float(row["congestion_index"])
             dow: int = curr_date.weekday()
 
             daily_target = self.calculate_daily_demand(daily_precip_mm, dow)
@@ -466,17 +463,17 @@ class MoviGoSimulationEngine:
                 req_time = self.sample_trip_time(curr_date)
                 hour = req_time.hour
 
-                user = self.usuarios[int(self.rng.integers(0, len(self.usuarios)))]
+                user = self.users[int(self.rng.integers(0, len(self.users)))]
 
-                zona_origen = self.zonas[int(self.rng.integers(0, len(self.zonas)))]
-                dest_candidates = [z for z in self.zonas if z.id_zona != zona_origen.id_zona]
-                zona_destino = dest_candidates[int(self.rng.integers(0, len(dest_candidates)))]
+                origin_zone = self.zones[int(self.rng.integers(0, len(self.zones)))]
+                dest_candidates = [z for z in self.zones if z.zone_id != origin_zone.zone_id]
+                destination_zone = dest_candidates[int(self.rng.integers(0, len(dest_candidates)))]
 
-                # Street-snapped Origin and Destination GPS coordinates inside exact square cuadrantes
-                lat_o, lon_o, q_o, flood_street_o = self.sample_street_coordinate(zona_origen)
-                lat_d, lon_d, q_d, flood_street_d = self.sample_street_coordinate(zona_destino)
+                # Street-snapped Origin and Destination GPS coordinates inside exact square quadrants
+                lat_o, lon_o, q_o, flood_street_o = self.sample_street_coordinate(origin_zone)
+                lat_d, lon_d, q_d, flood_street_d = self.sample_street_coordinate(destination_zone)
 
-                # Look up localized hourly weather & cauce runoff for Origin and Destination Square Cuadrantes
+                # Look up localized hourly weather & cauce runoff for Origin and Destination Square Quadrants
                 t_idx = date_hour_to_idx.get((curr_date, hour)) if hourly_matrices else None
                 if hourly_matrices is not None and t_idx is not None:
                     qo_idx = q_o - 1
@@ -507,20 +504,20 @@ class MoviGoSimulationEngine:
 
                 # Supply & Demand state at request time and equilibrium surge multiplier
                 d_t, s_t, surge = self.simulate_supply_demand_and_surge(
-                    zona_origen, h_precip_o, h_esc_o, h_aneg_o, hour, dow
+                    origin_zone, h_precip_o, h_esc_o, h_aneg_o, hour, dow
                 )
 
-                metodo_pago = self.sample_payment_method_for_stratum(zona_origen.estrato_socioeconomico)
+                payment_method = self.sample_payment_method_for_stratum(origin_zone.socioeconomic_stratum)
 
                 dist_km, dur_min, is_suboptimal = self.estimate_distance_and_duration(
                     lat_o, lon_o, lat_d, lon_d, effective_congestion, effective_water_mm, flood_affected
                 )
 
-                tarifa_bajada = round(float(zona_origen.tarifa_base_bajada_bandera), 2)
-                cargo_dist = round(dist_km * BASE_PER_KM_NIO, 2)
-                cargo_tpo = round(dur_min * BASE_PER_MINUTE_NIO, 2)
-                tarifa_base = round(tarifa_bajada + cargo_dist + cargo_tpo, 2)
-                tarifa_final = round(tarifa_base * surge, 2)
+                flag_drop_fare = round(float(origin_zone.base_flag_drop_fare), 2)
+                distance_charge = round(dist_km * BASE_PER_KM_NIO, 2)
+                time_charge = round(dur_min * BASE_PER_MINUTE_NIO, 2)
+                base_fare = round(flag_drop_fare + distance_charge + time_charge, 2)
+                final_fare = round(base_fare * surge, 2)
 
                 imbalance_ratio = d_t / max(1.0, float(s_t))
                 base_wait = (
@@ -533,13 +530,13 @@ class MoviGoSimulationEngine:
                     base_wait += float(self.rng.exponential(2.0))
                 wait_min = round(float(np.clip(base_wait, 1.5, 25.0)), 2)
 
-                conductor = self.active_conductores[int(self.rng.integers(0, len(self.active_conductores)))]
+                driver = self.active_drivers[int(self.rng.integers(0, len(self.active_drivers)))]
 
-                is_canceled, cancel_state, motivo = self.evaluate_cancellation(
-                    stratum=zona_origen.estrato_socioeconomico,
-                    metodo_pago=metodo_pago,
+                is_canceled, cancel_state, reason = self.evaluate_cancellation(
+                    stratum=origin_zone.socioeconomic_stratum,
+                    payment_method=payment_method,
                     surge=surge,
-                    tarifa_final=tarifa_final,
+                    final_fare=final_fare,
                     wait_min=wait_min,
                     effective_water_mm=effective_water_mm,
                     flood_affected=flood_affected,
@@ -548,60 +545,60 @@ class MoviGoSimulationEngine:
                 )
 
                 if is_canceled:
-                    estado_viaje = cancel_state or "cancelado_usuario"
+                    trip_status = cancel_state or "cancelado_usuario"
                     start_time = None
                     end_time = None
                     rating_usr = None
-                    rating_cnd = None
-                    propina = 0.0
+                    rating_drv = None
+                    tip_amount = 0.0
                 else:
-                    estado_viaje = "completado"
+                    trip_status = "completado"
                     start_time = req_time + timedelta(minutes=wait_min)
                     end_time = start_time + timedelta(minutes=dur_min)
                     rating_usr = float(self.rng.choice([5.0, 4.0, 3.0, 2.0, 1.0], p=[0.67, 0.20, 0.06, 0.04, 0.03]))
-                    rating_cnd = float(self.rng.choice([5.0, 4.0, 3.0, 2.0, 1.0], p=[0.75, 0.14, 0.05, 0.03, 0.03]))
+                    rating_drv = float(self.rng.choice([5.0, 4.0, 3.0, 2.0, 1.0], p=[0.75, 0.14, 0.05, 0.03, 0.03]))
 
                     tip_roll = float(self.rng.random())
                     if tip_roll < 0.015:
-                        propina = float(self.rng.choice([80.0, 100.0, 150.0]))
+                        tip_amount = float(self.rng.choice([80.0, 100.0, 150.0]))
                     elif tip_roll < 0.28:
-                        propina = float(self.rng.choice([20.0, 30.0, 50.0], p=[0.60, 0.30, 0.10]))
+                        tip_amount = float(self.rng.choice([20.0, 30.0, 50.0], p=[0.60, 0.30, 0.10]))
                     else:
-                        propina = 0.0
+                        tip_amount = 0.0
 
-                viajes.append(
-                    Viaje(
-                        id_viaje=trip_id,
-                        id_usuario=user.id_usuario,
-                        id_conductor=conductor.id_conductor,
-                        id_zona_origen=zona_origen.id_zona,
-                        id_zona_destino=zona_destino.id_zona,
-                        id_cuadrante_origen=q_o,
-                        id_cuadrante_destino=q_d,
-                        latitud_origen=lat_o,
-                        longitud_origen=lon_o,
-                        latitud_destino=lat_d,
-                        longitud_destino=lon_d,
-                        fecha_hora_solicitud=req_time,
-                        fecha_hora_inicio=start_time,
-                        fecha_hora_fin=end_time,
-                        tiempo_espera_minutos=wait_min,
-                        distancia_km=dist_km,
-                        duracion_minutos=dur_min,
-                        tarifa_bajada_bandera=tarifa_bajada,
-                        cargo_distancia=cargo_dist,
-                        cargo_tiempo=cargo_tpo,
-                        tarifa_base=tarifa_base,
-                        multiplicador_dinamico=surge,
-                        tarifa_final=tarifa_final,
-                        solicitudes_activas_origen=d_t,
-                        conductores_disponibles_origen=s_t,
-                        metodo_pago=metodo_pago,
-                        estado_viaje=estado_viaje,
-                        calificacion_usuario=rating_usr,
-                        calificacion_conductor=rating_cnd,
-                        propina=propina,
-                        motivo_cancelacion=motivo,
+                trips.append(
+                    Trip(
+                        trip_id=trip_id,
+                        user_id=user.user_id,
+                        driver_id=driver.driver_id,
+                        origin_zone_id=origin_zone.zone_id,
+                        destination_zone_id=destination_zone.zone_id,
+                        origin_quadrant_id=q_o,
+                        destination_quadrant_id=q_d,
+                        origin_latitude=lat_o,
+                        origin_longitude=lon_o,
+                        destination_latitude=lat_d,
+                        destination_longitude=lon_d,
+                        requested_at=req_time,
+                        started_at=start_time,
+                        completed_at=end_time,
+                        wait_time_minutes=wait_min,
+                        distance_km=dist_km,
+                        duration_minutes=dur_min,
+                        flag_drop_fare=flag_drop_fare,
+                        distance_charge=distance_charge,
+                        time_charge=time_charge,
+                        base_fare=base_fare,
+                        surge_multiplier=surge,
+                        final_fare=final_fare,
+                        origin_active_requests=d_t,
+                        origin_available_drivers=s_t,
+                        payment_method=payment_method,
+                        trip_status=trip_status,
+                        user_rating=rating_usr,
+                        driver_rating=rating_drv,
+                        tip_amount=tip_amount,
+                        cancellation_reason=reason,
                     )
                 )
 
@@ -611,19 +608,19 @@ class MoviGoSimulationEngine:
                     detour_lat_offset = float(self.rng.choice([-0.008, 0.008])) if is_suboptimal else 0.0
                     detour_lon_offset = float(self.rng.choice([-0.009, 0.009])) if is_suboptimal else 0.0
 
-                    approach_lat, approach_lon, approach_q, _ = self.sample_street_coordinate(zona_origen)
-                    telemetria.append(
-                        TelemetriaConductor(
-                            id_telemetria=telemetry_counter,
-                            id_conductor=conductor.id_conductor,
-                            id_viaje=trip_id,
-                            id_zona=zona_origen.id_zona,
-                            id_cuadrante=approach_q,
-                            fecha_hora=req_time + timedelta(minutes=round(wait_min * 0.5, 2)),
-                            latitud=approach_lat,
-                            longitud=approach_lon,
-                            velocidad_kmh=round(float(np.clip(avg_speed_kmh * self.rng.uniform(0.75, 1.15), 8.0, 65.0)), 2),
-                            estado_disponibilidad="en_camino_recogida",
+                    approach_lat, approach_lon, approach_q, _ = self.sample_street_coordinate(origin_zone)
+                    telemetry.append(
+                        DriverTelemetry(
+                            telemetry_id=telemetry_counter,
+                            driver_id=driver.driver_id,
+                            trip_id=trip_id,
+                            zone_id=origin_zone.zone_id,
+                            quadrant_id=approach_q,
+                            recorded_at=req_time + timedelta(minutes=round(wait_min * 0.5, 2)),
+                            latitude=approach_lat,
+                            longitude=approach_lon,
+                            speed_kmh=round(float(np.clip(avg_speed_kmh * self.rng.uniform(0.75, 1.15), 8.0, 65.0)), 2),
+                            availability_status="en_camino_recogida",
                         )
                     )
                     telemetry_counter += 1
@@ -631,8 +628,8 @@ class MoviGoSimulationEngine:
                     for frac in (0.15, 0.55, 0.90):
                         raw_lat = lat_o + frac * (lat_d - lat_o) + (detour_lat_offset if frac == 0.55 else 0.0)
                         raw_lon = lon_o + frac * (lon_d - lon_o) + (detour_lon_offset if frac == 0.55 else 0.0)
-                        fallback_z = zona_origen if frac < 0.5 else zona_destino
-                        wp_lat, wp_lon, wp_zone_id, wp_quad_id = self.snap_to_nearest_street_and_cuadrante(
+                        fallback_z = origin_zone if frac < 0.5 else destination_zone
+                        wp_lat, wp_lon, wp_zone_id, wp_quad_id = self.snap_to_nearest_street_and_quadrant(
                             raw_lat, raw_lon, fallback_z
                         )
 
@@ -646,42 +643,42 @@ class MoviGoSimulationEngine:
                         else:
                             wp_speed = float(np.clip(avg_speed_kmh * self.rng.uniform(0.80, 1.25), 12.0, 58.0))
 
-                        telemetria.append(
-                            TelemetriaConductor(
-                                id_telemetria=telemetry_counter,
-                                id_conductor=conductor.id_conductor,
-                                id_viaje=trip_id,
-                                id_zona=wp_zone_id,
-                                id_cuadrante=wp_quad_id,
-                                fecha_hora=start_time + timedelta(minutes=round(dur_min * frac, 2)),
-                                latitud=wp_lat,
-                                longitud=wp_lon,
-                                velocidad_kmh=round(wp_speed, 2),
-                                estado_disponibilidad="ocupado",
+                        telemetry.append(
+                            DriverTelemetry(
+                                telemetry_id=telemetry_counter,
+                                driver_id=driver.driver_id,
+                                trip_id=trip_id,
+                                zone_id=wp_zone_id,
+                                quadrant_id=wp_quad_id,
+                                recorded_at=start_time + timedelta(minutes=round(dur_min * frac, 2)),
+                                latitude=wp_lat,
+                                longitude=wp_lon,
+                                speed_kmh=round(wp_speed, 2),
+                                availability_status="ocupado",
                             )
                         )
                         telemetry_counter += 1
 
                 elif self.rng.random() < 0.06:
-                    idle_lat, idle_lon, idle_q, _ = self.sample_street_coordinate(zona_origen)
-                    telemetria.append(
-                        TelemetriaConductor(
-                            id_telemetria=telemetry_counter,
-                            id_conductor=conductor.id_conductor,
-                            id_viaje=None,
-                            id_zona=zona_origen.id_zona,
-                            id_cuadrante=idle_q,
-                            fecha_hora=req_time,
-                            latitud=idle_lat,
-                            longitud=idle_lon,
-                            velocidad_kmh=round(float(self.rng.uniform(0.0, 22.0)), 2),
-                            estado_disponibilidad="disponible",
+                    idle_lat, idle_lon, idle_q, _ = self.sample_street_coordinate(origin_zone)
+                    telemetry.append(
+                        DriverTelemetry(
+                            telemetry_id=telemetry_counter,
+                            driver_id=driver.driver_id,
+                            trip_id=None,
+                            zone_id=origin_zone.zone_id,
+                            quadrant_id=idle_q,
+                            recorded_at=req_time,
+                            latitude=idle_lat,
+                            longitude=idle_lon,
+                            speed_kmh=round(float(self.rng.uniform(0.0, 22.0)), 2),
+                            availability_status="disponible",
                         )
                     )
                     telemetry_counter += 1
 
             if (day_idx + 1) % 60 == 0 or (day_idx + 1) == len(weather_df):
-                logger.info(f"Simulated {day_idx + 1}/{len(weather_df)} days... ({len(viajes)} rides generated)")
+                logger.info(f"Simulated {day_idx + 1}/{len(weather_df)} days... ({len(trips)} rides generated)")
 
-        logger.info(f"MoviGo simulation completed! Produced {len(viajes)} rides and {len(telemetria)} telemetry pings.")
-        return viajes, telemetria
+        logger.info(f"MoviGo simulation completed! Produced {len(trips)} rides and {len(telemetry)} telemetry pings.")
+        return trips, telemetry

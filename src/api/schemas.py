@@ -4,7 +4,7 @@ Todos los esquemas están documentados en español y contextualizados para las a
 del Proyecto Integrador (Bases de Datos Analíticas, Estadística II, Métodos Numéricos y Optimización).
 """
 
-from datetime import date, datetime
+from datetime import date as dt_date, date, datetime
 from typing import Generic, TypeVar
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -862,37 +862,37 @@ class EmbarqueExportacionOut(BaseModel):
 # =========================================================
 
 
-class CuadranteOut(BaseModel):
+class QuadrantOut(BaseModel):
     """Cuadrante cuadrado fino (~0.88 km x 0.88 km) dentro de una zona urbana de Managua."""
 
     model_config = ConfigDict(from_attributes=True)
 
-    id_cuadrante: int = Field(
+    quadrant_id: int = Field(
         ...,
         description="Identificador único numérico del cuadrante cuadrado en la grilla de Managua (1 a 92).",
         examples=[53],
     )
-    id_zona: int = Field(
+    zone_id: int = Field(
         ...,
         description="Clave foránea de la zona urbana padre a la que pertenece el cuadrante (1 a 12).",
         examples=[11],
     )
-    codigo_cuadrante: str = Field(
+    quadrant_code: str = Field(
         ...,
         description="Código corto estandarizado del cuadrante y su zona urbana.",
         examples=["Q53-Z11"],
     )
-    nombre_cuadrante: str = Field(
+    quadrant_name: str = Field(
         ...,
         description="Nombre descriptivo de la zona, cuadrante y coordenadas de fila/columna en la grilla.",
         examples=["Mercado Oriental - Cuadrante Q53 (F7C9)"],
     )
-    fila_grid: int = Field(
+    grid_row: int = Field(
         ...,
         description="Índice de fila de sur a norte en la grilla espacial de Managua.",
         examples=[6],
     )
-    columna_grid: int = Field(
+    grid_col: int = Field(
         ...,
         description="Índice de columna de oeste a este en la grilla espacial de Managua.",
         examples=[8],
@@ -917,477 +917,478 @@ class CuadranteOut(BaseModel):
         description="Límite este de longitud del cuadrante cuadrado (WGS84).",
         examples=[-86.244],
     )
-    altitud_media_msnm: int = Field(
+    mean_altitude_masl: int = Field(
         ...,
         description="Altitud media sobre el nivel del mar en metros (msnm). Determina el drenaje sur-norte.",
         examples=[58],
     )
-    riesgo_inundacion: str = Field(
+    flood_risk: str = Field(
         ...,
         description="Nivel de vulnerabilidad a anegamientos por cauces ('bajo', 'medio', 'alto', 'critico').",
         examples=["critico"],
     )
-    cauces_principales: str = Field(
+    main_drainage_channels: str = Field(
         ...,
         description="Principales cauces pluviales, pasos a desnivel y arterias dentro o contiguas al cuadrante.",
         examples=["Cauce Oriental / Gancho de Camino"],
     )
 
 
-class ZonaUrbanaOut(BaseModel):
+class UrbanZoneOut(BaseModel):
     """Zona urbana comercial y de tarifación en Managua (agrupa múltiples cuadrantes cuadrados)."""
 
     model_config = ConfigDict(from_attributes=True)
 
-    id_zona: int = Field(
+    zone_id: int = Field(
         ...,
         description="Identificador único numérico de la zona urbana de Managua (1 a 12).",
         examples=[1],
     )
-    nombre_zona: str = Field(
+    zone_name: str = Field(
         ...,
         description="Nombre comercial o referencia urbana (ej. Metrocentro, Villa Fontana, Mercado Oriental).",
         examples=["Villa Fontana"],
     )
-    estrato_socioeconomico: str = Field(
+    socioeconomic_stratum: str = Field(
         ...,
-        description="Estrato económico del cuadrante ('alto', 'medio', 'popular', 'comercial').",
+        description="Estrato económico de la zona urbana ('alto', 'medio', 'popular', 'comercial').",
         examples=["comercial"],
     )
-    latitud: float = Field(
+    latitude: float = Field(
         ...,
         description="Latitud geográfica del centroide de la zona en grados decimales WGS84.",
         examples=[12.1275],
     )
-    longitud: float = Field(
+    longitude: float = Field(
         ...,
         description="Longitud geográfica del centroide de la zona en grados decimales WGS84.",
         examples=[-86.2658],
     )
-    radio_cobertura_km: float = Field(
+    coverage_radius_km: float = Field(
         ...,
         description="Radio operativo de cobertura en kilómetros (km).",
         examples=[2.5],
     )
-    tarifa_base_bajada_bandera: float = Field(
+    base_flag_drop_fare: float = Field(
         ...,
         description="Tarifa base fija de bajada de bandera al iniciar el viaje en Córdobas (NIO).",
         examples=[35.0],
     )
 
 
-class UsuarioOut(BaseModel):
+class UserOut(BaseModel):
     """Pasajero registrado en la aplicación de transporte."""
 
     model_config = ConfigDict(from_attributes=True)
 
-    id_usuario: int = Field(
+    user_id: int = Field(
         ...,
         description="Identificador único numérico del pasajero en la plataforma.",
         examples=[501],
     )
-    nombre: str = Field(
+    name: str = Field(
         ...,
         description="Nombre completo del usuario pasajero.",
         examples=["Sofía Morales"],
     )
-    telefono: str = Field(
+    phone: str = Field(
         ...,
         description="Número de teléfono móvil de contacto (+505).",
         examples=["+505 8899-1122"],
     )
-    metodo_pago_preferido: str = Field(
+    preferred_payment_method: str = Field(
         ...,
         description="Modalidad de pago configurada ('efectivo', 'tarjeta', 'billetera_digital').",
         examples=["tarjeta"],
     )
-    calificacion_promedio: float = Field(
+    average_rating: float = Field(
         ...,
         description="Calificación promedio histórica como pasajero (escala 1.0 a 5.0).",
         examples=[4.92],
     )
-    fecha_registro: date = Field(
+    registration_date: date = Field(
         ...,
         description="Fecha de creación de la cuenta en la plataforma (YYYY-MM-DD).",
         examples=["2023-08-14"],
     )
 
 
-class ConductorOut(BaseModel):
+class DriverOut(BaseModel):
     """Socio conductor y unidad vehicular registrada en la flota."""
 
     model_config = ConfigDict(from_attributes=True)
 
-    id_conductor: int = Field(
+    driver_id: int = Field(
         ...,
         description="Identificador único del socio conductor en la flota.",
         examples=[205],
     )
-    nombre: str = Field(
+    name: str = Field(
         ...,
         description="Nombre y apellido del conductor.",
         examples=["Ernesto Chamorro"],
     )
-    tipo_servicio: str = Field(
+    service_type: str = Field(
         ...,
         description="Categoría del servicio prestado ('movigo_estandar', 'movigo_comfort', 'movigo_moto').",
         examples=["movigo_estandar"],
     )
-    modelo_vehiculo: str = Field(
+    vehicle_model: str = Field(
         ...,
         description="Marca y modelo del automóvil o moto.",
         examples=["Toyota Yaris Sedan"],
     )
-    anio_vehiculo: int = Field(
+    vehicle_year: int = Field(
         ...,
         description="Año de fabricación del vehículo automotor.",
         examples=[2021],
     )
-    placa: str = Field(
+    license_plate: str = Field(
         ...,
-        description="Matrícula vehicular de Managua (ej. 'M 284-910').",
-        examples=["M 284-910"],
+        description="Matrícula vehicular de Managua (ej. 'M-123456').",
+        examples=["M-123456"],
     )
-    calificacion_promedio: float = Field(
+    average_rating: float = Field(
         ...,
         description="Calificación promedio histórica recibida de pasajeros (escala 1.0 a 5.0).",
         examples=[4.88],
     )
-    tasa_aceptacion_pct: float = Field(
+    acceptance_rate_pct: float = Field(
         ...,
-        description="Tasa histórica de aceptación de solicitudes de viaje (0.00 a 1.00).",
-        examples=[0.94],
+        description="Tasa histórica de aceptación de solicitudes de viaje en porcentaje (50.0 a 100.0).",
+        examples=[94.0],
     )
-    estado: str = Field(
+    status: str = Field(
         ...,
         description="Disponibilidad operativa actual ('activo', 'inactivo', 'en_viaje', 'desconectado').",
         examples=["activo"],
     )
 
 
-class CampanaIncentivoOut(BaseModel):
+class IncentiveCampaignOut(BaseModel):
     """Programa de bonos y estímulos para horas de conexión de conductores."""
 
     model_config = ConfigDict(from_attributes=True)
 
-    id_campana: int = Field(
+    campaign_id: int = Field(
         ...,
         description="Identificador único del programa de incentivos.",
         examples=[8],
     )
-    nombre_bono: str = Field(
+    bonus_name: str = Field(
         ...,
         description="Nombre del bono o reto operativo (ej. 'Bono Aguacero Nocturno').",
         examples=["Bono Aguacero Nocturno"],
     )
-    costo_presupuesto_nio: float = Field(
+    budget_cost_nio: float = Field(
         ...,
         description="Presupuesto asignado al bono en Córdobas (NIO). Peso en el problema de la Mochila.",
         examples=[12000.0],
     )
-    incremento_horas_conexion: float = Field(
+    online_hours_increase: float = Field(
         ...,
         description="Aumento estimado en horas de conexión activa. Retorno a maximizar en Optimización.",
         examples=[180.0],
     )
-    tipo_incentivo: str = Field(
+    incentive_type: str = Field(
         ...,
         description="Mecánica del incentivo ('meta_viajes', 'hora_pico_lluvia', 'zona_alta_demanda').",
         examples=["hora_pico_lluvia"],
     )
-    fecha_inicio: date = Field(
+    start_date: date = Field(
         ...,
         description="Fecha de inicio de la vigencia (YYYY-MM-DD).",
         examples=["2024-05-01"],
     )
-    fecha_fin: date = Field(
+    end_date: date = Field(
         ...,
         description="Fecha de cierre de la vigencia (YYYY-MM-DD).",
         examples=["2024-05-31"],
     )
-    estado: str = Field(
+    status: str = Field(
         ...,
         description="Estado del programa ('activa', 'finalizada').",
         examples=["activa"],
     )
 
 
-class ClimaCuadranteOut(BaseModel):
+class QuadrantWeatherOut(BaseModel):
     """Condición climática horaria, escorrentía de cauces e índice de congestión vehicular por cuadrante en Managua."""
 
     model_config = ConfigDict(from_attributes=True)
 
-    id_clima: int = Field(
+    weather_id: int = Field(
         ...,
         description="Identificador único del registro horario de clima por cuadrante.",
         examples=[1024],
     )
-    id_cuadrante: int = Field(
+    quadrant_id: int = Field(
         ...,
-        description="Clave foránea del macro-cuadrante geográfico monitoreado (1 a 6).",
-        examples=[4],
+        description="Clave foránea del cuadrante cuadrado geográfico monitoreado (1 a 92).",
+        examples=[53],
     )
-    fecha_hora: datetime = Field(
+    recorded_at: datetime = Field(
         ...,
         description="Marca de tiempo horaria del registro meteorológico y vial (ISO 8601).",
         examples=["2024-05-18T17:00:00"],
     )
-    fecha: date = Field(
+    date: dt_date = Field(
         ...,
         description="Fecha calendario de la observación (YYYY-MM-DD).",
         examples=["2024-05-18"],
     )
-    hora: int = Field(
+    hour: int = Field(
         ...,
         description="Hora del día en formato 24 horas (0 a 23).",
         examples=[17],
     )
-    precipitacion_mm: float = Field(
+    precipitation_mm: float = Field(
         ...,
         description="Milímetros de lluvia caída directamente sobre el cuadrante en esa hora (mm).",
         examples=[8.4],
     )
-    escorrentia_cauce_mm: float = Field(
+    channel_runoff_mm: float = Field(
         ...,
         description="Lámina de agua efectiva y escorrentía pluvial acumulada en cauces desde cuadrantes altos del sur (mm).",
         examples=[12.6],
     )
-    temperatura_c: float = Field(
+    temperature_c: float = Field(
         ...,
         description="Temperatura ambiente horaria en el cuadrante en grados Celsius (°C).",
         examples=[27.8],
     )
-    indice_congestion: float = Field(
+    congestion_index: float = Field(
         ...,
         description="Índice horario de saturación vial en el cuadrante (1.00 flujo libre a 3.95 colapso por inundación).",
         examples=[2.85],
     )
-    vias_anegadas: bool = Field(
+    flooded_roads: bool = Field(
         ...,
         description="Indica si la escorrentía superó el umbral de drenaje del cuadrante anegando calles y pasos a desnivel.",
         examples=[True],
     )
-    condicion_cielo: str = Field(
+    sky_condition: str = Field(
         ...,
         description="Condición atmosférica horaria ('despejado', 'nublado', 'lluvia_ligera', 'tormenta').",
         examples=["tormenta"],
     )
 
 
-class ViajeOut(BaseModel):
+class TripOut(BaseModel):
     """Registro transaccional de un viaje realizado en la plataforma MoviGo."""
 
     model_config = ConfigDict(from_attributes=True)
 
-    id_viaje: int = Field(
+    trip_id: int = Field(
         ...,
         description="Identificador único transaccional del viaje.",
         examples=[10042],
     )
-    id_usuario: int = Field(
+    user_id: int = Field(
         ...,
         description="Clave foránea del pasajero que solicitó el traslado.",
         examples=[501],
     )
-    id_conductor: int | None = Field(
+    driver_id: int | None = Field(
         default=None,
         description="Clave foránea del socio conductor que atendió el viaje.",
         examples=[205],
     )
-    id_zona_origen: int = Field(
+    origin_zone_id: int = Field(
         ...,
         description="Clave foránea de la zona urbana de origen (1 a 12).",
         examples=[1],
     )
-    id_zona_destino: int = Field(
+    destination_zone_id: int = Field(
         ...,
         description="Clave foránea de la zona urbana de destino (1 a 12).",
         examples=[4],
     )
-    id_cuadrante_origen: int = Field(
+    origin_quadrant_id: int = Field(
         ...,
         description="Clave foránea del cuadrante cuadrado exacto de origen en la grilla de Managua (1 a 92).",
         examples=[15],
     )
-    id_cuadrante_destino: int = Field(
+    destination_quadrant_id: int = Field(
         ...,
         description="Clave foránea del cuadrante cuadrado exacto de destino en la grilla de Managua (1 a 92).",
         examples=[41],
     )
-    latitud_origen: float = Field(
+    origin_latitude: float = Field(
         ...,
         description="Latitud exacta en la vía pública del punto de recogida (WGS84).",
         examples=[12.11542],
     )
-    longitud_origen: float = Field(
+    origin_longitude: float = Field(
         ...,
         description="Longitud exacta en la vía pública del punto de recogida (WGS84).",
         examples=[-86.25481],
     )
-    latitud_destino: float = Field(
+    destination_latitude: float = Field(
         ...,
         description="Latitud exacta en la vía pública del punto de destino (WGS84).",
         examples=[12.12834],
     )
-    longitud_destino: float = Field(
+    destination_longitude: float = Field(
         ...,
         description="Longitud exacta en la vía pública del punto de destino (WGS84).",
         examples=[-86.26512],
     )
-    fecha_hora_solicitud: datetime = Field(
+    requested_at: datetime = Field(
         ...,
         description="Marca de tiempo en que el pasajero pidió el viaje (ISO 8601).",
         examples=["2024-05-18T17:45:00"],
     )
-    fecha_hora_inicio: datetime | None = Field(
+    started_at: datetime | None = Field(
         default=None,
         description="Marca de tiempo en que el conductor abordó al pasajero.",
         examples=["2024-05-18T17:52:00"],
     )
-    fecha_hora_fin: datetime | None = Field(
+    completed_at: datetime | None = Field(
         default=None,
         description="Marca de tiempo de finalización del viaje en destino.",
         examples=["2024-05-18T18:22:00"],
     )
-    tiempo_espera_minutos: float = Field(
+    wait_time_minutes: float = Field(
         ...,
         description="Tiempo de espera de despacho desde la solicitud hasta el arribo o cancelación en minutos.",
         examples=[7.0],
     )
-    distancia_km: float = Field(
+    distance_km: float = Field(
         ...,
         description="Distancia real del trayecto en kilómetros (km).",
         examples=[6.8],
     )
-    duracion_minutos: float = Field(
+    duration_minutes: float = Field(
         ...,
         description="Tiempo total transcurrido del viaje en minutos.",
         examples=[30.0],
     )
-    tarifa_bajada_bandera: float = Field(
+    flag_drop_fare: float = Field(
         ...,
         description="Tarifa de arranque o bajada de bandera según la zona de origen en Córdobas (NIO).",
         examples=[70.0],
     )
-    cargo_distancia: float = Field(
+    distance_charge: float = Field(
         ...,
-        description="Componente tarifario por kilómetros recorridos (18.00 NIO * distancia_km).",
+        description="Componente tarifario por kilómetros recorridos (18.00 NIO * distance_km).",
         examples=[122.4],
     )
-    cargo_tiempo: float = Field(
+    time_charge: float = Field(
         ...,
-        description="Componente tarifario por minutos de viaje (4.50 NIO * duracion_minutos).",
+        description="Componente tarifario por minutos de viaje (4.50 NIO * duration_minutes).",
         examples=[135.0],
     )
-    tarifa_base: float = Field(
+    base_fare: float = Field(
         ...,
         description="Tarifa base regular antes de aplicar recargos dinámicos (bajada + distancia + tiempo) en Córdobas (NIO).",
         examples=[327.4],
     )
-    multiplicador_dinamico: float = Field(
+    surge_multiplier: float = Field(
         ...,
         description="Factor multiplicador por alta demanda o lluvia (surge pricing, 1.00x a 3.20x).",
         examples=[1.35],
     )
-    tarifa_final: float = Field(
+    final_fare: float = Field(
         ...,
-        description="Monto final efectivamente facturado al pasajero (tarifa_base * multiplicador_dinamico) en Córdobas (NIO).",
+        description="Monto final efectivamente facturado al pasajero (base_fare * surge_multiplier) en Córdobas (NIO).",
         examples=[441.99],
     )
-    solicitudes_activas_origen: int = Field(
+    origin_active_requests: int = Field(
         ...,
-        description="Demanda activa instantánea (Dt) de viajes en el cuadrante de origen en esa hora.",
+        description="Demanda activa instantánea (Dt) de viajes en la zona de origen en esa hora.",
         examples=[42],
     )
-    conductores_disponibles_origen: int = Field(
+    origin_available_drivers: int = Field(
         ...,
-        description="Oferta instantánea (St) de conductores disponibles en el cuadrante de origen en esa hora.",
+        description="Oferta instantánea (St) de conductores disponibles en la zona de origen en esa hora.",
         examples=[28],
     )
-    metodo_pago: str = Field(
+    payment_method: str = Field(
         ...,
         description="Modalidad de pago ('efectivo', 'tarjeta', 'billetera_digital').",
         examples=["tarjeta"],
     )
-    estado_viaje: str = Field(
+    trip_status: str = Field(
         ...,
         description="Estado final del servicio ('completado', 'cancelado_usuario', 'cancelado_conductor', 'no_asignado').",
         examples=["completado"],
     )
-    calificacion_usuario: float | None = Field(
+    user_rating: float | None = Field(
         default=None,
         description="Puntuación otorgada por el conductor al pasajero (1.0 a 5.0).",
         examples=[5.0],
     )
-    calificacion_conductor: float | None = Field(
+    driver_rating: float | None = Field(
         default=None,
         description="Puntuación otorgada por el pasajero al conductor (1.0 a 5.0).",
         examples=[4.9],
     )
-    propina: float = Field(
+    tip_amount: float = Field(
         default=0.0,
         description="Monto voluntario de gratificación dejado al conductor en Córdobas (NIO).",
         examples=[20.0],
     )
-    motivo_cancelacion: str | None = Field(
+    cancellation_reason: str | None = Field(
         default=None,
         description="Motivo categórico registrado en caso de viaje cancelado.",
         examples=[None],
     )
 
 
-class TelemetriaConductorOut(BaseModel):
+class DriverTelemetryOut(BaseModel):
     """Ping de telemetría GPS vehicular y velocidad en tiempo real."""
 
     model_config = ConfigDict(from_attributes=True)
 
-    id_telemetria: int = Field(
+    telemetry_id: int = Field(
         ...,
         description="Identificador único del registro de telemetría GPS.",
         examples=[99001],
     )
-    id_conductor: int = Field(
+    driver_id: int = Field(
         ...,
         description="Clave foránea del conductor monitoreado.",
         examples=[205],
     )
-    id_viaje: int | None = Field(
+    trip_id: int | None = Field(
         default=None,
         description="Clave foránea del viaje activo asociado al ping GPS (None cuando el conductor está disponible).",
         examples=[10042],
     )
-    id_zona: int = Field(
+    zone_id: int = Field(
         ...,
         description="Clave foránea de la zona urbana donde se captó la señal (1 a 12).",
         examples=[1],
     )
-    id_cuadrante: int = Field(
+    quadrant_id: int = Field(
         ...,
         description="Clave foránea del cuadrante cuadrado exacto donde se captó la señal GPS (1 a 92).",
         examples=[15],
     )
-    fecha_hora: datetime = Field(
+    recorded_at: datetime = Field(
         ...,
         description="Marca de tiempo precisa de emisión del ping GPS (ISO 8601).",
         examples=["2024-05-18T18:00:15"],
     )
-    latitud: float = Field(
+    latitude: float = Field(
         ...,
         description="Coordenada de latitud en grados decimales WGS84 sobre la red vial.",
         examples=[12.1288],
     )
-    longitud: float = Field(
+    longitude: float = Field(
         ...,
         description="Coordenada de longitud en grados decimales WGS84 sobre la red vial.",
         examples=[-86.2642],
     )
-    velocidad_kmh: float = Field(
+    speed_kmh: float = Field(
         ...,
         description="Velocidad instantánea registrada por el GPS en kilómetros por hora (km/h).",
         examples=[34.5],
     )
-    estado_disponibilidad: str = Field(
+    availability_status: str = Field(
         ...,
         description="Estado del conductor en ese instante ('disponible', 'ocupado', 'en_camino_recogida').",
         examples=["ocupado"],
     )
+

@@ -1,21 +1,21 @@
 {
-  "motivos_cancelacion": [
+  "cancellation_reasons": [
     "Tarifa dinámica sobrepasa presupuesto",
     "Tiempo de llegada excesivo",
     "Vía anegada / cauce intransitable",
     "Conductor no avanza",
     "Falla mecánica / imprevisto del conductor"
   ],
-  "motivos_cancelacion_conductor": [
+  "driver_cancellation_reasons": [
     "Vía anegada / cauce intransitable",
     "Falla mecánica / imprevisto del conductor"
   ],
-  "motivos_cancelacion_usuario": [
+  "user_cancellation_reasons": [
     "Tarifa dinámica sobrepasa presupuesto",
     "Tiempo de llegada excesivo",
     "Conductor no avanza"
   ],
-  "comentarios_viaje": [
+  "trip_comments": [
     "Excelente servicio, el conductor muy amable y puso buena música de los Chavalos del K-B.",
     "El carro olía a nuevo y tenía aire acondicionado a todo dar, nítido.",
     "Manejaba un poco arrebatado por la Pista Suburbana, pero llegamos a tiempo.",

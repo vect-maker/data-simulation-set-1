@@ -1,0 +1,122 @@
+[
+  {
+    "campaign_id": 1,
+    "bonus_name": "Bono Verano Sandino",
+    "budget_cost_nio": 15000.0,
+    "online_hours_increase": 350.0,
+    "incentive_type": "meta_viajes",
+    "start_date": "2024-01-01",
+    "end_date": "2024-01-31",
+    "status": "finalizada"
+  },
+  {
+    "campaign_id": 2,
+    "bonus_name": "Incentivo Lluvia Masaya",
+    "budget_cost_nio": 25000.0,
+    "online_hours_increase": 600.0,
+    "incentive_type": "hora_pico_lluvia",
+    "start_date": "2024-02-01",
+    "end_date": "2024-02-29",
+    "status": "finalizada"
+  },
+  {
+    "campaign_id": 3,
+    "bonus_name": "Fiebre de Quincena",
+    "budget_cost_nio": 30000.0,
+    "online_hours_increase": 800.0,
+    "incentive_type": "zona_alta_demanda",
+    "start_date": "2024-03-01",
+    "end_date": "2024-03-31",
+    "status": "finalizada"
+  },
+  {
+    "campaign_id": 4,
+    "bonus_name": "Super Meta Pascua",
+    "budget_cost_nio": 40000.0,
+    "online_hours_increase": 1000.0,
+    "incentive_type": "meta_viajes",
+    "start_date": "2024-04-01",
+    "end_date": "2024-04-30",
+    "status": "finalizada"
+  },
+  {
+    "campaign_id": 5,
+    "bonus_name": "Bono Mayo Ya",
+    "budget_cost_nio": 22000.0,
+    "online_hours_increase": 500.0,
+    "incentive_type": "zona_alta_demanda",
+    "start_date": "2024-05-01",
+    "end_date": "2024-05-31",
+    "status": "finalizada"
+  },
+  {
+    "campaign_id": 6,
+    "bonus_name": "Invierno Seguro MoviGo",
+    "budget_cost_nio": 35000.0,
+    "online_hours_increase": 900.0,
+    "incentive_type": "hora_pico_lluvia",
+    "start_date": "2024-06-01",
+    "end_date": "2024-06-30",
+    "status": "finalizada"
+  },
+  {
+    "campaign_id": 7,
+    "bonus_name": "Revolución 19 de Julio",
+    "budget_cost_nio": 45000.0,
+    "online_hours_increase": 1150.0,
+    "incentive_type": "meta_viajes",
+    "start_date": "2024-07-01",
+    "end_date": "2024-07-31",
+    "status": "finalizada"
+  },
+  {
+    "campaign_id": 8,
+    "bonus_name": "Agosto de Fiestas Patronales",
+    "budget_cost_nio": 50000.0,
+    "online_hours_increase": 1200.0,
+    "incentive_type": "zona_alta_demanda",
+    "start_date": "2024-08-01",
+    "end_date": "2024-08-31",
+    "status": "finalizada"
+  },
+  {
+    "campaign_id": 9,
+    "bonus_name": "Patria para Todos",
+    "budget_cost_nio": 28000.0,
+    "online_hours_increase": 700.0,
+    "incentive_type": "meta_viajes",
+    "start_date": "2024-09-01",
+    "end_date": "2024-09-30",
+    "status": "activa"
+  },
+  {
+    "campaign_id": 10,
+    "bonus_name": "Octubre Lluvioso",
+    "budget_cost_nio": 32000.0,
+    "online_hours_increase": 850.0,
+    "incentive_type": "hora_pico_lluvia",
+    "start_date": "2024-10-01",
+    "end_date": "2024-10-31",
+    "status": "activa"
+  },
+  {
+    "campaign_id": 11,
+    "bonus_name": "Día de Difuntos y Brisa",
+    "budget_cost_nio": 20000.0,
+    "online_hours_increase": 450.0,
+    "incentive_type": "zona_alta_demanda",
+    "start_date": "2024-11-01",
+    "end_date": "2024-11-30",
+    "status": "activa"
+  },
+  {
+    "campaign_id": 12,
+    "bonus_name": "Aguinaldo MoviGo 2024",
+    "budget_cost_nio": 50000.0,
+    "online_hours_increase": 1200.0,
+    "incentive_type": "meta_viajes",
+    "start_date": "2024-12-01",
+    "end_date": "2024-12-31",
+    "status": "activa"
+  }
+]

@@ -87,77 +87,77 @@ class TestRelationalIntegrity(unittest.TestCase):
             self.assertGreater(e.total_usd, 0.0)
 
     def test_movigo_integrity(self):
-        weather_df, clima_records = get_movigo_weather_series()
+        weather_df, weather_records = get_movigo_weather_series()
         weather_df = weather_df.head(3)
 
         engine = MoviGoSimulationEngine(random_seed=42)
-        viajes, telemetria = engine.run_simulation(weather_df)
+        trips, telemetry = engine.run_simulation(weather_df)
 
-        valid_cuadrantes = {q.id_cuadrante: q for q in engine.cuadrantes}
-        valid_zonas = {z.id_zona for z in engine.zonas}
-        valid_usuarios = {u.id_usuario for u in engine.usuarios}
-        valid_conductores = {c.id_conductor for c in engine.conductores}
-        valid_viajes = {v.id_viaje for v in viajes}
+        valid_quadrants = {q.quadrant_id: q for q in engine.quadrants}
+        valid_zones = {z.zone_id for z in engine.zones}
+        valid_users = {u.user_id for u in engine.users}
+        valid_drivers = {c.driver_id for c in engine.drivers}
+        valid_trips = {v.trip_id for v in trips}
 
-        self.assertEqual(len(engine.cuadrantes), 92)
-        det_zonas, det_cuadrantes, _ = generate_deterministic_spatial_seeds(dry_run=True)
-        self.assertEqual([z.model_dump() for z in det_zonas], [z.model_dump() for z in engine.zonas])
-        self.assertEqual([q.model_dump() for q in det_cuadrantes], [q.model_dump() for q in engine.cuadrantes])
-        for q in engine.cuadrantes:
-            self.assertIn(q.id_zona, valid_zonas)
+        self.assertEqual(len(engine.quadrants), 92)
+        det_zones, det_quadrants, _ = generate_deterministic_spatial_seeds(dry_run=True)
+        self.assertEqual([z.model_dump() for z in det_zones], [z.model_dump() for z in engine.zones])
+        self.assertEqual([q.model_dump() for q in det_quadrants], [q.model_dump() for q in engine.quadrants])
+        for q in engine.quadrants:
+            self.assertIn(q.zone_id, valid_zones)
 
-        for c in clima_records[:184]:
-            self.assertIn(c.id_cuadrante, valid_cuadrantes)
-            self.assertTrue(0 <= c.hora <= 23)
-            self.assertGreaterEqual(c.escorrentia_cauce_mm, 0.0)
+        for c in weather_records[:184]:
+            self.assertIn(c.quadrant_id, valid_quadrants)
+            self.assertTrue(0 <= c.hour <= 23)
+            self.assertGreaterEqual(c.channel_runoff_mm, 0.0)
 
-        for v in viajes:
-            self.assertIn(v.id_usuario, valid_usuarios)
-            if v.id_conductor is not None:
-                self.assertIn(v.id_conductor, valid_conductores)
-            self.assertIn(v.id_zona_origen, valid_zonas)
-            self.assertIn(v.id_zona_destino, valid_zonas)
-            self.assertIn(v.id_cuadrante_origen, valid_cuadrantes)
-            self.assertIn(v.id_cuadrante_destino, valid_cuadrantes)
-            qo = valid_cuadrantes[v.id_cuadrante_origen]
-            qd = valid_cuadrantes[v.id_cuadrante_destino]
-            self.assertEqual(qo.id_zona, v.id_zona_origen)
-            self.assertEqual(qd.id_zona, v.id_zona_destino)
-            self.assertTrue(qo.lat_min <= v.latitud_origen <= qo.lat_max)
-            self.assertTrue(qo.lon_min <= v.longitud_origen <= qo.lon_max)
-            self.assertTrue(qd.lat_min <= v.latitud_destino <= qd.lat_max)
-            self.assertTrue(qd.lon_min <= v.longitud_destino <= qd.lon_max)
-            self.assertGreaterEqual(v.tiempo_espera_minutos, 0.0)
-            self.assertGreaterEqual(v.distancia_km, 0.0)
-            self.assertGreaterEqual(v.duracion_minutos, 0.0)
+        for v in trips:
+            self.assertIn(v.user_id, valid_users)
+            if v.driver_id is not None:
+                self.assertIn(v.driver_id, valid_drivers)
+            self.assertIn(v.origin_zone_id, valid_zones)
+            self.assertIn(v.destination_zone_id, valid_zones)
+            self.assertIn(v.origin_quadrant_id, valid_quadrants)
+            self.assertIn(v.destination_quadrant_id, valid_quadrants)
+            qo = valid_quadrants[v.origin_quadrant_id]
+            qd = valid_quadrants[v.destination_quadrant_id]
+            self.assertEqual(qo.zone_id, v.origin_zone_id)
+            self.assertEqual(qd.zone_id, v.destination_zone_id)
+            self.assertTrue(qo.lat_min <= v.origin_latitude <= qo.lat_max)
+            self.assertTrue(qo.lon_min <= v.origin_longitude <= qo.lon_max)
+            self.assertTrue(qd.lat_min <= v.destination_latitude <= qd.lat_max)
+            self.assertTrue(qd.lon_min <= v.destination_longitude <= qd.lon_max)
+            self.assertGreaterEqual(v.wait_time_minutes, 0.0)
+            self.assertGreaterEqual(v.distance_km, 0.0)
+            self.assertGreaterEqual(v.duration_minutes, 0.0)
             self.assertAlmostEqual(
-                v.tarifa_base,
-                v.tarifa_bajada_bandera + v.cargo_distancia + v.cargo_tiempo,
+                v.base_fare,
+                v.flag_drop_fare + v.distance_charge + v.time_charge,
                 delta=0.02,
             )
-            self.assertGreaterEqual(v.multiplicador_dinamico, 1.0)
+            self.assertGreaterEqual(v.surge_multiplier, 1.0)
             self.assertAlmostEqual(
-                v.tarifa_final,
-                round(v.tarifa_base * v.multiplicador_dinamico, 2),
+                v.final_fare,
+                round(v.base_fare * v.surge_multiplier, 2),
                 delta=0.02,
             )
-            self.assertGreaterEqual(v.solicitudes_activas_origen, 1)
-            self.assertGreaterEqual(v.conductores_disponibles_origen, 1)
+            self.assertGreaterEqual(v.origin_active_requests, 1)
+            self.assertGreaterEqual(v.origin_available_drivers, 1)
 
-        for t in telemetria:
-            self.assertIn(t.id_conductor, valid_conductores)
-            self.assertIn(t.id_zona, valid_zonas)
-            self.assertIn(t.id_cuadrante, valid_cuadrantes)
-            qt = valid_cuadrantes[t.id_cuadrante]
-            self.assertEqual(qt.id_zona, t.id_zona)
-            self.assertTrue(qt.lat_min <= t.latitud <= qt.lat_max)
-            self.assertTrue(qt.lon_min <= t.longitud <= qt.lon_max)
-            self.assertGreaterEqual(t.velocidad_kmh, 0.0)
-            self.assertIn(t.estado_disponibilidad, ["disponible", "ocupado", "en_camino_recogida"])
-            if t.estado_disponibilidad == "disponible":
-                self.assertIsNone(t.id_viaje)
+        for t in telemetry:
+            self.assertIn(t.driver_id, valid_drivers)
+            self.assertIn(t.zone_id, valid_zones)
+            self.assertIn(t.quadrant_id, valid_quadrants)
+            qt = valid_quadrants[t.quadrant_id]
+            self.assertEqual(qt.zone_id, t.zone_id)
+            self.assertTrue(qt.lat_min <= t.latitude <= qt.lat_max)
+            self.assertTrue(qt.lon_min <= t.longitude <= qt.lon_max)
+            self.assertGreaterEqual(t.speed_kmh, 0.0)
+            self.assertIn(t.availability_status, ["disponible", "ocupado", "en_camino_recogida"])
+            if t.availability_status == "disponible":
+                self.assertIsNone(t.trip_id)
             else:
-                self.assertIn(t.id_viaje, valid_viajes)
+                self.assertIn(t.trip_id, valid_trips)
 
     def test_movigo_deterministic_reproducibility(self):
         import numpy as np

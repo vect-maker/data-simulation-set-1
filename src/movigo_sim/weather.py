@@ -2,9 +2,9 @@
 
 Models Managua's 92 fine-grained square quadrants (~0.88 km x 0.88 km) grouped inside the 12 urban zones:
 - Localized convective storm cells (Southern Sierras, Eastern Corridor, Western Lakefront, City-Wide Squalls)
-- Topographical runoff (escorrentia_cauce_mm) draining from high-altitude southern quadrants (Sierras / Santo Domingo / Las Colinas)
+- Topographical runoff (channel_runoff_mm) draining from high-altitude southern quadrants (Sierras / Santo Domingo / Las Colinas)
   into low-lying northern basins (Mercado Oriental, Ciudad Jardín, Bello Horizonte, Linda Vista)
-- Street flooding flags (vias_anegadas) when runoff exceeds quadrant drainage capacity
+- Street flooding flags (flooded_roads) when runoff exceeds quadrant drainage capacity
 """
 
 import json
@@ -28,7 +28,7 @@ from movigo_sim.config import (
     RAW_DATA_DIR,
     DETERMINISTIC_SEEDS_DIR,
 )
-from movigo_sim.models import Cuadrante, ClimaCuadrantes
+from movigo_sim.models import Quadrant, QuadrantWeather
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +40,8 @@ RISK_FLOOD_THRESHOLD_MM: dict[str, float] = {
 }
 
 
-class VectorizedClimaRecords:
-    """List-compatible sequence of ClimaCuadrantes backed by a vectorized DataFrame for instant CSV export."""
+class VectorizedWeatherRecords:
+    """List-compatible sequence of QuadrantWeather backed by a vectorized DataFrame for instant CSV export."""
 
     def __init__(self, df: pd.DataFrame):
         self._df = df
@@ -49,9 +49,9 @@ class VectorizedClimaRecords:
     def to_dataframe(self) -> pd.DataFrame:
         return self._df
 
-    def filter_dates(self, valid_dates: set[date]) -> "VectorizedClimaRecords":
-        filtered = self._df[self._df["fecha"].isin(valid_dates)].reset_index(drop=True)
-        return VectorizedClimaRecords(filtered)
+    def filter_dates(self, valid_dates: set[date]) -> "VectorizedWeatherRecords":
+        filtered = self._df[self._df["date"].isin(valid_dates)].reset_index(drop=True)
+        return VectorizedWeatherRecords(filtered)
 
     def __len__(self) -> int:
         return len(self._df)
@@ -59,19 +59,19 @@ class VectorizedClimaRecords:
     def __bool__(self) -> bool:
         return not self._df.empty
 
-    def _row_to_model(self, row: Any) -> ClimaCuadrantes:
-        return ClimaCuadrantes.model_construct(
-            id_clima=int(row.id_clima),
-            id_cuadrante=int(row.id_cuadrante),
-            fecha_hora=row.fecha_hora if isinstance(row.fecha_hora, datetime) else datetime.fromisoformat(str(row.fecha_hora)),
-            fecha=row.fecha,
-            hora=int(row.hora),
-            precipitacion_mm=float(row.precipitacion_mm),
-            escorrentia_cauce_mm=float(row.escorrentia_cauce_mm),
-            temperatura_c=float(row.temperatura_c),
-            indice_congestion=float(row.indice_congestion),
-            vias_anegadas=bool(row.vias_anegadas),
-            condicion_cielo=str(row.condicion_cielo),
+    def _row_to_model(self, row: Any) -> QuadrantWeather:
+        return QuadrantWeather.model_construct(
+            weather_id=int(row.weather_id),
+            quadrant_id=int(row.quadrant_id),
+            recorded_at=row.recorded_at if isinstance(row.recorded_at, datetime) else datetime.fromisoformat(str(row.recorded_at)),
+            date=row.date,
+            hour=int(row.hour),
+            precipitation_mm=float(row.precipitation_mm),
+            channel_runoff_mm=float(row.channel_runoff_mm),
+            temperature_c=float(row.temperature_c),
+            congestion_index=float(row.congestion_index),
+            flooded_roads=bool(row.flooded_roads),
+            sky_condition=str(row.sky_condition),
         )
 
     def __getitem__(self, item: int | slice) -> Any:
@@ -86,11 +86,11 @@ class VectorizedClimaRecords:
             yield self._row_to_model(r)
 
 
-def load_cuadrantes_catalog() -> list[Cuadrante]:
+def load_quadrants_catalog() -> list[Quadrant]:
     """Load the 92 Managua fine-grained square quadrants from deterministic seed fixture."""
-    path = DETERMINISTIC_SEEDS_DIR / "cuadrantes.json"
+    path = DETERMINISTIC_SEEDS_DIR / "quadrants.json"
     with open(path, encoding="utf-8") as f:
-        return [Cuadrante(**c) for c in json.load(f)]
+        return [Quadrant(**c) for c in json.load(f)]
 
 
 def map_sky_condition(precip_mm: float, weather_code: int) -> str:
@@ -219,11 +219,11 @@ fetch_open_meteo_managua_series = fetch_movigo_weather_archive
 def build_hourly_quadrant_climate(
     raw_json: dict[str, Any],
     seed: int = SIMULATION_SEED,
-) -> tuple[VectorizedClimaRecords, dict[str, Any]]:
+) -> tuple[VectorizedWeatherRecords, dict[str, Any]]:
     """Build vectorized hourly per-quadrant climate, cauce runoff, and congestion across all 92 square quadrants."""
     rng = np.random.default_rng(seed)
-    cuadrantes = load_cuadrantes_catalog()
-    n_quads = len(cuadrantes)
+    quadrants = load_quadrants_catalog()
+    n_quads = len(quadrants)
 
     if "hourly" in raw_json and "time" in raw_json["hourly"]:
         hourly = raw_json["hourly"]
@@ -241,11 +241,11 @@ def build_hourly_quadrant_climate(
 
     num_hours = len(h_times)
 
-    # Spatial coordinates, elevation, and drainage properties of each of the 92 square cuadrantes
-    clats = np.array([0.5 * (c.lat_min + c.lat_max) for c in cuadrantes], dtype=float)
-    clons = np.array([0.5 * (c.lon_min + c.lon_max) for c in cuadrantes], dtype=float)
-    alts = np.array([float(c.altitud_media_msnm) for c in cuadrantes], dtype=float)
-    flood_thresholds = np.array([RISK_FLOOD_THRESHOLD_MM[c.riesgo_inundacion] for c in cuadrantes], dtype=float)
+    # Spatial coordinates, elevation, and drainage properties of each of the 92 square quadrants
+    clats = np.array([0.5 * (c.lat_min + c.lat_max) for c in quadrants], dtype=float)
+    clons = np.array([0.5 * (c.lon_min + c.lon_max) for c in quadrants], dtype=float)
+    alts = np.array([float(c.mean_altitude_masl) for c in quadrants], dtype=float)
+    flood_thresholds = np.array([RISK_FLOOD_THRESHOLD_MM[c.flood_risk] for c in quadrants], dtype=float)
 
     # Temperature lapse rate relative to central Managua (~105 msnm): cooler in Southern Sierras, warmer near Lake
     temp_offsets = np.round((105.0 - alts) * 0.011, 2)
@@ -267,9 +267,9 @@ def build_hourly_quadrant_climate(
     drain_matrix = np.zeros((n_quads, n_quads), dtype=float)
     for q_down in range(n_quads):
         low_factor = max(0.0, (235.0 - alts[q_down]) / 185.0)
-        if cuadrantes[q_down].riesgo_inundacion == "critico":
+        if quadrants[q_down].flood_risk == "critico":
             low_factor *= 1.35
-        elif cuadrantes[q_down].riesgo_inundacion == "alto":
+        elif quadrants[q_down].flood_risk == "alto":
             low_factor *= 1.15
         weights = np.zeros(n_quads, dtype=float)
         for q_up in range(n_quads):
@@ -346,21 +346,21 @@ def build_hourly_quadrant_climate(
 
     # Flatten (num_hours, n_quads) into the relational DataFrame (808,128 rows)
     total_rows = num_hours * n_quads
-    quad_ids = np.array([c.id_cuadrante for c in cuadrantes], dtype=np.int32)
+    quad_ids = np.array([c.quadrant_id for c in quadrants], dtype=np.int32)
     formatted_fh = np.array([dt.strftime("%Y-%m-%d %H:%M:%S") for dt in dt_objs], dtype=object)
 
-    df_clima = pd.DataFrame({
-        "id_clima": np.arange(1, total_rows + 1, dtype=np.int32),
-        "id_cuadrante": np.tile(quad_ids, num_hours),
-        "fecha_hora": np.repeat(formatted_fh, n_quads),
-        "fecha": np.repeat(dates_arr, n_quads),
-        "hora": np.repeat(hours_arr, n_quads),
-        "precipitacion_mm": rain_q.ravel(),
-        "escorrentia_cauce_mm": runoff_q.ravel(),
-        "temperatura_c": temp_q.ravel(),
-        "indice_congestion": cong_q.ravel(),
-        "vias_anegadas": flooded_q.ravel(),
-        "condicion_cielo": sky_q.ravel(),
+    df_weather = pd.DataFrame({
+        "weather_id": np.arange(1, total_rows + 1, dtype=np.int32),
+        "quadrant_id": np.tile(quad_ids, num_hours),
+        "recorded_at": np.repeat(formatted_fh, n_quads),
+        "date": np.repeat(dates_arr, n_quads),
+        "hour": np.repeat(hours_arr, n_quads),
+        "precipitation_mm": rain_q.ravel(),
+        "channel_runoff_mm": runoff_q.ravel(),
+        "temperature_c": temp_q.ravel(),
+        "congestion_index": cong_q.ravel(),
+        "flooded_roads": flooded_q.ravel(),
+        "sky_condition": sky_q.ravel(),
     })
 
     date_hour_to_idx = {(dates_arr[t], int(hours_arr[t])): t for t in range(num_hours)}
@@ -372,7 +372,7 @@ def build_hourly_quadrant_climate(
         "flooded": flooded_q,
     }
 
-    return VectorizedClimaRecords(df_clima), hourly_matrices
+    return VectorizedWeatherRecords(df_weather), hourly_matrices
 
 
 def parse_movigo_weather_dataframe(
@@ -398,19 +398,19 @@ def parse_movigo_weather_dataframe(
         sky_conditions.append("tormenta" if p >= 15.0 else ("lluvia_ligera" if p > 0.5 else ("nublado" if c in [1, 2, 3] else "despejado")))
 
     return pd.DataFrame({
-        "fecha": dates,
-        "precipitacion_mm": precip,
-        "temperatura_c": temps,
-        "indice_congestion": congestion_indices,
-        "condicion_cielo": sky_conditions,
+        "date": dates,
+        "precipitation_mm": precip,
+        "temperature_c": temps,
+        "congestion_index": congestion_indices,
+        "sky_condition": sky_conditions,
     })
 
 
 def get_movigo_weather_series(
     force_refresh: bool = False,
     seed: int = SIMULATION_SEED,
-) -> tuple[pd.DataFrame, VectorizedClimaRecords]:
-    """Retrieve full 2024 daily driver DataFrame (with attached hourly quadrant matrices) and hourly ClimaCuadrantes records."""
+) -> tuple[pd.DataFrame, VectorizedWeatherRecords]:
+    """Retrieve full 2024 daily driver DataFrame (with attached hourly quadrant matrices) and hourly QuadrantWeather records."""
     raw = fetch_movigo_weather_archive(force_refresh=force_refresh, seed=seed)
     df = parse_movigo_weather_dataframe(raw, seed=seed)
     hourly_records, hourly_matrices = build_hourly_quadrant_climate(raw, seed=seed)

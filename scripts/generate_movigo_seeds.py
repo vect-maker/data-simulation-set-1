@@ -1,14 +1,14 @@
-"""Generate deterministic spatial seeds and LLM catalog seeds for MoviGo.
+"""Generate deterministic spatial seeds and LLM catalog seeds for MoviGo (standardized English schema).
 
 Seed directories are strictly separated by provenance:
 1. src/movigo_sim/seeds/deterministic/:
-   - zonas_urbanas.json (12 Managua urban zones, 100% deterministic code function)
-   - cuadrantes.json (92 contiguous ~0.88 km x 0.88 km square quadrants, 100% deterministic code function)
+   - urban_zones.json (12 Managua urban zones, 100% deterministic code function)
+   - quadrants.json (92 contiguous ~0.88 km x 0.88 km square quadrants, 100% deterministic code function)
    - managua_street_network.json (OpenStreetMap drivable streets indexed per square quadrant)
 2. src/movigo_sim/seeds/llm/:
-   - usuarios.json (20 passenger profiles via Gemini API)
-   - conductores.json (20 driver & vehicle profiles via Gemini API)
-   - campanas_incentivos.json (12 Knapsack bonus campaigns via Gemini API)
+   - users.json (20 passenger profiles via Gemini API)
+   - drivers.json (20 driver & vehicle profiles via Gemini API)
+   - incentive_campaigns.json (12 Knapsack bonus campaigns via Gemini API)
    - semantic_templates.json (cancellation reasons and trip comments via Gemini API)
 """
 
@@ -24,9 +24,9 @@ sys.path.insert(0, str(BASE_DIR / "src"))
 
 from movigo_sim.config import DETERMINISTIC_SEEDS_DIR, LLM_SEEDS_DIR, SEEDS_DIR, SIMULATION_SEED
 from movigo_sim.models import (
-    Usuario,
-    Conductor,
-    CampanaIncentivo,
+    User,
+    Driver,
+    IncentiveCampaign,
 )
 from movigo_sim.spatial import generate_deterministic_spatial_seeds
 from scripts.common import (
@@ -41,29 +41,29 @@ DEFAULT_SEEDS_DIR = SEEDS_DIR
 
 
 class MoviGoSemanticTemplates(BaseModel):
-    motivos_cancelacion: list[str] = Field(description="Lista representativa de motivos de cancelación en Managua")
-    motivos_cancelacion_conductor: list[str] = Field(description="Motivos realistas de cancelación por parte del conductor en Managua (tráfico, lluvias, cauces, pinchazos)")
-    motivos_cancelacion_usuario: list[str] = Field(description="Motivos realistas de cancelación por parte del pasajero (demora, cambio de ruta, tomó caponera)")
-    comentarios_viaje: list[str] = Field(description="Reseñas y comentarios del pasajero sobre el servicio, vehículo y tarifa")
+    cancellation_reasons: list[str] = Field(description="Lista representativa de motivos de cancelación en Managua")
+    driver_cancellation_reasons: list[str] = Field(description="Motivos realistas de cancelación por parte del conductor en Managua (tráfico, lluvias, cauces, pinchazos)")
+    user_cancellation_reasons: list[str] = Field(description="Motivos realistas de cancelación por parte del pasajero (demora, cambio de ruta, tomó caponera)")
+    trip_comments: list[str] = Field(description="Reseñas y comentarios del pasajero sobre el servicio, vehículo y tarifa")
 
 
-class UsuarioCatalog(BaseModel):
-    usuarios: list[Usuario]
+class UserCatalog(BaseModel):
+    users: list[User]
 
 
-class ConductorCatalog(BaseModel):
-    conductores: list[Conductor]
+class DriverCatalog(BaseModel):
+    drivers: list[Driver]
 
 
-class CampanaCatalog(BaseModel):
-    campanas: list[CampanaIncentivo]
+class CampaignCatalog(BaseModel):
+    campaigns: list[IncentiveCampaign]
 
 
 class MoviGoSeedBundle(BaseModel):
     """Consolidated schema to generate non-spatial LLM catalogs in a single API request."""
-    conductores: list[Conductor]
-    usuarios: list[Usuario]
-    campanas: list[CampanaIncentivo]
+    drivers: list[Driver]
+    users: list[User]
+    campaigns: list[IncentiveCampaign]
     semantic_templates: MoviGoSemanticTemplates
 
 
@@ -72,21 +72,21 @@ def run_deterministic_spatial_generation(
     fetch_osm: bool = False,
     dry_run: bool = False,
 ):
-    """Run 100% deterministic code functions to build zonas_urbanas.json, cuadrantes.json, and managua_street_network.json."""
+    """Run 100% deterministic code functions to build urban_zones.json, quadrants.json, and managua_street_network.json."""
     console.print(Panel.fit(
         "[bold cyan]MoviGo - Generación Espacial Determinista (100% Reproducible)[/bold cyan]\n"
         f"[white]Destino: {det_dir}[/white]",
         border_style="cyan",
     ))
-    zonas, cuadrantes, net = generate_deterministic_spatial_seeds(
+    zones, quadrants, net = generate_deterministic_spatial_seeds(
         output_dir=det_dir,
         fetch_osm=fetch_osm,
         dry_run=dry_run,
     )
     console.print(
         f"[bold green]✓ Semillas espaciales deterministas generadas:[/bold green] "
-        f"{len(zonas)} zonas urbanas, {len(cuadrantes)} cuadrantes cuadrados y "
-        f"{len(net.get('cuadrante_streets', {}))} celdas viales indexadas en [cyan]{det_dir}[/cyan]."
+        f"{len(zones)} urban_zones, {len(quadrants)} quadrants y "
+        f"{len(net.get('quadrant_streets', {}))} celdas viales indexadas en [cyan]{det_dir}[/cyan]."
     )
 
 
@@ -105,19 +105,19 @@ def generate_movigo_llm_bundle(
 
     prompt = """
     Genera el catálogo dimensional no espacial para MoviGo (app de movilidad urbana en Managua, Nicaragua):
-    1. conductores (exactamente 20): id_conductor enteros del 1 al 20 con modelos populares en Nicaragua (Yaris, Grand i10, Dzire, Rio, Versa, CB125F), placas Managua 'M-123456', calificación 4.30-4.98.
-    2. usuarios (exactamente 20): id_usuario enteros del 1 al 20 pasajeros frecuentes, teléfonos '+505 8xxx-xxxx', métodos de pago (efectivo, tarjeta, billetera_digital).
-    3. campanas (exactamente 12): id_campana enteros del 1 al 12 campañas de incentivos y bonos para optimización de mochila año 2024 (meta_viajes, hora_pico_lluvia, zona_alta_demanda).
-    4. semantic_templates: motivos_cancelacion, motivos_cancelacion_conductor, motivos_cancelacion_usuario y comentarios_viaje con vernáculo urbano de Managua.
+    1. drivers (exactamente 20): driver_id enteros del 1 al 20 con modelos populares en Nicaragua (Yaris, Grand i10, Dzire, Rio, Versa, CB125F), license_plate Managua 'M-123456', average_rating 4.30-4.98.
+    2. users (exactamente 20): user_id enteros del 1 al 20 pasajeros frecuentes, phone '+505 8xxx-xxxx', preferred_payment_method (efectivo, tarjeta, billetera_digital).
+    3. campaigns (exactamente 12): campaign_id enteros del 1 al 12 campañas de incentivos y bonos para optimización de mochila año 2024 (meta_viajes, hora_pico_lluvia, zona_alta_demanda).
+    4. semantic_templates: cancellation_reasons, driver_cancellation_reasons, user_cancellation_reasons y trip_comments con vernáculo urbano de Managua.
     """
 
     console.print("[yellow]⏳ Solicitando paquete de catálogos LLM a Gemini...[/yellow]")
     bundle: MoviGoSeedBundle = generate_structured_data(client, prompt, MoviGoSeedBundle, seed=seed)
 
     llm_dir.mkdir(parents=True, exist_ok=True)
-    save_json_file([c.model_dump() for c in bundle.conductores], llm_dir / "conductores.json", dry_run)
-    save_json_file([u.model_dump(mode="json") for u in bundle.usuarios], llm_dir / "usuarios.json", dry_run)
-    save_json_file([c.model_dump(mode="json") for c in bundle.campanas], llm_dir / "campanas_incentivos.json", dry_run)
+    save_json_file([c.model_dump() for c in bundle.drivers], llm_dir / "drivers.json", dry_run)
+    save_json_file([u.model_dump(mode="json") for u in bundle.users], llm_dir / "users.json", dry_run)
+    save_json_file([c.model_dump(mode="json") for c in bundle.campaigns], llm_dir / "incentive_campaigns.json", dry_run)
     save_json_file(bundle.semantic_templates.model_dump(), llm_dir / "semantic_templates.json", dry_run)
 
     console.print(f"\n[bold green]✓ Catálogos LLM de MoviGo guardados en {llm_dir}.[/bold green]")
@@ -138,26 +138,26 @@ def generate_movigo_llm_granular(
         border_style="magenta",
     ))
 
-    if target in ("all", "llm", "conductores"):
-        console.print("[yellow]Generando Conductores (20)...[/yellow]")
-        prompt = "Genera 20 conductores de MoviGo con id_conductor enteros del 1 al 20 con vehículos comunes en Nicaragua y placas M-XXXXXX."
-        cond_data = generate_structured_data(client, prompt, ConductorCatalog, seed=seed)
-        save_json_file([c.model_dump() for c in cond_data.conductores], llm_dir / "conductores.json", dry_run)
+    if target in ("all", "llm", "drivers"):
+        console.print("[yellow]Generando Drivers (20)...[/yellow]")
+        prompt = "Genera 20 conductores de MoviGo con driver_id enteros del 1 al 20 con vehículos comunes en Nicaragua y placas M-XXXXXX."
+        cond_data = generate_structured_data(client, prompt, DriverCatalog, seed=seed)
+        save_json_file([c.model_dump() for c in cond_data.drivers], llm_dir / "drivers.json", dry_run)
 
-    if target in ("all", "llm", "usuarios"):
-        console.print("[yellow]Generando Pasajeros Frecuentes (20)...[/yellow]")
-        prompt = "Genera 20 pasajeros con id_usuario enteros del 1 al 20 con formato telefónico +505 y métodos de pago."
-        usr_data = generate_structured_data(client, prompt, UsuarioCatalog, seed=seed)
-        save_json_file([u.model_dump(mode="json") for u in usr_data.usuarios], llm_dir / "usuarios.json", dry_run)
+    if target in ("all", "llm", "users"):
+        console.print("[yellow]Generando Users (20)...[/yellow]")
+        prompt = "Genera 20 pasajeros con user_id enteros del 1 al 20 con formato telefónico +505 y métodos de pago."
+        usr_data = generate_structured_data(client, prompt, UserCatalog, seed=seed)
+        save_json_file([u.model_dump(mode="json") for u in usr_data.users], llm_dir / "users.json", dry_run)
 
-    if target in ("all", "llm", "campanas"):
-        console.print("[yellow]Generando Campañas de Incentivos Knapsack (12)...[/yellow]")
-        prompt = "Genera 12 campañas de incentivos con id_campana enteros del 1 al 12 año 2024 para optimización de mochila."
-        camp_data = generate_structured_data(client, prompt, CampanaCatalog, seed=seed)
-        save_json_file([c.model_dump(mode="json") for c in camp_data.campanas], llm_dir / "campanas_incentivos.json", dry_run)
+    if target in ("all", "llm", "campaigns"):
+        console.print("[yellow]Generando Incentive Campaigns (12)...[/yellow]")
+        prompt = "Genera 12 campañas de incentivos con campaign_id enteros del 1 al 12 año 2024 para optimización de mochila."
+        camp_data = generate_structured_data(client, prompt, CampaignCatalog, seed=seed)
+        save_json_file([c.model_dump(mode="json") for c in camp_data.campaigns], llm_dir / "incentive_campaigns.json", dry_run)
 
     if target in ("all", "llm", "templates"):
-        console.print("[yellow]Generando Plantillas de Cancelación y Reseñas...[/yellow]")
+        console.print("[yellow]Generando Semantic Templates...[/yellow]")
         prompt = "Genera motivos de cancelación y comentarios de pasajeros para ride-hailing en Managua."
         temp_data = generate_structured_data(client, prompt, MoviGoSemanticTemplates, seed=seed)
         save_json_file(temp_data.model_dump(), llm_dir / "semantic_templates.json", dry_run)
@@ -183,7 +183,7 @@ def generate_movigo_seeds(
     if target == "deterministic":
         return
 
-    if granular or target in ("conductores", "usuarios", "campanas", "templates"):
+    if granular or target in ("drivers", "users", "campaigns", "templates"):
         generate_movigo_llm_granular(llm_dir=llm_dir, target=target, dry_run=dry_run, seed=seed)
     else:
         generate_movigo_llm_bundle(llm_dir=llm_dir, dry_run=dry_run, seed=seed)
@@ -195,7 +195,7 @@ def main():
     parser.add_argument(
         "--target",
         type=str,
-        choices=["all", "deterministic", "llm", "conductores", "usuarios", "campanas", "templates"],
+        choices=["all", "deterministic", "llm", "drivers", "users", "campaigns", "templates"],
         default="all",
         help="Objetivo a generar: 'deterministic' (solo geometría/calles por código), 'llm' (solo catálogos Gemini), o 'all'",
     )

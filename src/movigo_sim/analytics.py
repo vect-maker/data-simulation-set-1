@@ -27,29 +27,29 @@ from data_sim.core.optimization import solve_hungarian_assignment
 
 
 def compute_movigo_estadistica_ii(
-    df_viajes: pd.DataFrame,
-    df_clima: pd.DataFrame,
-    df_zonas: pd.DataFrame,
+    df_trips: pd.DataFrame,
+    df_weather: pd.DataFrame,
+    df_zones: pd.DataFrame,
 ) -> dict[str, Any]:
     """Perform formal Estadistica II inferential battery on MoviGo urban mobility."""
-    df_viajes["fecha"] = pd.to_datetime(df_viajes["fecha_hora_solicitud"]).dt.date
-    daily_trips = df_viajes.groupby("fecha").size().reset_index(name="num_viajes")
-    if "id_cuadrante" in df_clima.columns:
-        n_quads = max(1, int(df_clima["id_cuadrante"].nunique()))
-        daily_clima = (
-            df_clima.groupby("fecha", as_index=False)
+    df_trips["date"] = pd.to_datetime(df_trips["requested_at"]).dt.date
+    daily_trips = df_trips.groupby("date").size().reset_index(name="num_trips")
+    if "quadrant_id" in df_weather.columns:
+        n_quads = max(1, int(df_weather["quadrant_id"].nunique()))
+        daily_weather = (
+            df_weather.groupby("date", as_index=False)
             .agg(
-                precipitacion_mm=("precipitacion_mm", lambda s: float(s.sum()) / n_quads),
-                indice_congestion=("indice_congestion", "mean"),
+                precipitation_mm=("precipitation_mm", lambda s: float(s.sum()) / n_quads),
+                congestion_index=("congestion_index", "mean"),
             )
         )
     else:
-        daily_clima = df_clima
-    merged_weather = pd.merge(daily_clima, daily_trips, on="fecha", how="left").fillna(0)
+        daily_weather = df_weather
+    merged_weather = pd.merge(daily_weather, daily_trips, on="date", how="left").fillna(0)
 
     # 1. Linear Regression: Daily Rain (mm) -> Daily Rides
-    x = merged_weather["precipitacion_mm"].values.astype(float) if not merged_weather.empty else np.array([0.0, 10.0, 25.0])
-    y = merged_weather["num_viajes"].values.astype(float) if not merged_weather.empty else np.array([175.0, 230.0, 310.0])
+    x = merged_weather["precipitation_mm"].values.astype(float) if not merged_weather.empty else np.array([0.0, 10.0, 25.0])
+    y = merged_weather["num_trips"].values.astype(float) if not merged_weather.empty else np.array([175.0, 230.0, 310.0])
 
     anova_table, residuals, _, _, _ = compute_ols_regression(
         x, y, x_label="Precipitacion Diaria mm", y_label="Viajes Solicitados"
@@ -58,8 +58,8 @@ def compute_movigo_estadistica_ii(
 
     # 2. Formal Hypothesis Testing Battery
     # Test A: Difference of Means (Welch t-test): Dynamic Surge vs Base Fare
-    surge_fares = df_viajes[df_viajes["multiplicador_dinamico"] > 1.25]["tarifa_final"]
-    base_fares = df_viajes[df_viajes["multiplicador_dinamico"] <= 1.05]["tarifa_final"]
+    surge_fares = df_trips[df_trips["surge_multiplier"] > 1.25]["final_fare"]
+    base_fares = df_trips[df_trips["surge_multiplier"] <= 1.05]["final_fare"]
     test_a = welch_ttest(
         sample_a=surge_fares,
         sample_b=base_fares,
@@ -69,13 +69,13 @@ def compute_movigo_estadistica_ii(
     )
 
     # Test B: Difference of 2 Proportions (z-test): Cancellations Peak vs Off-Peak
-    df_viajes["hora"] = pd.to_datetime(df_viajes["fecha_hora_solicitud"]).dt.hour
-    peak_trips = df_viajes[df_viajes["hora"].isin([7, 8, 17, 18])]
-    off_peak_trips = df_viajes[~df_viajes["hora"].isin([7, 8, 17, 18])]
+    df_trips["hour"] = pd.to_datetime(df_trips["requested_at"]).dt.hour
+    peak_trips = df_trips[df_trips["hour"].isin([7, 8, 17, 18])]
+    off_peak_trips = df_trips[~df_trips["hour"].isin([7, 8, 17, 18])]
     n1 = len(peak_trips)
-    x1 = int(peak_trips["estado_viaje"].str.contains("cancelado").sum()) if n1 > 0 else 0
+    x1 = int(peak_trips["trip_status"].str.contains("cancelado").sum()) if n1 > 0 else 0
     n2 = len(off_peak_trips)
-    x2 = int(off_peak_trips["estado_viaje"].str.contains("cancelado").sum()) if n2 > 0 else 0
+    x2 = int(off_peak_trips["trip_status"].str.contains("cancelado").sum()) if n2 > 0 else 0
 
     test_b = two_proportion_ztest(
         count_1=x1,
@@ -88,16 +88,16 @@ def compute_movigo_estadistica_ii(
     )
 
     # Test C: ANOVA for trip duration across destination strata
-    merged_dest = df_viajes.merge(
-        df_zonas[["id_zona", "estrato_socioeconomico"]],
-        left_on="id_zona_destino",
-        right_on="id_zona",
+    merged_dest = df_trips.merge(
+        df_zones[["zone_id", "socioeconomic_stratum"]],
+        left_on="destination_zone_id",
+        right_on="zone_id",
         how="left",
     )
     groups = []
-    for estrato in ["alto", "medio", "comercial", "popular"]:
-        s = merged_dest[merged_dest["estrato_socioeconomico"] == estrato]["duracion_minutos"]
-        groups.append((estrato, s))
+    for stratum in ["alto", "medio", "comercial", "popular"]:
+        s = merged_dest[merged_dest["socioeconomic_stratum"] == stratum]["duration_minutes"]
+        groups.append((stratum, s))
 
     test_c = one_way_anova_test(
         groups=groups,

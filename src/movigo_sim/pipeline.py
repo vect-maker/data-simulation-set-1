@@ -1,4 +1,4 @@
-"""dlt pipeline for MoviGo staging in PostgreSQL."""
+"""dlt pipeline for MoviGo staging in PostgreSQL (standardized English table and column names)."""
 
 import logging
 from typing import Any
@@ -13,92 +13,92 @@ from movigo_sim.config import (
     POSTGRES_SCHEMA,
 )
 from movigo_sim.models import (
-    Cuadrante,
-    ZonaUrbana,
-    Usuario,
-    Conductor,
-    Viaje,
-    TelemetriaConductor,
-    CampanaIncentivo,
-    ClimaCuadrantes,
+    Quadrant,
+    UrbanZone,
+    User,
+    Driver,
+    Trip,
+    DriverTelemetry,
+    IncentiveCampaign,
+    QuadrantWeather,
 )
-from movigo_sim.generator import load_movigo_cuadrantes
+from movigo_sim.generator import load_movigo_quadrants
 
 logger = logging.getLogger(__name__)
 
 
 @dlt.source(name="movigo_ride_hailing")
 def movigo_source(
-    cuadrantes_data: list[dict[str, Any]],
-    zonas_data: list[dict[str, Any]],
-    usuarios_data: list[dict[str, Any]],
-    conductores_data: list[dict[str, Any]],
-    viajes_data: list[dict[str, Any]],
-    telemetria_data: list[dict[str, Any]],
-    campanas_data: list[dict[str, Any]],
-    clima_data: list[dict[str, Any]],
+    quadrants_data: list[dict[str, Any]],
+    zones_data: list[dict[str, Any]],
+    users_data: list[dict[str, Any]],
+    drivers_data: list[dict[str, Any]],
+    trips_data: list[dict[str, Any]],
+    telemetry_data: list[dict[str, Any]],
+    campaigns_data: list[dict[str, Any]],
+    weather_data: list[dict[str, Any]],
 ):
-    """dlt source bundling the 8 MoviGo relational tables."""
+    """dlt source bundling the 8 MoviGo relational tables with standardized English names."""
 
-    @dlt.resource(name="cuadrantes", write_disposition="replace", primary_key="id_cuadrante")
-    def cuadrantes():
-        yield cuadrantes_data
+    @dlt.resource(name="quadrants", write_disposition="replace", primary_key="quadrant_id")
+    def quadrants():
+        yield quadrants_data
 
-    @dlt.resource(name="zonas_urbanas", write_disposition="replace", primary_key="id_zona")
-    def zonas_urbanas():
-        yield zonas_data
+    @dlt.resource(name="urban_zones", write_disposition="replace", primary_key="zone_id")
+    def urban_zones():
+        yield zones_data
 
-    @dlt.resource(name="usuarios", write_disposition="replace", primary_key="id_usuario")
-    def usuarios():
-        yield usuarios_data
+    @dlt.resource(name="users", write_disposition="replace", primary_key="user_id")
+    def users():
+        yield users_data
 
-    @dlt.resource(name="conductores", write_disposition="replace", primary_key="id_conductor")
-    def conductores():
-        yield conductores_data
+    @dlt.resource(name="drivers", write_disposition="replace", primary_key="driver_id")
+    def drivers():
+        yield drivers_data
 
-    @dlt.resource(name="campanas_incentivos", write_disposition="replace", primary_key="id_campana")
-    def campanas_incentivos():
-        yield campanas_data
+    @dlt.resource(name="incentive_campaigns", write_disposition="replace", primary_key="campaign_id")
+    def incentive_campaigns():
+        yield campaigns_data
 
-    @dlt.resource(name="clima_cuadrantes", write_disposition="replace", primary_key="id_clima")
-    def clima_cuadrantes():
-        yield clima_data
+    @dlt.resource(name="quadrant_weather", write_disposition="replace", primary_key="weather_id")
+    def quadrant_weather():
+        yield weather_data
 
-    @dlt.resource(name="viajes", write_disposition="replace", primary_key="id_viaje")
-    def viajes():
-        yield viajes_data
+    @dlt.resource(name="trips", write_disposition="replace", primary_key="trip_id")
+    def trips():
+        yield trips_data
 
-    @dlt.resource(name="telemetria_conductores", write_disposition="replace", primary_key="id_telemetria")
-    def telemetria_conductores():
-        yield telemetria_data
+    @dlt.resource(name="driver_telemetry", write_disposition="replace", primary_key="telemetry_id")
+    def driver_telemetry():
+        yield telemetry_data
 
     return (
-        zonas_urbanas,
-        cuadrantes,
-        usuarios,
-        conductores,
-        campanas_incentivos,
-        clima_cuadrantes,
-        viajes,
-        telemetria_conductores,
+        urban_zones,
+        quadrants,
+        users,
+        drivers,
+        incentive_campaigns,
+        quadrant_weather,
+        trips,
+        driver_telemetry,
     )
 
 
 def load_movigo_to_postgres(
-    zonas: list[ZonaUrbana],
-    usuarios: list[Usuario],
-    conductores: list[Conductor],
-    viajes: list[Viaje],
-    telemetria: list[TelemetriaConductor],
-    campanas: list[CampanaIncentivo],
-    clima: list[ClimaCuadrantes],
+    zones: list[UrbanZone],
+    users: list[User],
+    drivers: list[Driver],
+    trips: list[Trip],
+    telemetry: list[DriverTelemetry],
+    campaigns: list[IncentiveCampaign],
+    weather: list[QuadrantWeather],
     schema_name: str = POSTGRES_SCHEMA,
     connection_url: str | None = None,
-    cuadrantes: list[Cuadrante] | None = None,
+    quadrants: list[Quadrant] | None = None,
 ) -> Any:
     """Execute dlt pipeline loading all MoviGo tables into PostgreSQL."""
-    if cuadrantes is None:
-        cuadrantes = load_movigo_cuadrantes()
+    if quadrants is None:
+        quadrants = load_movigo_quadrants()
     if connection_url is None:
         connection_url = (
             f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@"
@@ -114,17 +114,17 @@ def load_movigo_to_postgres(
     )
 
     source = movigo_source(
-        cuadrantes_data=[q.model_dump() for q in cuadrantes],
-        zonas_data=[z.model_dump() for z in zonas],
-        usuarios_data=[u.model_dump(mode="json") for u in usuarios],
-        conductores_data=[c.model_dump() for c in conductores],
-        viajes_data=[v.model_dump(mode="json") for v in viajes],
-        telemetria_data=[t.model_dump(mode="json") for t in telemetria],
-        campanas_data=[cmp.model_dump(mode="json") for cmp in campanas],
-        clima_data=(
-            clima.to_dataframe().to_dict("records")
-            if hasattr(clima, "to_dataframe")
-            else [cl.model_dump(mode="json") for cl in clima]
+        quadrants_data=[q.model_dump() for q in quadrants],
+        zones_data=[z.model_dump() for z in zones],
+        users_data=[u.model_dump(mode="json") for u in users],
+        drivers_data=[c.model_dump() for c in drivers],
+        trips_data=[v.model_dump(mode="json") for v in trips],
+        telemetry_data=[t.model_dump(mode="json") for t in telemetry],
+        campaigns_data=[cmp.model_dump(mode="json") for cmp in campaigns],
+        weather_data=(
+            weather.to_dataframe().to_dict("records")
+            if hasattr(weather, "to_dataframe")
+            else [cl.model_dump(mode="json") for cl in weather]
         ),
     )
 

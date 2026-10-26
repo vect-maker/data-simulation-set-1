@@ -10,124 +10,123 @@ SET search_path TO raw_staging_movigo, public;
 -- ------------------------------------------------------------------------------
 -- 1. Exploración Inicial y Verificación de Conteos de Tablas
 -- ------------------------------------------------------------------------------
-SELECT 'cuadrantes' AS tabla, COUNT(*) AS total_registros FROM cuadrantes
+SELECT 'quadrants' AS table_name, COUNT(*) AS total_rows FROM quadrants
 UNION ALL
-SELECT 'zonas_urbanas', COUNT(*) FROM zonas_urbanas
+SELECT 'urban_zones', COUNT(*) FROM urban_zones
 UNION ALL
-SELECT 'usuarios', COUNT(*) FROM usuarios
+SELECT 'users', COUNT(*) FROM users
 UNION ALL
-SELECT 'conductores', COUNT(*) FROM conductores
+SELECT 'drivers', COUNT(*) FROM drivers
 UNION ALL
-SELECT 'campanas_incentivos', COUNT(*) FROM campanas_incentivos
+SELECT 'incentive_campaigns', COUNT(*) FROM incentive_campaigns
 UNION ALL
-SELECT 'clima_cuadrantes', COUNT(*) FROM clima_cuadrantes
+SELECT 'quadrant_weather', COUNT(*) FROM quadrant_weather
 UNION ALL
-SELECT 'viajes', COUNT(*) FROM viajes
+SELECT 'trips', COUNT(*) FROM trips
 UNION ALL
-SELECT 'telemetria_conductores', COUNT(*) FROM telemetria_conductores;
+SELECT 'driver_telemetry', COUNT(*) FROM driver_telemetry;
 
 -- ------------------------------------------------------------------------------
 -- 2. Análisis de Matriz Origen-Destino y Coordenadas GPS en Vías de Managua
 -- ------------------------------------------------------------------------------
 SELECT 
-    zo.nombre_zona AS origen,
-    zd.nombre_zona AS destino,
-    COUNT(v.id_viaje) AS total_viajes,
-    ROUND(AVG(v.distancia_km)::numeric, 2) AS distancia_promedio_km,
-    ROUND(AVG(v.duracion_minutos)::numeric, 2) AS duracion_promedio_min,
-    ROUND(AVG(v.tarifa_final)::numeric, 2) AS tarifa_promedio_nio
-FROM viajes v
-JOIN zonas_urbanas zo ON v.id_zona_origen = zo.id_zona
-JOIN zonas_urbanas zd ON v.id_zona_destino = zd.id_zona
-WHERE v.estado_viaje = 'completado'
-GROUP BY zo.nombre_zona, zd.nombre_zona
-ORDER BY total_viajes DESC
+    zo.zone_name AS origin_zone,
+    zd.zone_name AS destination_zone,
+    COUNT(t.trip_id) AS total_trips,
+    ROUND(AVG(t.distance_km)::numeric, 2) AS avg_distance_km,
+    ROUND(AVG(t.duration_minutes)::numeric, 2) AS avg_duration_min,
+    ROUND(AVG(t.final_fare)::numeric, 2) AS avg_fare_nio
+FROM trips t
+JOIN urban_zones zo ON t.origin_zone_id = zo.zone_id
+JOIN urban_zones zd ON t.destination_zone_id = zd.zone_id
+WHERE t.trip_status = 'completado'
+GROUP BY zo.zone_name, zd.zone_name
+ORDER BY total_trips DESC
 LIMIT 10;
 
 -- ------------------------------------------------------------------------------
--- 3. Prueba de Desglose Tarifario y Función Determinista: fn_liquidar_tarifa_viaje
--- Valida: tarifa_base = tarifa_bajada_bandera + cargo_distancia + cargo_tiempo
---         tarifa_final = ROUND(tarifa_base * multiplicador_dinamico, 2)
+-- 3. Prueba de Desglose Tarifario y Función Determinista: fn_calculate_trip_fare
+-- Valida: base_fare = flag_drop_fare + distance_charge + time_charge
+--         final_fare = ROUND(base_fare * surge_multiplier, 2)
 -- ------------------------------------------------------------------------------
 SELECT 
-    v.id_viaje,
-    v.tarifa_bajada_bandera,
-    v.cargo_distancia,
-    v.cargo_tiempo,
-    v.tarifa_base,
-    v.multiplicador_dinamico,
-    v.tarifa_final AS tarifa_registrada,
-    ROUND(fn_liquidar_tarifa_viaje(
-        v.tarifa_bajada_bandera,
-        v.distancia_km,
-        v.duracion_minutos,
-        v.multiplicador_dinamico
-    )::numeric, 2) AS tarifa_calculada_plpgsql,
-    ROUND(ABS(v.tarifa_final - fn_liquidar_tarifa_viaje(
-        v.tarifa_bajada_bandera,
-        v.distancia_km,
-        v.duracion_minutos,
-        v.multiplicador_dinamico
-    ))::numeric, 2) AS discrepancia
-FROM viajes v
-WHERE v.estado_viaje = 'completado'
+    t.trip_id,
+    t.flag_drop_fare,
+    t.distance_charge,
+    t.time_charge,
+    t.base_fare,
+    t.surge_multiplier,
+    t.final_fare AS recorded_fare,
+    ROUND(fn_calculate_trip_fare(
+        t.flag_drop_fare,
+        t.distance_km,
+        t.duration_minutes,
+        t.surge_multiplier
+    )::numeric, 2) AS calculated_fare_plpgsql,
+    ROUND(ABS(t.final_fare - fn_calculate_trip_fare(
+        t.flag_drop_fare,
+        t.distance_km,
+        t.duration_minutes,
+        t.surge_multiplier
+    ))::numeric, 2) AS discrepancy
+FROM trips t
+WHERE t.trip_status = 'completado'
 LIMIT 5;
 
 -- ------------------------------------------------------------------------------
 -- 4. Análisis Micro-Conductual de Cancelaciones y Equilibrio Oferta/Demanda
 -- ------------------------------------------------------------------------------
 SELECT
-    v.motivo_cancelacion,
-    v.estado_viaje,
-    COUNT(*) AS total_cancelados,
-    ROUND(AVG(v.multiplicador_dinamico)::numeric, 2) AS surge_promedio,
-    ROUND(AVG(v.tiempo_espera_minutos)::numeric, 2) AS espera_promedio_min,
-    ROUND(AVG(v.solicitudes_activas_origen)::numeric, 1) AS demanda_activa_dt,
-    ROUND(AVG(v.conductores_disponibles_origen)::numeric, 1) AS oferta_conductores_st
-FROM viajes v
-WHERE v.estado_viaje IN ('cancelado_usuario', 'cancelado_conductor')
-GROUP BY v.motivo_cancelacion, v.estado_viaje
-ORDER BY total_cancelados DESC;
+    t.cancellation_reason,
+    t.trip_status,
+    COUNT(*) AS total_canceled,
+    ROUND(AVG(t.surge_multiplier)::numeric, 2) AS avg_surge,
+    ROUND(AVG(t.wait_time_minutes)::numeric, 2) AS avg_wait_min,
+    ROUND(AVG(t.origin_active_requests)::numeric, 1) AS active_demand_dt,
+    ROUND(AVG(t.origin_available_drivers)::numeric, 1) AS available_drivers_st
+FROM trips t
+WHERE t.trip_status IN ('cancelado_usuario', 'cancelado_conductor')
+GROUP BY t.cancellation_reason, t.trip_status
+ORDER BY total_canceled DESC;
 
 -- ------------------------------------------------------------------------------
--- 5. Consulta a la Vista Materializada: mv_kpis_movilidad_horaria
+-- 5. Consulta a la Vista Materializada: mv_hourly_mobility_kpis
 -- ------------------------------------------------------------------------------
 SELECT 
-    fecha,
-    hora_del_dia,
-    total_solicitudes,
-    viajes_completados,
-    ROUND(tasa_cancelacion_pct::numeric, 2) AS cancelacion_pct,
-    ROUND(multiplicador_medio::numeric, 2) AS surge_medio,
-    ROUND(ingreso_bruto_nio::numeric, 2) AS facturacion_nio
-FROM mv_kpis_movilidad_horaria
-ORDER BY fecha DESC, hora_del_dia ASC
+    hour_of_day,
+    socioeconomic_stratum,
+    total_requests,
+    completed_trips,
+    ROUND(avg_surge_multiplier::numeric, 2) AS avg_surge,
+    ROUND(avg_fare_nio::numeric, 2) AS avg_fare_nio
+FROM mv_hourly_mobility_kpis
+ORDER BY hour_of_day ASC, socioeconomic_stratum ASC
 LIMIT 15;
 
-REFRESH MATERIALIZED VIEW mv_kpis_movilidad_horaria;
+REFRESH MATERIALIZED VIEW mv_hourly_mobility_kpis;
 
 -- ------------------------------------------------------------------------------
 -- 6. Dataset de Handoff Horario por Cuadrante: Lluvia, Escorrentía de Cauces y Demanda
 -- ------------------------------------------------------------------------------
 SELECT 
-    zo.nombre_zona AS zona_origen,
-    q.codigo_cuadrante,
-    q.riesgo_inundacion,
-    c.fecha,
-    c.hora,
-    c.precipitacion_mm,
-    c.escorrentia_cauce_mm,
-    c.vias_anegadas,
-    c.indice_congestion,
-    COUNT(v.id_viaje) AS viajes_solicitados,
-    ROUND(AVG(v.multiplicador_dinamico)::numeric, 3) AS multiplicador_promedio,
-    ROUND(SUM(v.tarifa_final)::numeric, 2) AS facturacion_total_nio
-FROM viajes v
-JOIN zonas_urbanas zo ON v.id_zona_origen = zo.id_zona
-JOIN cuadrantes q ON v.id_cuadrante_origen = q.id_cuadrante
-LEFT JOIN clima_cuadrantes c 
-    ON q.id_cuadrante = c.id_cuadrante 
-   AND DATE(v.fecha_hora_solicitud) = c.fecha 
-   AND EXTRACT(HOUR FROM v.fecha_hora_solicitud)::int = c.hora
-GROUP BY zo.nombre_zona, q.codigo_cuadrante, q.riesgo_inundacion, c.fecha, c.hora, c.precipitacion_mm, c.escorrentia_cauce_mm, c.vias_anegadas, c.indice_congestion
-ORDER BY c.fecha, c.hora, q.codigo_cuadrante;
+    zo.zone_name AS origin_zone,
+    q.quadrant_code,
+    q.flood_risk,
+    w.date,
+    w.hour,
+    w.precipitation_mm,
+    w.channel_runoff_mm,
+    w.flooded_roads,
+    w.congestion_index,
+    COUNT(t.trip_id) AS requested_trips,
+    ROUND(AVG(t.surge_multiplier)::numeric, 3) AS avg_surge_multiplier,
+    ROUND(SUM(t.final_fare)::numeric, 2) AS gross_revenue_nio
+FROM trips t
+JOIN urban_zones zo ON t.origin_zone_id = zo.zone_id
+JOIN quadrants q ON t.origin_quadrant_id = q.quadrant_id
+LEFT JOIN quadrant_weather w 
+    ON q.quadrant_id = w.quadrant_id 
+   AND DATE(t.requested_at) = w.date 
+   AND EXTRACT(HOUR FROM t.requested_at)::int = w.hour
+GROUP BY zo.zone_name, q.quadrant_code, q.flood_risk, w.date, w.hour, w.precipitation_mm, w.channel_runoff_mm, w.flooded_roads, w.congestion_index
+ORDER BY w.date, w.hour, q.quadrant_code;

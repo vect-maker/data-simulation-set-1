@@ -1,9 +1,9 @@
 """Deterministic spatial & street-network builder for MoviGo (Managua, Nicaragua).
 
 Encapsulates 100% reproducible, code-driven generation of:
-- zonas_urbanas.json (12 Managua urban pricing and mobility zones)
-- cuadrantes.json (92 contiguous ~0.88 km x 0.88 km square grid cells grouped by id_zona)
-- managua_street_network.json (OpenStreetMap drivable street segments indexed per zone and per square cuadrante)
+- urban_zones.json (12 Managua urban pricing and mobility zones)
+- quadrants.json (92 contiguous ~0.88 km x 0.88 km square grid cells grouped by zone_id)
+- managua_street_network.json (OpenStreetMap drivable street segments indexed per zone and per square quadrant)
 """
 
 import json
@@ -15,121 +15,123 @@ import numpy as np
 import requests
 
 from movigo_sim.config import DETERMINISTIC_SEEDS_DIR
-from movigo_sim.models import Cuadrante, ZonaUrbana
+from movigo_sim.models import Quadrant, UrbanZone
 
 logger = logging.getLogger(__name__)
 
 # Canonical deterministic specification of Managua's 12 urban pricing zones
-CANONICAL_ZONAS_URBANAS: list[dict[str, Any]] = [
+CANONICAL_URBAN_ZONES: list[dict[str, Any]] = [
     {
-        "id_zona": 1,
-        "nombre_zona": "Villa Fontana",
-        "estrato_socioeconomico": "alto",
-        "latitud": 12.115,
-        "longitud": -86.255,
-        "radio_cobertura_km": 2.5,
-        "tarifa_base_bajada_bandera": 70.0,
+        "zone_id": 1,
+        "zone_name": "Villa Fontana",
+        "socioeconomic_stratum": "alto",
+        "latitude": 12.115,
+        "longitude": -86.255,
+        "coverage_radius_km": 2.5,
+        "base_flag_drop_fare": 70.0,
     },
     {
-        "id_zona": 2,
-        "nombre_zona": "Las Colinas",
-        "estrato_socioeconomico": "alto",
-        "latitud": 12.105,
-        "longitud": -86.242,
-        "radio_cobertura_km": 3.0,
-        "tarifa_base_bajada_bandera": 75.0,
+        "zone_id": 2,
+        "zone_name": "Las Colinas",
+        "socioeconomic_stratum": "alto",
+        "latitude": 12.105,
+        "longitude": -86.242,
+        "coverage_radius_km": 3.0,
+        "base_flag_drop_fare": 75.0,
     },
     {
-        "id_zona": 3,
-        "nombre_zona": "Santo Domingo",
-        "estrato_socioeconomico": "alto",
-        "latitud": 12.1,
-        "longitud": -86.23,
-        "radio_cobertura_km": 2.8,
-        "tarifa_base_bajada_bandera": 80.0,
+        "zone_id": 3,
+        "zone_name": "Santo Domingo",
+        "socioeconomic_stratum": "alto",
+        "latitude": 12.1,
+        "longitude": -86.23,
+        "coverage_radius_km": 2.8,
+        "base_flag_drop_fare": 80.0,
     },
     {
-        "id_zona": 4,
-        "nombre_zona": "Los Robles",
-        "estrato_socioeconomico": "medio",
-        "latitud": 12.128,
-        "longitud": -86.265,
-        "radio_cobertura_km": 2.0,
-        "tarifa_base_bajada_bandera": 55.0,
+        "zone_id": 4,
+        "zone_name": "Los Robles",
+        "socioeconomic_stratum": "medio",
+        "latitude": 12.128,
+        "longitude": -86.265,
+        "coverage_radius_km": 2.0,
+        "base_flag_drop_fare": 55.0,
     },
     {
-        "id_zona": 5,
-        "nombre_zona": "Altamira",
-        "estrato_socioeconomico": "medio",
-        "latitud": 12.133,
-        "longitud": -86.25,
-        "radio_cobertura_km": 2.0,
-        "tarifa_base_bajada_bandera": 50.0,
+        "zone_id": 5,
+        "zone_name": "Altamira",
+        "socioeconomic_stratum": "medio",
+        "latitude": 12.133,
+        "longitude": -86.25,
+        "coverage_radius_km": 2.0,
+        "base_flag_drop_fare": 50.0,
     },
     {
-        "id_zona": 6,
-        "nombre_zona": "Bolonia",
-        "estrato_socioeconomico": "medio",
-        "latitud": 12.145,
-        "longitud": -86.28,
-        "radio_cobertura_km": 2.2,
-        "tarifa_base_bajada_bandera": 55.0,
+        "zone_id": 6,
+        "zone_name": "Bolonia",
+        "socioeconomic_stratum": "medio",
+        "latitude": 12.145,
+        "longitude": -86.28,
+        "coverage_radius_km": 2.2,
+        "base_flag_drop_fare": 55.0,
     },
     {
-        "id_zona": 7,
-        "nombre_zona": "Bello Horizonte",
-        "estrato_socioeconomico": "medio",
-        "latitud": 12.138,
-        "longitud": -86.22,
-        "radio_cobertura_km": 3.5,
-        "tarifa_base_bajada_bandera": 48.0,
+        "zone_id": 7,
+        "zone_name": "Bello Horizonte",
+        "socioeconomic_stratum": "medio",
+        "latitude": 12.138,
+        "longitude": -86.22,
+        "coverage_radius_km": 3.5,
+        "base_flag_drop_fare": 48.0,
     },
     {
-        "id_zona": 8,
-        "nombre_zona": "Linda Vista",
-        "estrato_socioeconomico": "medio",
-        "latitud": 12.155,
-        "longitud": -86.3,
-        "radio_cobertura_km": 3.0,
-        "tarifa_base_bajada_bandera": 50.0,
+        "zone_id": 8,
+        "zone_name": "Linda Vista",
+        "socioeconomic_stratum": "medio",
+        "latitude": 12.155,
+        "longitude": -86.3,
+        "coverage_radius_km": 3.0,
+        "base_flag_drop_fare": 50.0,
     },
     {
-        "id_zona": 9,
-        "nombre_zona": "Metrocentro / Eje Corporativo UCA",
-        "estrato_socioeconomico": "comercial",
-        "latitud": 12.12,
-        "longitud": -86.27,
-        "radio_cobertura_km": 1.5,
-        "tarifa_base_bajada_bandera": 60.0,
+        "zone_id": 9,
+        "zone_name": "Metrocentro / Eje Corporativo UCA",
+        "socioeconomic_stratum": "comercial",
+        "latitude": 12.12,
+        "longitude": -86.27,
+        "coverage_radius_km": 1.5,
+        "base_flag_drop_fare": 60.0,
     },
     {
-        "id_zona": 10,
-        "nombre_zona": "Ciudad Jardín",
-        "estrato_socioeconomico": "popular",
-        "latitud": 12.14,
-        "longitud": -86.258,
-        "radio_cobertura_km": 2.0,
-        "tarifa_base_bajada_bandera": 40.0,
+        "zone_id": 10,
+        "zone_name": "Ciudad Jardín",
+        "socioeconomic_stratum": "popular",
+        "latitude": 12.14,
+        "longitude": -86.258,
+        "coverage_radius_km": 2.0,
+        "base_flag_drop_fare": 40.0,
     },
     {
-        "id_zona": 11,
-        "nombre_zona": "Mercado Oriental",
-        "estrato_socioeconomico": "popular",
-        "latitud": 12.135,
-        "longitud": -86.245,
-        "radio_cobertura_km": 2.5,
-        "tarifa_base_bajada_bandera": 35.0,
+        "zone_id": 11,
+        "zone_name": "Mercado Oriental",
+        "socioeconomic_stratum": "popular",
+        "latitude": 12.135,
+        "longitude": -86.245,
+        "coverage_radius_km": 2.5,
+        "base_flag_drop_fare": 35.0,
     },
     {
-        "id_zona": 12,
-        "nombre_zona": "Mercado Roberto Huembes",
-        "estrato_socioeconomico": "popular",
-        "latitud": 12.125,
-        "longitud": -86.238,
-        "radio_cobertura_km": 2.5,
-        "tarifa_base_bajada_bandera": 38.0,
+        "zone_id": 12,
+        "zone_name": "Mercado Roberto Huembes",
+        "socioeconomic_stratum": "popular",
+        "latitude": 12.125,
+        "longitude": -86.238,
+        "coverage_radius_km": 2.5,
+        "base_flag_drop_fare": 38.0,
     },
 ]
+
+CANONICAL_ZONAS_URBANAS = CANONICAL_URBAN_ZONES
 
 # Real-world hydrological flood & cauce bottlenecks in Managua
 FLOOD_HOTSPOTS: list[dict[str, Any]] = [
@@ -183,22 +185,25 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return 2.0 * r_earth * math.asin(min(1.0, math.sqrt(a)))
 
 
-def build_deterministic_zonas_urbanas() -> list[dict[str, Any]]:
+def build_deterministic_urban_zones() -> list[dict[str, Any]]:
     """Return a deep copy of the 12 canonical Managua urban zones."""
-    return [dict(z) for z in CANONICAL_ZONAS_URBANAS]
+    return [dict(z) for z in CANONICAL_URBAN_ZONES]
 
 
-def fetch_osm_street_network_for_zones(zonas: list[dict[str, Any]]) -> dict[str, Any]:
+build_deterministic_zonas_urbanas = build_deterministic_urban_zones
+
+
+def fetch_osm_street_network_for_zones(zones: list[dict[str, Any]]) -> dict[str, Any]:
     """Fetch real drivable street segments from OpenStreetMap API v0.6 for all 12 Managua zones."""
     zone_segments: dict[str, list[list[float]]] = {}
     arterials: list[list[float]] = []
     rng = np.random.default_rng(42)
 
-    for z in zonas:
-        zid = str(z["id_zona"])
-        lat_c = z["latitud"]
-        lon_c = z["longitud"]
-        r_deg = min(0.015, (z["radio_cobertura_km"] / 111.0) * 0.85)
+    for z in zones:
+        zid = str(z["zone_id"])
+        lat_c = z["latitude"]
+        lon_c = z["longitude"]
+        r_deg = min(0.015, (z["coverage_radius_km"] / 111.0) * 0.85)
         bbox = f"{lon_c - r_deg:.5f},{lat_c - r_deg:.5f},{lon_c + r_deg:.5f},{lat_c + r_deg:.5f}"
         url = f"https://api.openstreetmap.org/api/0.6/map.json?bbox={bbox}"
         resp = requests.get(url, headers={"User-Agent": "cs-datos-simulations/1.0"}, timeout=25)
@@ -233,11 +238,11 @@ def fetch_osm_street_network_for_zones(zonas: list[dict[str, Any]]) -> dict[str,
     return {"zones": zone_segments, "arterials": arterials}
 
 
-def build_deterministic_cuadrantes_and_street_index(
-    zonas: list[dict[str, Any]],
+def build_deterministic_quadrants_and_street_index(
+    zones: list[dict[str, Any]],
     base_network: dict[str, Any],
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    """Deterministically build the 92 contiguous square Cuadrantes and index all street segments."""
+    """Deterministically build the 92 contiguous square Quadrants and index all street segments."""
     all_segs = []
     for zid, segs in base_network.get("zones", {}).items():
         for seg in segs:
@@ -274,7 +279,7 @@ def build_deterministic_cuadrantes_and_street_index(
                 & (dense_pts_arr[:, 1] >= lat0)
                 & (dense_pts_arr[:, 1] <= lat1)
             )
-            min_d = min(haversine_km(clat, clon, z["latitud"], z["longitud"]) for z in zonas)
+            min_d = min(haversine_km(clat, clon, z["latitude"], z["longitude"]) for z in zones)
             if np.sum(in_cell) >= 3 and min_d <= 2.15:
                 active[j, i] = True
 
@@ -292,9 +297,9 @@ def build_deterministic_cuadrantes_and_street_index(
                     if nbrs >= 3:
                         active[j, i] = True
 
-    cuadrantes: list[dict[str, Any]] = []
-    cuadrante_streets: dict[str, list[list[float]]] = {}
-    cuadrante_flood_flags: dict[str, list[int]] = {}
+    quadrants: list[dict[str, Any]] = []
+    quadrant_streets: dict[str, list[list[float]]] = {}
+    quadrant_flood_flags: dict[str, list[int]] = {}
     cell_id = 1
 
     for j, lat0 in enumerate(lat_grid):
@@ -309,15 +314,15 @@ def build_deterministic_cuadrantes_and_street_index(
             clon = round(0.5 * (lon0_f + lon1_f), 6)
 
             best_z = min(
-                zonas,
-                key=lambda z: haversine_km(clat, clon, z["latitud"], z["longitud"])
-                / (z["radio_cobertura_km"] ** 0.35),
+                zones,
+                key=lambda z: haversine_km(clat, clon, z["latitude"], z["longitude"])
+                / (z["coverage_radius_km"] ** 0.35),
             )
-            zid = int(best_z["id_zona"])
-            zname = str(best_z["nombre_zona"])
+            zid = int(best_z["zone_id"])
+            zname = str(best_z["zone_name"])
 
             norm_south = max(0.0, min(1.0, (12.164 - clat) / (12.164 - 12.086)))
-            alt_msnm = int(round(46.0 + 195.0 * (norm_south ** 1.38)))
+            alt_masl = int(round(46.0 + 195.0 * (norm_south ** 1.38)))
 
             nearest_hotspot = min(
                 FLOOD_HOTSPOTS, key=lambda h: haversine_km(clat, clon, h["lat"], h["lon"])
@@ -325,38 +330,38 @@ def build_deterministic_cuadrantes_and_street_index(
             dist_hotspot = haversine_km(clat, clon, nearest_hotspot["lat"], nearest_hotspot["lon"])
 
             if dist_hotspot <= nearest_hotspot["radius_km"] * 0.78 or (
-                alt_msnm <= 66 and zid in (7, 10, 11)
+                alt_masl <= 66 and zid in (7, 10, 11)
             ):
-                riesgo = "critico"
+                risk = "critico"
                 cauce_desc = nearest_hotspot["name"]
-            elif dist_hotspot <= nearest_hotspot["radius_km"] * 1.25 or alt_msnm <= 82:
-                riesgo = "alto"
+            elif dist_hotspot <= nearest_hotspot["radius_km"] * 1.25 or alt_masl <= 82:
+                risk = "alto"
                 cauce_desc = nearest_hotspot["name"] if dist_hotspot <= 1.2 else ZONE_CAUCES[zid]
-            elif alt_msnm <= 135:
-                riesgo = "medio"
+            elif alt_masl <= 135:
+                risk = "medio"
                 cauce_desc = ZONE_CAUCES[zid]
             else:
-                riesgo = "bajo"
+                risk = "bajo"
                 cauce_desc = ZONE_CAUCES[zid]
 
             code = f"Q{cell_id:02d}-Z{zid:02d}"
             name = f"{zname} - Cuadrante Q{cell_id:02d} (F{j+1}C{i+1})"
 
-            cuadrantes.append(
+            quadrants.append(
                 {
-                    "id_cuadrante": cell_id,
-                    "id_zona": zid,
-                    "codigo_cuadrante": code,
-                    "nombre_cuadrante": name,
-                    "fila_grid": int(j),
-                    "columna_grid": int(i),
+                    "quadrant_id": cell_id,
+                    "zone_id": zid,
+                    "quadrant_code": code,
+                    "quadrant_name": name,
+                    "grid_row": int(j),
+                    "grid_col": int(i),
                     "lat_min": lat0_f,
                     "lat_max": lat1_f,
                     "lon_min": lon0_f,
                     "lon_max": lon1_f,
-                    "altitud_media_msnm": alt_msnm,
-                    "riesgo_inundacion": riesgo,
-                    "cauces_principales": cauce_desc,
+                    "mean_altitude_masl": alt_masl,
+                    "flood_risk": risk,
+                    "main_drainage_channels": cauce_desc,
                 }
             )
 
@@ -375,7 +380,7 @@ def build_deterministic_cuadrantes_and_street_index(
                         for h in FLOOD_HOTSPOTS
                     )
                     cell_segs.append([c_lat1, c_lon1, c_lat2, c_lon2])
-                    cell_flags.append(1 if (is_fl or riesgo == "critico") else 0)
+                    cell_flags.append(1 if (is_fl or risk == "critico") else 0)
 
             if len(cell_segs) < 3:
                 sorted_nearby = sorted(
@@ -399,10 +404,10 @@ def build_deterministic_cuadrantes_and_street_index(
                         min(max(clon + 0.35 * dlon, lon0_f + 0.0005), lon1_f - 0.0005), 6
                     )
                     cell_segs.append([c_lat1, c_lon1, c_lat2, c_lon2])
-                    cell_flags.append(1 if riesgo in ("critico", "alto") else 0)
+                    cell_flags.append(1 if risk in ("critico", "alto") else 0)
 
-            cuadrante_streets[str(cell_id)] = cell_segs[:120]
-            cuadrante_flood_flags[str(cell_id)] = cell_flags[:120]
+            quadrant_streets[str(cell_id)] = cell_segs[:120]
+            quadrant_flood_flags[str(cell_id)] = cell_flags[:120]
             cell_id += 1
 
     zone_flood_flags: dict[str, list[int]] = {}
@@ -422,42 +427,45 @@ def build_deterministic_cuadrantes_and_street_index(
         "zones": base_network.get("zones", {}),
         "arterials": base_network.get("arterials", []),
         "zone_flood_flags": zone_flood_flags,
-        "cuadrante_streets": cuadrante_streets,
-        "cuadrante_flood_flags": cuadrante_flood_flags,
+        "quadrant_streets": quadrant_streets,
+        "quadrant_flood_flags": quadrant_flood_flags,
     }
-    return cuadrantes, enriched_network
+    return quadrants, enriched_network
+
+
+build_deterministic_cuadrantes_and_street_index = build_deterministic_quadrants_and_street_index
 
 
 def generate_deterministic_spatial_seeds(
     output_dir: Path = DETERMINISTIC_SEEDS_DIR,
     fetch_osm: bool = False,
     dry_run: bool = False,
-) -> tuple[list[ZonaUrbana], list[Cuadrante], dict[str, Any]]:
-    """Deterministically generate and save zonas_urbanas.json, cuadrantes.json, and managua_street_network.json."""
-    zonas_dicts = build_deterministic_zonas_urbanas()
+) -> tuple[list[UrbanZone], list[Quadrant], dict[str, Any]]:
+    """Deterministically generate and save urban_zones.json, quadrants.json, and managua_street_network.json."""
+    zones_dicts = build_deterministic_urban_zones()
     net_path = output_dir / "managua_street_network.json"
 
     if fetch_osm or not net_path.exists():
         logger.info("Fetching drivable street segments from OpenStreetMap API v0.6 for Managua...")
-        base_net = fetch_osm_street_network_for_zones(zonas_dicts)
+        base_net = fetch_osm_street_network_for_zones(zones_dicts)
     else:
         with open(net_path, encoding="utf-8") as f:
             base_net = json.load(f)
 
-    cuadrantes_dicts, enriched_net = build_deterministic_cuadrantes_and_street_index(
-        zonas_dicts, base_net
+    quadrants_dicts, enriched_net = build_deterministic_quadrants_and_street_index(
+        zones_dicts, base_net
     )
 
-    zonas_models = [ZonaUrbana(**z) for z in zonas_dicts]
-    cuadrantes_models = [Cuadrante(**c) for c in cuadrantes_dicts]
+    zones_models = [UrbanZone(**z) for z in zones_dicts]
+    quadrants_models = [Quadrant(**q) for q in quadrants_dicts]
 
     if not dry_run:
         output_dir.mkdir(parents=True, exist_ok=True)
-        with open(output_dir / "zonas_urbanas.json", "w", encoding="utf-8") as f:
-            json.dump(zonas_dicts, f, indent=2, ensure_ascii=False)
-        with open(output_dir / "cuadrantes.json", "w", encoding="utf-8") as f:
-            json.dump(cuadrantes_dicts, f, indent=2, ensure_ascii=False)
+        with open(output_dir / "urban_zones.json", "w", encoding="utf-8") as f:
+            json.dump(zones_dicts, f, indent=2, ensure_ascii=False)
+        with open(output_dir / "quadrants.json", "w", encoding="utf-8") as f:
+            json.dump(quadrants_dicts, f, indent=2, ensure_ascii=False)
         with open(net_path, "w", encoding="utf-8") as f:
             json.dump(enriched_net, f, separators=(",", ":"))
 
-    return zonas_models, cuadrantes_models, enriched_net
+    return zones_models, quadrants_models, enriched_net

@@ -50,9 +50,9 @@ class TestAPIService(unittest.TestCase):
         self.assertIn("/antojitos/zonas", paths)
         self.assertIn("/volcan/fincas", paths)
         self.assertIn("/volcan/lotes", paths)
-        self.assertIn("/movigo/cuadrantes", paths)
-        self.assertIn("/movigo/zonas", paths)
-        self.assertIn("/movigo/viajes", paths)
+        self.assertIn("/movigo/quadrants", paths)
+        self.assertIn("/movigo/zones", paths)
+        self.assertIn("/movigo/trips", paths)
 
     def test_openapi_spanish_documentation(self):
         """Verify OpenAPI schema contains rich Spanish documentation, tags, and field descriptions."""
@@ -90,7 +90,7 @@ class TestAPIService(unittest.TestCase):
 
         # 4. Pydantic schema field descriptions in Spanish
         schemas = spec.get("components", {}).get("schemas", {})
-        for model_name in ["ZonaOut", "PlatilloOut", "FincaOut", "LoteAcopioOut", "CuadranteOut", "ClimaCuadranteOut", "ViajeOut"]:
+        for model_name in ["ZonaOut", "PlatilloOut", "FincaOut", "LoteAcopioOut", "QuadrantOut", "QuadrantWeatherOut", "TripOut"]:
             self.assertIn(model_name, schemas)
             properties = schemas[model_name].get("properties", {})
             for prop_name, prop_meta in properties.items():
@@ -238,44 +238,44 @@ class TestAPIService(unittest.TestCase):
 
     @patch("src.api.utils.fetch_one")
     def test_single_item_lookup_movigo(self, mock_fetch_one):
-        """Test GET /movigo/viajes/{id_viaje} returns trip details."""
+        """Test GET /movigo/trips/{trip_id} returns trip details."""
         import datetime
         mock_fetch_one.return_value = {
-            "id_viaje": 1,
-            "id_usuario": 1,
-            "id_conductor": 1,
-            "id_zona_origen": 1,
-            "id_zona_destino": 2,
-            "id_cuadrante_origen": 15,
-            "id_cuadrante_destino": 8,
-            "latitud_origen": 12.1152,
-            "longitud_origen": -86.2548,
-            "latitud_destino": 12.1054,
-            "longitud_destino": -86.2419,
-            "fecha_hora_solicitud": datetime.datetime(2024, 3, 5, 8, 15, 0),
-            "fecha_hora_inicio": datetime.datetime(2024, 3, 5, 8, 20, 0),
-            "fecha_hora_fin": datetime.datetime(2024, 3, 5, 8, 45, 0),
-            "tiempo_espera_minutos": 5.0,
-            "distancia_km": 7.2,
-            "duracion_minutos": 25.0,
-            "tarifa_bajada_bandera": 70.0,
-            "cargo_distancia": 129.6,
-            "cargo_tiempo": 112.5,
-            "tarifa_base": 312.1,
-            "multiplicador_dinamico": 1.2,
-            "tarifa_final": 374.52,
-            "solicitudes_activas_origen": 32,
-            "conductores_disponibles_origen": 24,
-            "metodo_pago": "tarjeta",
-            "estado_viaje": "completado",
-            "calificacion_usuario": 5.0,
-            "calificacion_conductor": 4.8,
-            "propina": 15.0,
-            "motivo_cancelacion": None,
+            "trip_id": 1,
+            "user_id": 1,
+            "driver_id": 1,
+            "origin_zone_id": 1,
+            "destination_zone_id": 2,
+            "origin_quadrant_id": 15,
+            "destination_quadrant_id": 8,
+            "origin_latitude": 12.1152,
+            "origin_longitude": -86.2548,
+            "destination_latitude": 12.1054,
+            "destination_longitude": -86.2419,
+            "requested_at": datetime.datetime(2024, 3, 5, 8, 15, 0),
+            "started_at": datetime.datetime(2024, 3, 5, 8, 20, 0),
+            "completed_at": datetime.datetime(2024, 3, 5, 8, 45, 0),
+            "wait_time_minutes": 5.0,
+            "distance_km": 7.2,
+            "duration_minutes": 25.0,
+            "flag_drop_fare": 70.0,
+            "distance_charge": 129.6,
+            "time_charge": 112.5,
+            "base_fare": 312.1,
+            "surge_multiplier": 1.2,
+            "final_fare": 374.52,
+            "origin_active_requests": 32,
+            "origin_available_drivers": 24,
+            "payment_method": "tarjeta",
+            "trip_status": "completado",
+            "user_rating": 5.0,
+            "driver_rating": 4.8,
+            "tip_amount": 15.0,
+            "cancellation_reason": None,
         }
-        response = self.client.get("/movigo/viajes/1")
+        response = self.client.get("/movigo/trips/1")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["id_viaje"], 1)
+        self.assertEqual(response.json()["trip_id"], 1)
 
 
 if __name__ == "__main__":

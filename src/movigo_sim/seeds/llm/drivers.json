@@ -1,0 +1,222 @@
+[
+  {
+    "driver_id": 1,
+    "name": "Carlos Mendoza",
+    "service_type": "movigo_estandar",
+    "vehicle_model": "Toyota Yaris",
+    "vehicle_year": 2018,
+    "license_plate": "M-123456",
+    "average_rating": 4.85,
+    "acceptance_rate_pct": 92.5,
+    "status": "activo"
+  },
+  {
+    "driver_id": 2,
+    "name": "Juan Carlos Pérez",
+    "service_type": "movigo_estandar",
+    "vehicle_model": "Hyundai Grand i10",
+    "vehicle_year": 2020,
+    "license_plate": "M-234567",
+    "average_rating": 4.7,
+    "acceptance_rate_pct": 88.0,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 3,
+    "name": "Maria Elena Ruiz",
+    "service_type": "movigo_comfort",
+    "vehicle_model": "Suzuki Dzire",
+    "vehicle_year": 2022,
+    "license_plate": "M-345678",
+    "average_rating": 4.95,
+    "acceptance_rate_pct": 95.0,
+    "status": "activo"
+  },
+  {
+    "driver_id": 4,
+    "name": "Alejandro Gutierrez",
+    "service_type": "movigo_estandar",
+    "vehicle_model": "Kia Rio",
+    "vehicle_year": 2017,
+    "license_plate": "M-456789",
+    "average_rating": 4.55,
+    "acceptance_rate_pct": 78.5,
+    "status": "inactivo"
+  },
+  {
+    "driver_id": 5,
+    "name": "Roberto Sanchez",
+    "service_type": "movigo_comfort",
+    "vehicle_model": "Nissan Versa",
+    "vehicle_year": 2021,
+    "license_plate": "M-567890",
+    "average_rating": 4.9,
+    "acceptance_rate_pct": 90.0,
+    "status": "activo"
+  },
+  {
+    "driver_id": 6,
+    "name": "Luis Fernando Gomez",
+    "service_type": "movigo_moto",
+    "vehicle_model": "Honda CB125F",
+    "vehicle_year": 2023,
+    "license_plate": "M-678901",
+    "average_rating": 4.65,
+    "acceptance_rate_pct": 85.0,
+    "status": "activo"
+  },
+  {
+    "driver_id": 7,
+    "name": "Ana Patricia Morales",
+    "service_type": "movigo_estandar",
+    "vehicle_model": "Toyota Yaris",
+    "vehicle_year": 2019,
+    "license_plate": "M-789012",
+    "average_rating": 4.8,
+    "acceptance_rate_pct": 91.0,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 8,
+    "name": "Jose Miguel Rizo",
+    "service_type": "movigo_moto",
+    "vehicle_model": "Honda CB125F",
+    "vehicle_year": 2022,
+    "license_plate": "M-890123",
+    "average_rating": 4.4,
+    "acceptance_rate_pct": 75.0,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 9,
+    "name": "Ernesto Jiron",
+    "service_type": "movigo_estandar",
+    "vehicle_model": "Hyundai Grand i10",
+    "vehicle_year": 2021,
+    "license_plate": "M-901234",
+    "average_rating": 4.75,
+    "acceptance_rate_pct": 89.5,
+    "status": "activo"
+  },
+  {
+    "driver_id": 10,
+    "name": "Claudia Orozco",
+    "service_type": "movigo_comfort",
+    "vehicle_model": "Nissan Versa",
+    "vehicle_year": 2023,
+    "license_plate": "M-012345",
+    "average_rating": 4.98,
+    "acceptance_rate_pct": 98.0,
+    "status": "activo"
+  },
+  {
+    "driver_id": 11,
+    "name": "Francisco Javier Lopez",
+    "service_type": "movigo_estandar",
+    "vehicle_model": "Kia Rio",
+    "vehicle_year": 2018,
+    "license_plate": "M-112233",
+    "average_rating": 4.5,
+    "acceptance_rate_pct": 80.0,
+    "status": "inactivo"
+  },
+  {
+    "driver_id": 12,
+    "name": "Rosaura Vado",
+    "service_type": "movigo_estandar",
+    "vehicle_model": "Suzuki Dzire",
+    "vehicle_year": 2020,
+    "license_plate": "M-223344",
+    "average_rating": 4.6,
+    "acceptance_rate_pct": 82.0,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 13,
+    "name": "Marcos Antonio Tellez",
+    "service_type": "movigo_moto",
+    "vehicle_model": "Honda CB125F",
+    "vehicle_year": 2021,
+    "license_plate": "M-334455",
+    "average_rating": 4.35,
+    "acceptance_rate_pct": 72.5,
+    "status": "activo"
+  },
+  {
+    "driver_id": 14,
+    "name": "Daniela Bermudez",
+    "service_type": "movigo_comfort",
+    "vehicle_model": "Toyota Yaris",
+    "vehicle_year": 2022,
+    "license_plate": "M-445566",
+    "average_rating": 4.92,
+    "acceptance_rate_pct": 96.0,
+    "status": "activo"
+  },
+  {
+    "driver_id": 15,
+    "name": "Oscar Danilo Mairena",
+    "service_type": "movigo_estandar",
+    "vehicle_model": "Hyundai Grand i10",
+    "vehicle_year": 2019,
+    "license_plate": "M-556677",
+    "average_rating": 4.68,
+    "acceptance_rate_pct": 86.0,
+    "status": "desconectado"
+  },
+  {
+    "driver_id": 16,
+    "name": "Karla Vanessa Urbina",
+    "service_type": "movigo_estandar",
+    "vehicle_model": "Nissan Versa",
+    "vehicle_year": 2020,
+    "license_plate": "M-667788",
+    "average_rating": 4.78,
+    "acceptance_rate_pct": 89.0,
+    "status": "activo"
+  },
+  {
+    "driver_id": 17,
+    "name": "Mauricio Sequeira",
+    "service_type": "movigo_moto",
+    "vehicle_model": "Honda CB125F",
+    "vehicle_year": 2023,
+    "license_plate": "M-778899",
+    "average_rating": 4.45,
+    "acceptance_rate_pct": 79.0,
+    "status": "en_viaje"
+  },
+  {
+    "driver_id": 18,
+    "name": "Brenda Lisseth Centeno",
+    "service_type": "movigo_comfort",
+    "vehicle_model": "Suzuki Dzire",
+    "vehicle_year": 2021,
+    "license_plate": "M-889900",
+    "average_rating": 4.88,
+    "acceptance_rate_pct": 94.5,
+    "status": "activo"
+  },
+  {
+    "driver_id": 19,
+    "name": "Ramon Emilio Duarte",
+    "service_type": "movigo_estandar",
+    "vehicle_model": "Kia Rio",
+    "vehicle_year": 2017,
+    "license_plate": "M-990011",
+    "average_rating": 4.3,
+    "acceptance_rate_pct": 70.0,
+    "status": "inactivo"
+  },
+  {
+    "driver_id": 20,
+    "name": "Tatiana Alejandra Pineda",
+    "service_type": "movigo_estandar",
+    "vehicle_model": "Toyota Yaris",
+    "vehicle_year": 2022,
+    "license_plate": "M-101010",
+    "average_rating": 4.96,
+    "acceptance_rate_pct": 97.5,
+    "status": "activo"
+  }
+]

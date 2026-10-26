@@ -1,0 +1,110 @@
+[
+  {
+    "zone_id": 1,
+    "zone_name": "Villa Fontana",
+    "socioeconomic_stratum": "alto",
+    "latitude": 12.115,
+    "longitude": -86.255,
+    "coverage_radius_km": 2.5,
+    "base_flag_drop_fare": 70.0
+  },
+  {
+    "zone_id": 2,
+    "zone_name": "Las Colinas",
+    "socioeconomic_stratum": "alto",
+    "latitude": 12.105,
+    "longitude": -86.242,
+    "coverage_radius_km": 3.0,
+    "base_flag_drop_fare": 75.0
+  },
+  {
+    "zone_id": 3,
+    "zone_name": "Santo Domingo",
+    "socioeconomic_stratum": "alto",
+    "latitude": 12.1,
+    "longitude": -86.23,
+    "coverage_radius_km": 2.8,
+    "base_flag_drop_fare": 80.0
+  },
+  {
+    "zone_id": 4,
+    "zone_name": "Los Robles",
+    "socioeconomic_stratum": "medio",
+    "latitude": 12.128,
+    "longitude": -86.265,
+    "coverage_radius_km": 2.0,
+    "base_flag_drop_fare": 55.0
+  },
+  {
+    "zone_id": 5,
+    "zone_name": "Altamira",
+    "socioeconomic_stratum": "medio",
+    "latitude": 12.133,
+    "longitude": -86.25,
+    "coverage_radius_km": 2.0,
+    "base_flag_drop_fare": 50.0
+  },
+  {
+    "zone_id": 6,
+    "zone_name": "Bolonia",
+    "socioeconomic_stratum": "medio",
+    "latitude": 12.145,
+    "longitude": -86.28,
+    "coverage_radius_km": 2.2,
+    "base_flag_drop_fare": 55.0
+  },
+  {
+    "zone_id": 7,
+    "zone_name": "Bello Horizonte",
+    "socioeconomic_stratum": "medio",
+    "latitude": 12.138,
+    "longitude": -86.22,
+    "coverage_radius_km": 3.5,
+    "base_flag_drop_fare": 48.0
+  },
+  {
+    "zone_id": 8,
+    "zone_name": "Linda Vista",
+    "socioeconomic_stratum": "medio",
+    "latitude": 12.155,
+    "longitude": -86.3,
+    "coverage_radius_km": 3.0,
+    "base_flag_drop_fare": 50.0
+  },
+  {
+    "zone_id": 9,
+    "zone_name": "Metrocentro / Eje Corporativo UCA",
+    "socioeconomic_stratum": "comercial",
+    "latitude": 12.12,
+    "longitude": -86.27,
+    "coverage_radius_km": 1.5,
+    "base_flag_drop_fare": 60.0
+  },
+  {
+    "zone_id": 10,
+    "zone_name": "Ciudad Jardín",
+    "socioeconomic_stratum": "popular",
+    "latitude": 12.14,
+    "longitude": -86.258,
+    "coverage_radius_km": 2.0,
+    "base_flag_drop_fare": 40.0
+  },
+  {
+    "zone_id": 11,
+    "zone_name": "Mercado Oriental",
+    "socioeconomic_stratum": "popular",
+    "latitude": 12.135,
+    "longitude": -86.245,
+    "coverage_radius_km": 2.5,
+    "base_flag_drop_fare": 35.0
+  },
+  {
+    "zone_id": 12,
+    "zone_name": "Mercado Roberto Huembes",
+    "socioeconomic_stratum": "popular",
+    "latitude": 12.125,
+    "longitude": -86.238,
+    "coverage_radius_km": 2.5,
+    "base_flag_drop_fare": 38.0
+  }
+]
