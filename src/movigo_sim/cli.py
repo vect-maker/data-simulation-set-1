@@ -137,6 +137,23 @@ def display_movigo_rich_summary(summary: dict):
         ]
         render_operational_table("Elección Modal & Demanda Multimodal (Multinomial Logit)", modal_rows, border_style="magenta")
 
+    # 6. Heterogeneidad, Fatiga y Rechazo de Viajes por Conductores
+    if "heterogeneidad_fatiga_conductores" in summary:
+        hf = summary["heterogeneidad_fatiga_conductores"]
+        motivos_pct = hf.get("distribucion_motivos_rechazo_pct", {})
+        motivos_cnt = hf.get("distribucion_motivos_rechazo_conteo", {})
+        rango = hf.get("rango_tasa_aceptacion", {})
+        cats = hf.get("rechazos_por_categoria_vehiculo", {})
+
+        driver_rows = [
+            ("Tasa Aceptación Promedio Flota", f"{hf.get('tasa_aceptacion_promedio_flota_pct', 0.0)}% (Rango: {rango.get('min', 0.0)}% - {rango.get('max', 0.0)}%)"),
+            ("Total Rechazos por Conductores", f"{hf.get('total_rechazos_conductor', 0)} rechazos registrados"),
+            ("Desglose por Motivo de Rechazo", f"Riesgo Cauces: {motivos_pct.get('riesgo_cauce_desbordado', 0.0)}% ({motivos_cnt.get('riesgo_cauce_desbordado', 0)}) | Fatiga/Turno: {motivos_pct.get('fatiga_fin_turno', 0.0)}% ({motivos_cnt.get('fatiga_fin_turno', 0)}) | Deadhead >4km: {motivos_pct.get('desplazamiento_vacio', 0.0)}% ({motivos_cnt.get('desplazamiento_vacio', 0)})"),
+            ("Rechazos por Categoría Vehicular", f"Moto: {cats.get('movigo_moto', 0)} | Estándar: {cats.get('movigo_estandar', 0)} | Comfort: {cats.get('movigo_comfort', 0)}"),
+            ("Machine Learning & Driver Churn", f"Conductores en Riesgo Churn (<75%): {hf.get('conductores_riesgo_desercion_churn', 0)} | Retención Flota: {hf.get('tasa_retencion_proyectada_flota_pct', 0.0)}% | Corr(Aceptación, Rating): {hf.get('correlacion_aceptacion_calificacion', 0.0)}"),
+        ]
+        render_operational_table("Heterogeneidad, Fatiga & Rechazo de Conductores (Machine Learning)", driver_rows, border_style="yellow")
+
 
 def run_generation(
     days=None,
@@ -199,6 +216,7 @@ def run_generation(
         cancellations=cancellations,
         maintenance=maintenance,
         vehicles=engine.vehicles,
+        drivers=engine.drivers,
         seed=seed,
         summary_path=summary_path,
     )

@@ -580,3 +580,81 @@ def compute_multinomial_mode_choice_metrics(
         "elasticidad_precio_cruzada_estandar_moto": cross_elasticity_std_moto,
         "ratio_sensibilidad_climatica_moto": ratio_desplome_moto,
     }
+
+
+def compute_driver_heterogeneity_and_churn_metrics(
+    df_trips: pd.DataFrame,
+    df_cancellations: pd.DataFrame,
+    df_drivers: pd.DataFrame,
+    df_vehicles: pd.DataFrame,
+) -> dict[str, Any]:
+    """Compute driver behavioral heterogeneity, shift fatigue refusal distribution, and ML churn KPIs."""
+    if df_drivers.empty:
+        return {}
+
+    avg_acceptance = round(float(df_drivers["acceptance_rate_pct"].mean()), 2)
+    min_acceptance = round(float(df_drivers["acceptance_rate_pct"].min()), 2)
+    max_acceptance = round(float(df_drivers["acceptance_rate_pct"].max()), 2)
+
+    drivers_at_risk = int((df_drivers["acceptance_rate_pct"] < 75.0).sum())
+    fleet_retention_pct = round(
+        ((len(df_drivers) - drivers_at_risk) / max(1, len(df_drivers))) * 100.0, 2
+    )
+
+    corr_acceptance_rating = 0.0
+    if len(df_drivers) >= 5 and "average_rating" in df_drivers.columns:
+        corr_val = float(df_drivers["acceptance_rate_pct"].corr(df_drivers["average_rating"]))
+        corr_acceptance_rating = round(corr_val, 4) if not np.isnan(corr_val) else 0.0
+
+    # Categorize cancellations by reason
+    reasons_breakdown = {
+        "riesgo_cauce_desbordado": 0,
+        "fatiga_fin_turno": 0,
+        "desplazamiento_vacio": 0,
+        "otros_motivos_conductor": 0,
+    }
+    total_driver_cancels = 0
+
+    if not df_cancellations.empty:
+        drv_cancels = df_cancellations[df_cancellations["cancelled_by"] == "conductor"]
+        total_driver_cancels = len(drv_cancels)
+
+        for _, row in drv_cancels.iterrows():
+            r = str(row.get("cancellation_reason", "")).lower()
+            if "cauce" in r or "inundaci" in r:
+                reasons_breakdown["riesgo_cauce_desbordado"] += 1
+            elif "fatiga" in r or "turno" in r:
+                reasons_breakdown["fatiga_fin_turno"] += 1
+            elif "vacío" in r or "vacio" in r or ">4km" in r:
+                reasons_breakdown["desplazamiento_vacio"] += 1
+            else:
+                reasons_breakdown["otros_motivos_conductor"] += 1
+
+    reasons_pct = {
+        k: round((v / max(1, total_driver_cancels)) * 100.0, 2)
+        for k, v in reasons_breakdown.items()
+    }
+
+    # Breakdown by vehicle service category
+    category_driver_cancels = {"movigo_moto": 0, "movigo_estandar": 0, "movigo_comfort": 0}
+    if not df_trips.empty and not df_cancellations.empty and not df_vehicles.empty:
+        veh_map = df_vehicles.set_index("driver_id")["service_type"].to_dict()
+        trip_driver_map = df_trips.set_index("trip_id")["driver_id"].to_dict()
+
+        for tid in df_cancellations[df_cancellations["cancelled_by"] == "conductor"]["trip_id"]:
+            did = trip_driver_map.get(tid)
+            if did and did in veh_map:
+                st = veh_map[did]
+                category_driver_cancels[st] = category_driver_cancels.get(st, 0) + 1
+
+    return {
+        "tasa_aceptacion_promedio_flota_pct": avg_acceptance,
+        "rango_tasa_aceptacion": {"min": min_acceptance, "max": max_acceptance},
+        "total_rechazos_conductor": total_driver_cancels,
+        "distribucion_motivos_rechazo_conteo": reasons_breakdown,
+        "distribucion_motivos_rechazo_pct": reasons_pct,
+        "rechazos_por_categoria_vehiculo": category_driver_cancels,
+        "conductores_riesgo_desercion_churn": drivers_at_risk,
+        "tasa_retencion_proyectada_flota_pct": fleet_retention_pct,
+        "correlacion_aceptacion_calificacion": corr_acceptance_rating,
+    }

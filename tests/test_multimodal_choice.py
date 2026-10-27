@@ -152,7 +152,7 @@ class TestMultimodalChoice(unittest.TestCase):
         req_time = datetime(2024, 1, 2, 10, 0)
 
         # Dispatch specifically for movigo_moto
-        moto_driver, _ = self.platform.dispatch_driver(
+        moto_driver, *_ = self.platform.dispatch_driver(
             free_drivers=driver_agents,
             all_operational_drivers=driver_agents,
             lat_o=12.1364,
@@ -165,7 +165,7 @@ class TestMultimodalChoice(unittest.TestCase):
         self.assertEqual(moto_driver.vehicle_model.service_type, "movigo_moto")
 
         # Dispatch specifically for movigo_comfort
-        comf_driver, _ = self.platform.dispatch_driver(
+        comf_driver, *_ = self.platform.dispatch_driver(
             free_drivers=driver_agents,
             all_operational_drivers=driver_agents,
             lat_o=12.1364,

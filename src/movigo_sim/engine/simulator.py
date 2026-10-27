@@ -666,6 +666,10 @@ class MoviGoSimulationEngine:
                     raw_route_km=raw_road_km, is_suboptimal=is_pert, is_cauce_overflow=is_cauce_overflow
                 )
 
+                # Update driver shifts if new calendar date / shift begins
+                for agent in self.driver_agents:
+                    agent.reset_shift_if_needed(req_time)
+
                 # Stateful on-duty free drivers & greedy proximity dispatch
                 free_agents = [
                     agent for agent in self.driver_agents
@@ -696,7 +700,7 @@ class MoviGoSimulationEngine:
                                 availability_status="disponible",
                             )
 
-                driver_agent, extra_wait = self.platform.dispatch_driver(
+                driver_agent, extra_wait, reject_reason = self.platform.dispatch_driver(
                     free_drivers=free_agents,
                     all_operational_drivers=self.driver_agents,
                     lat_o=lat_o,
@@ -705,7 +709,61 @@ class MoviGoSimulationEngine:
                     world=self.world,
                     rng=self.rng,
                     service_type=chosen_service,
+                    trip_dist_km=dist_km,
+                    trip_dur_min=dur_min,
+                    fare=100.0,
+                    is_route_overflow=is_cauce_overflow,
+                    dest_zone_id=destination_zone.zone_id,
                 )
+
+                if reject_reason is not None:
+                    # Trip was rejected by all candidate drivers (risk aversion, fatigue, or deadhead)
+                    trip_status = "cancelado_conductor"
+                    start_time = None
+                    end_time = None
+                    tip_amount = 0.0
+                    payment_status = "anulado"
+                    cancelled_by = "conductor"
+                    wait_min = round(float(np.clip(extra_wait, 1.0, 4.0)), 2)
+                    driver_agent.assign_trip(driver_agent.current_node, req_time + timedelta(minutes=wait_min))
+
+                    trip_id = recorder.record_trip(
+                        user_id=user.user_id,
+                        driver_id=driver_agent.driver_id,
+                        origin_quadrant_id=q_o,
+                        destination_quadrant_id=q_d,
+                        origin_latitude=lat_o,
+                        origin_longitude=lon_o,
+                        destination_latitude=lat_d,
+                        destination_longitude=lon_d,
+                        requested_at=req_time,
+                        started_at=start_time,
+                        completed_at=end_time,
+                        distance_km=dist_km,
+                        duration_minutes=dur_min,
+                        trip_status=trip_status,
+                    )
+                    b_fare, f_fare = self.platform.compute_fare(
+                        flag_drop_fare, dist_km, dur_min, surge, service_type=driver_agent.vehicle_model.service_type
+                    )
+                    recorder.record_payment(
+                        trip_id=trip_id,
+                        payment_method=payment_method,
+                        base_fare=b_fare,
+                        surge_multiplier=surge,
+                        tip_amount=tip_amount,
+                        final_fare=f_fare,
+                        payment_status=payment_status,
+                    )
+                    recorder.record_cancellation(
+                        trip_id=trip_id,
+                        cancelled_by=cancelled_by,
+                        cancellation_reason=reject_reason,
+                        wait_time_minutes=wait_min,
+                        origin_active_requests=d_t,
+                        origin_available_drivers=s_t,
+                    )
+                    continue
 
                 # Compute fare based on actual dispatched vehicle category
                 base_fare, final_fare = self.platform.compute_fare(
@@ -747,7 +805,7 @@ class MoviGoSimulationEngine:
                     c_step = min(len(pickup_nodes) - 1, max(0, int(len(pickup_nodes) * min(1.0, wait_min / 12.0))))
                     driver_agent.assign_trip(pickup_nodes[c_step], req_time + timedelta(minutes=wait_min))
                     pickup_fuel = driver_agent.compute_trip_fuel_liters(pickup_km, wait_min, effective_congestion, False)
-                    driver_agent.accumulate_distance_and_fuel(pickup_km, pickup_fuel, False)
+                    driver_agent.accumulate_distance_and_fuel(pickup_km, pickup_fuel, False, duration_min=wait_min, congestion_idx=effective_congestion)
 
                     trip_id = recorder.record_trip(
                         user_id=user.user_id,
@@ -779,7 +837,7 @@ class MoviGoSimulationEngine:
                     end_time = start_time + timedelta(minutes=dur_min)
                     driver_agent.assign_trip(node_d, end_time)
                     trip_fuel = driver_agent.compute_trip_fuel_liters(dist_km, dur_min, effective_congestion, is_cauce_overflow or flood_affected)
-                    driver_agent.accumulate_distance_and_fuel(dist_km, trip_fuel, is_cauce_overflow or flood_affected)
+                    driver_agent.accumulate_distance_and_fuel(dist_km, trip_fuel, is_cauce_overflow or flood_affected, duration_min=dur_min, congestion_idx=effective_congestion)
 
                     # Scheduled preventive maintenance check (every 5,000 km)
                     if driver_agent.km_since_service >= 5000.0:

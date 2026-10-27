@@ -343,8 +343,13 @@ class MoviGoPlatform:
         world: WorldEnvironment,
         rng: np.random.Generator,
         service_type: str = "movigo_estandar",
-    ) -> tuple[DriverAgent, float]:
-        """Match request with on-duty company driver prioritizing the requested vehicle category."""
+        trip_dist_km: float = 5.0,
+        trip_dur_min: float = 15.0,
+        fare: float = 100.0,
+        is_route_overflow: bool = False,
+        dest_zone_id: int = 1,
+    ) -> tuple[DriverAgent, float, str | None]:
+        """Match request with on-duty company driver prioritizing the requested vehicle category with behavioral evaluation."""
         # 1. Filter dispatchable free drivers operating the requested category
         matching_free = [
             d for d in free_drivers
@@ -355,29 +360,67 @@ class MoviGoPlatform:
         if not matching_free:
             matching_free = [d for d in free_drivers if d.is_dispatchable(req_time)]
 
-        # 3. If free drivers exist, dispatch closest via proximity
+        # 3. If free drivers exist, evaluate offers with closest candidates (up to K=3 attempts)
         if matching_free:
-            proximity_w = []
+            candidates_with_dist = []
             for d in matching_free:
                 d_pos = world.node_coords[d.current_node]
                 d_hav = haversine_km(d_pos[0], d_pos[1], lat_o, lon_o)
-                # Proximity score with central corporate dispatch compliance (96% company policy compliance)
-                score = (1.0 / max(0.35, d_hav)) ** 1.35
-                compliance = 0.96 * (d.acceptance_rate_pct / 100.0)
-                proximity_w.append(score * compliance)
-            proximity_w_arr = np.array(proximity_w, dtype=float)
-            proximity_w_arr /= proximity_w_arr.sum()
-            chosen_local_idx = int(rng.choice(len(matching_free), p=proximity_w_arr))
-            driver = matching_free[chosen_local_idx]
-            extra_wait = 0.0
+                candidates_with_dist.append((d, d_hav))
+
+            # Sort by proximity ascending
+            candidates_with_dist.sort(key=lambda x: x[1])
+
+            k_attempts = min(3, len(candidates_with_dist))
+            last_driver = candidates_with_dist[0][0]
+            last_reason: str | None = None
+
+            for i in range(k_attempts):
+                candidate, pickup_dist = candidates_with_dist[i]
+                last_driver = candidate
+                accepted, reason = candidate.evaluate_trip_offer(
+                    pickup_km=pickup_dist,
+                    trip_dist_km=trip_dist_km,
+                    trip_dur_min=trip_dur_min,
+                    fare=fare,
+                    is_route_overflow=is_route_overflow,
+                    dest_zone_id=dest_zone_id,
+                    req_time=req_time,
+                    rng=rng,
+                )
+                candidate.record_offer_result(accepted)
+                if accepted:
+                    reaction_delay = candidate.get_reaction_time_delay(req_time)
+                    return candidate, reaction_delay, None
+                else:
+                    last_reason = reason
+
+            # If all K closest candidates rejected the offer
+            return last_driver, 1.5, last_reason
         else:
             # 4. If no free driver is available, queue with earliest finishing on-duty driver
             on_duty_drivers = [d for d in all_operational_drivers if d.is_on_duty(req_time)]
             pool = on_duty_drivers if on_duty_drivers else all_operational_drivers
             driver = min(pool, key=lambda d: d.available_at)
             extra_wait = max(0.0, (driver.available_at - req_time).total_seconds() / 60.0)
-
-        return driver, extra_wait
+            d_pos = world.node_coords[driver.current_node]
+            pickup_dist = haversine_km(d_pos[0], d_pos[1], lat_o, lon_o)
+            accepted, reason = driver.evaluate_trip_offer(
+                pickup_km=pickup_dist,
+                trip_dist_km=trip_dist_km,
+                trip_dur_min=trip_dur_min,
+                fare=fare,
+                is_route_overflow=is_route_overflow,
+                dest_zone_id=dest_zone_id,
+                req_time=req_time,
+                rng=rng,
+            )
+            driver.record_offer_result(accepted)
+            if accepted:
+                reaction_delay = driver.get_reaction_time_delay(req_time)
+                return driver, extra_wait + reaction_delay, None
+            else:
+                return driver, extra_wait + 1.0, reason
 
     def evaluate_cancellation(
         self,

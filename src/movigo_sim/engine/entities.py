@@ -13,6 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, date, time
 from typing import Any
+import numpy as np
 
 from movigo_sim.models import Driver, Vehicle, User
 
@@ -41,6 +42,23 @@ class DriverAgent:
     cumulative_fuel_liters: float = 0.0
     maintenance_until: datetime = datetime.min
     flood_exposure_count: int = 0
+    risk_aversion: float = 0.50
+    shift_trips_completed: int = 0
+    shift_minutes_worked: float = 0.0
+    traffic_stress_accumulated: float = 0.0
+    total_offers: int = 0
+    total_rejections: int = 0
+    current_shift_date: date | None = None
+
+    def __post_init__(self) -> None:
+        if self.risk_aversion == 0.50:
+            st = self.vehicle_model.service_type
+            if st == "movigo_moto":
+                self.risk_aversion = 0.85
+            elif st == "movigo_comfort":
+                self.risk_aversion = 0.25
+            else:
+                self.risk_aversion = 0.65
 
     @property
     def is_operational(self) -> bool:
@@ -119,13 +137,119 @@ class DriverAgent:
         distance_km: float,
         fuel_liters: float,
         flooded: bool = False,
+        duration_min: float = 0.0,
+        congestion_idx: float = 1.0,
     ) -> None:
-        """Update vehicle wear metrics, cumulative odometer, and flood exposures."""
+        """Update vehicle wear metrics, cumulative odometer, shift workload, and flood exposures."""
         self.odometer_km = round(self.odometer_km + distance_km, 2)
         self.km_since_service = round(self.km_since_service + distance_km, 2)
         self.cumulative_fuel_liters = round(self.cumulative_fuel_liters + fuel_liters, 2)
+        self.shift_trips_completed += 1
+        self.shift_minutes_worked += duration_min
+        self.traffic_stress_accumulated += max(0.0, congestion_idx - 1.0) * (duration_min / 30.0)
         if flooded:
             self.flood_exposure_count += 1
+
+    def reset_shift_if_needed(self, dt: datetime) -> None:
+        """Reset shift counters when a new calendar day / shift begins."""
+        if self.current_shift_date != dt.date():
+            self.current_shift_date = dt.date()
+            self.shift_trips_completed = 0
+            self.shift_minutes_worked = 0.0
+            self.traffic_stress_accumulated = 0.0
+
+    def get_shift_hours_worked(self, dt: datetime) -> float:
+        """Calculate elapsed hours on duty in the current shift."""
+        self.reset_shift_if_needed(dt)
+        if self.shift_name == "matutino":
+            elapsed = (dt.hour - 6) + (dt.minute / 60.0)
+        elif self.shift_name == "vespertino":
+            elapsed = (dt.hour - 14) + (dt.minute / 60.0)
+        else:  # nocturno
+            h = dt.hour
+            elapsed = (h - 22 if h >= 22 else h + 2) + (dt.minute / 60.0)
+        return max(0.0, float(elapsed))
+
+    def get_fatigue_level(self, dt: datetime) -> float:
+        """Calculate dynamic driver fatigue index in [0.0, 1.0]."""
+        hours = self.get_shift_hours_worked(dt)
+        if hours <= 3.0:
+            base = hours * 0.08
+        elif hours <= 5.5:
+            base = 0.24 + (hours - 3.0) * 0.12
+        else:
+            base = 0.54 + (hours - 5.5) * 0.18
+        stress = min(0.25, self.traffic_stress_accumulated * 0.03)
+        return float(np.clip(base + stress, 0.0, 1.0))
+
+    def get_reaction_time_delay(self, dt: datetime) -> float:
+        """Cognitive reaction and dispatch acceptance latency in minutes."""
+        fatigue = self.get_fatigue_level(dt)
+        return round(0.20 + 2.30 * (fatigue ** 2), 2)
+
+    def record_offer_result(self, accepted: bool) -> None:
+        """Track dispatch offers, rejections, and update acceptance rate."""
+        self.total_offers += 1
+        if not accepted:
+            self.total_rejections += 1
+        if self.total_offers > 0:
+            rate = (1.0 - (self.total_rejections / self.total_offers)) * 100.0
+            self.acceptance_rate_pct = max(50.0, round(float(rate), 2))
+
+    def evaluate_trip_offer(
+        self,
+        pickup_km: float,
+        trip_dist_km: float,
+        trip_dur_min: float,
+        fare: float,
+        is_route_overflow: bool,
+        dest_zone_id: int,
+        req_time: datetime,
+        rng: np.random.Generator,
+    ) -> tuple[bool, str | None]:
+        """Micro-behavioral decision model for trip offer acceptance vs strategic refusal.
+
+        Evaluates:
+        1. Hydrological risk aversion (raging / overflowing cauces).
+        2. Shift fatigue & burnout (shift hours >= 5.5 or high fatigue).
+        3. Deadhead distance refusal (pickup > 4km into low-demand destinations).
+        """
+        self.reset_shift_if_needed(req_time)
+
+        # 1. Hydrological risk aversion
+        if is_route_overflow:
+            st = self.vehicle_model.service_type
+            if st == "movigo_moto":
+                p_reject = min(0.98, 0.70 + 0.30 * self.risk_aversion)
+            elif st == "movigo_comfort":
+                p_reject = min(0.35, 0.10 + 0.25 * self.risk_aversion)
+            else:  # movigo_estandar
+                p_reject = min(0.85, 0.45 + 0.40 * self.risk_aversion)
+
+            if rng.random() < p_reject:
+                return False, "Riesgo de inundación / cauce desbordado (rechazo conductor)"
+
+        # 2. Accumulated shift fatigue & burnout
+        hours = self.get_shift_hours_worked(req_time)
+        fatigue = self.get_fatigue_level(req_time)
+        if hours >= 5.5 or fatigue >= 0.65:
+            fatigue_roll = float(rng.random())
+            p_fatigue_reject = float(np.clip(
+                0.22 * (hours - 5.0) + 0.28 * fatigue + (0.06 * max(0.0, pickup_km - 2.0)),
+                0.0,
+                0.88,
+            ))
+            if fatigue_roll < p_fatigue_reject:
+                return False, "Conductor fatigado / fin de turno"
+
+        # 3. Deadhead distance & low-demand destination refusal
+        high_demand_zones = {1, 4, 6, 9, 11}
+        if pickup_km > 4.0 and dest_zone_id not in high_demand_zones:
+            p_deadhead_reject = float(np.clip(0.60 + 0.08 * (pickup_km - 4.0), 0.60, 0.94))
+            if rng.random() < p_deadhead_reject:
+                return False, "Desplazamiento en vacío excesivo (>4km a zona baja demanda)"
+
+        return True, None
 
     def send_to_maintenance(self, completion_time: datetime) -> None:
         """Reset service interval counter and hold vehicle in workshop bay until completion_time."""
