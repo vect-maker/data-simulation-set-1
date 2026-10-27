@@ -1512,3 +1512,19 @@ class DriverTelemetryOut(BaseModel):
         examples=["ocupado"],
     )
 
+
+class SimulationStatusOut(BaseModel):
+    """Estado en tiempo real del reloj de simulación y progreso de generación."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    case_name: str = Field(..., description="Nombre del caso de estudio de movilidad.")
+    current_status: str = Field(..., description="Estado del worker ('ready', 'catching_up', 'hourly_wait').")
+    earliest_datetime: datetime | None = Field(None, description="Límite inferior histórico generado (inclusive).")
+    latest_datetime: datetime | None = Field(None, description="Última hora virtual simulada y lista para consultas.")
+    target_datetime: datetime | None = Field(None, description="Hora de destino actual a alcanzar (datetime.now).")
+    hours_remaining_catch_up: int = Field(0, description="Horas faltantes para nivelarse con el tiempo presente.")
+    total_hours_simulated: int = Field(0, description="Total acumulado de horas simuladas generadas.")
+    total_trips_simulated: int = Field(0, description="Total acumulado de viajes generados en el sistema.")
+    is_leader: bool = Field(False, description="Indica si esta instancia posee el bloqueo líder de generación.")
+

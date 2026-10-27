@@ -1,5 +1,6 @@
 """Main FastAPI application entrypoint."""
 
+import asyncio
 from contextlib import asynccontextmanager
 import logging
 from fastapi import FastAPI
@@ -8,6 +9,7 @@ from fastapi.responses import JSONResponse
 
 from src.api.config import settings
 from src.api.database import check_db_health, close_pool
+from src.api.movigo_clock import movigo_clock
 from src.api.routers import antojitos, movigo, volcan
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -18,9 +20,18 @@ logger = logging.getLogger("api.main")
 async def lifespan(app: FastAPI):
     """Manage application lifecycle resources."""
     logger.info("Starting up FastAPI data exposure service...")
-    yield
-    logger.info("Shutting down FastAPI service...")
-    close_pool()
+    worker_task = asyncio.create_task(movigo_clock.run())
+    try:
+        yield
+    finally:
+        logger.info("Shutting down FastAPI service...")
+        movigo_clock.stop()
+        worker_task.cancel()
+        try:
+            await asyncio.wait_for(worker_task, timeout=2.0)
+        except (asyncio.CancelledError, asyncio.TimeoutError):
+            pass
+        close_pool()
 
 
 TAGS_METADATA = [

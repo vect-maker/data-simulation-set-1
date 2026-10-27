@@ -37,6 +37,7 @@ from movigo_sim.models import (
     IncentiveCampaign,
     VehicleMaintenance,
     DrainageChannel,
+    QuadrantWeather,
 )
 from movigo_sim.engine.entities import DriverAgent, RiderAgent, RiderPersona
 from movigo_sim.engine.world import (
@@ -504,504 +505,17 @@ class MoviGoSimulationEngine:
             req_times = sorted(self.sample_trip_time(curr_date) for _ in range(daily_target))
 
             for req_time in req_times:
-                hour = req_time.hour
-
-                # Mandatory meal break rest logging for on-duty drivers in their scheduled meal window
-                for agent in self.driver_agents:
-                    if (
-                        agent.driver_id not in driver_meal_logged
-                        and agent.is_on_duty(req_time)
-                        and agent.is_in_meal_break(req_time)
-                        and agent.is_available_at(req_time)
-                    ):
-                        driver_meal_logged.add(agent.driver_id)
-                        c_lat = float(self.world.node_coords[agent.current_node, 0])
-                        c_lon = float(self.world.node_coords[agent.current_node, 1])
-                        c_qid = (
-                            int(self.world.node_quadrants[agent.current_node])
-                            if len(self.world.node_quadrants) > agent.current_node
-                            else agent.home_quadrant_id
-                        )
-                        recorder.record_telemetry(
-                            driver_id=agent.driver_id,
-                            trip_id=None,
-                            quadrant_id=c_qid,
-                            recorded_at=req_time,
-                            latitude=c_lat,
-                            longitude=c_lon,
-                            speed_kmh=0.0,
-                            availability_status="descanso",
-                        )
-
-                origin_zone, destination_zone = self.sample_origin_destination_zones(hour, dow)
-
-                u_probs = eligible_stratum_probs.get(origin_zone.socioeconomic_stratum)
-                if u_probs is not None:
-                    u_idx = int(self.rng.choice(len(eligible_users), p=u_probs))
-                else:
-                    u_idx = int(self.rng.integers(0, len(eligible_users)))
-                user = eligible_users[u_idx]
-
-                user_agent = self.rider_agents[user.user_id - 1]
-                persona = user_agent.persona
-
-                # Dual-mode demand: 70% recurrent persona anchor commutes vs 30% spontaneous gravity trips
-                is_commute = False
-                if persona is not None and dow in persona.commute_days:
-                    if hour in persona.outbound_hours and float(self.rng.random()) < persona.routine_probability:
-                        origin_zone = self.world.zones_map[persona.home_zone_id]
-                        destination_zone = self.world.zones_map[persona.anchor_zone_id]
-                        lat_o, lon_o, q_o, node_o = persona.home_lat, persona.home_lon, persona.home_quadrant_id, persona.home_node
-                        lat_d, lon_d, q_d, node_d = persona.anchor_lat, persona.anchor_lon, persona.anchor_quadrant_id, persona.anchor_node
-                        flood_street_o = (self.world.quadrants_map[q_o].flood_risk == "critico")
-                        flood_street_d = (self.world.quadrants_map[q_d].flood_risk == "critico")
-                        is_commute = True
-                    elif hour in persona.return_hours and float(self.rng.random()) < persona.routine_probability:
-                        origin_zone = self.world.zones_map[persona.anchor_zone_id]
-                        destination_zone = self.world.zones_map[persona.home_zone_id]
-                        lat_o, lon_o, q_o, node_o = persona.anchor_lat, persona.anchor_lon, persona.anchor_quadrant_id, persona.anchor_node
-                        lat_d, lon_d, q_d, node_d = persona.home_lat, persona.home_lon, persona.home_quadrant_id, persona.home_node
-                        flood_street_o = (self.world.quadrants_map[q_o].flood_risk == "critico")
-                        flood_street_d = (self.world.quadrants_map[q_d].flood_risk == "critico")
-                        is_commute = True
-
-                if not is_commute:
-                    # Real OpenStreetMap coordinates inside exact square quadrants
-                    lat_o, lon_o, q_o, flood_street_o, node_o = self.sample_street_coordinate(origin_zone)
-                    lat_d, lon_d, q_d, flood_street_d, node_d = self.sample_street_coordinate(destination_zone)
-
-                # Look up localized hourly weather & cauce runoff for Origin and Destination Square Quadrants
-                t_idx = date_hour_to_idx.get((curr_date, hour)) if hourly_matrices else None
-                if hourly_matrices is not None and t_idx is not None:
-                    qo_idx = q_o - 1
-                    qd_idx = q_d - 1
-                    h_precip_o = float(hourly_matrices["precip"][t_idx, qo_idx])
-                    h_esc_o = float(hourly_matrices["runoff"][t_idx, qo_idx])
-                    h_cong_o = float(hourly_matrices["congestion"][t_idx, qo_idx])
-                    h_aneg_o = bool(hourly_matrices["flooded"][t_idx, qo_idx])
-
-                    h_esc_d = float(hourly_matrices["runoff"][t_idx, qd_idx])
-                    h_cong_d = float(hourly_matrices["congestion"][t_idx, qd_idx])
-                    h_aneg_d = bool(hourly_matrices["flooded"][t_idx, qd_idx])
-
-                    effective_congestion = round(0.60 * h_cong_o + 0.40 * h_cong_d, 2)
-                    effective_water_mm = max(h_precip_o, h_esc_o, 0.80 * h_esc_d)
-
-                    overflow_quads: set[int] = set()
-                    if "cauce_overflow_quads" in hourly_matrices:
-                        overflow_quads = set(np.where(hourly_matrices["cauce_overflow_quads"][t_idx])[0] + 1)
-
-                    is_cauce_overflow = bool(
-                        (q_o in overflow_quads) or (q_d in overflow_quads)
-                    )
-                    flood_affected = bool(
-                        h_aneg_o
-                        or h_aneg_d
-                        or is_cauce_overflow
-                        or ((flood_street_o or flood_street_d) and effective_water_mm >= 3.0)
-                    )
-                else:
-                    h_precip_o = daily_precip_mm / 8.0 if hour in range(13, 21) else 0.0
-                    h_esc_o = h_precip_o
-                    effective_congestion = daily_cong_idx
-                    effective_water_mm = h_precip_o
-                    overflow_quads = set()
-                    is_cauce_overflow = False
-                    flood_affected = bool((flood_street_o or flood_street_d) and daily_precip_mm > 15.0)
-                    h_aneg_o = flood_affected
-
-                # 1. Independent supply, demand and dynamic surge multipliers across the 3 categories
-                cat_surge_dict = self.platform.simulate_category_surge_multipliers(
-                    origin_zone, h_precip_o, h_esc_o, h_aneg_o, hour, dow, self.world, self.rng, curr_date=curr_date
-                )
-
-                # Precompute baseline fare quotes and expected wait times for mode choice
-                flag_drop_fare = round(float(origin_zone.base_flag_drop_fare), 2)
-                hav_approx = haversine_km(lat_o, lon_o, lat_d, lon_d)
-                est_km = max(0.65, hav_approx * 1.25)
-                est_min = max(3.0, (est_km / 26.0) * 60.0)
-
-                cat_fares: dict[str, float] = {}
-                cat_etas: dict[str, float] = {}
-                for cat in ["movigo_moto", "movigo_estandar", "movigo_comfort"]:
-                    m_cat = cat_surge_dict[cat][2]
-                    _, f_cat = self.platform.compute_fare(flag_drop_fare, est_km, est_min, m_cat, service_type=cat)
-                    cat_fares[cat] = f_cat
-                    s_cat = cat_surge_dict[cat][1]
-                    cat_etas[cat] = max(2.5, min(18.0, 35.0 / max(1.0, float(s_cat))))
-
-                # 2. Rider Multinomial Logit Discrete Mode Choice
-                chosen_service, choice_probs = self.platform.sample_mode_choice(
-                    stratum=origin_zone.socioeconomic_stratum,
-                    effective_water_mm=effective_water_mm,
-                    category_fares=cat_fares,
-                    category_etas=cat_etas,
-                    rng=self.rng,
-                )
-
-                d_t, s_t, surge = cat_surge_dict[chosen_service]
-
-                payment_method = self.sample_payment_method_for_stratum(
-                    origin_zone.socioeconomic_stratum,
-                    preferred_method=user.preferred_payment_method,
-                )
-
-                # Route selection on dense OSM graph (45% habitual, 35% perturbed detour, 20% weather-aware)
-                # When cauce overflow occurs, 75% of drivers switch to flood-aware detour routing
-                beh_roll = float(self.rng.random())
-                if is_cauce_overflow or flood_affected:
-                    is_fl_aware = (beh_roll < 0.75)
-                    is_pert = (0.75 <= beh_roll < 0.90)
-                else:
-                    if beh_roll < 0.45:
-                        is_fl_aware = False
-                        is_pert = False
-                    elif beh_roll < 0.80:
-                        is_fl_aware = False
-                        is_pert = True
-                    else:
-                        is_fl_aware = bool(flood_affected)
-                        is_pert = False
-
-                ride_nodes, raw_road_km = self.get_osm_route(
-                    node_o, node_d, q_o, q_d, is_flood_aware=is_fl_aware, is_perturbed=is_pert
-                )
-
-                # Check if the chosen path crosses an overflowing cauce quadrant
-                if not is_cauce_overflow and overflow_quads:
-                    is_cauce_overflow = self.world.is_route_affected_by_overflow(ride_nodes, overflow_quads)
-
-                dist_km, dur_min, is_suboptimal = self.estimate_distance_and_duration(
-                    lat_o, lon_o, lat_d, lon_d, effective_congestion, effective_water_mm, flood_affected,
-                    raw_route_km=raw_road_km, is_suboptimal=is_pert, is_cauce_overflow=is_cauce_overflow
-                )
-
-                # Update driver shifts if new calendar date / shift begins
-                for agent in self.driver_agents:
-                    agent.reset_shift_if_needed(req_time)
-
-                # Stateful on-duty free drivers & greedy proximity dispatch
-                free_agents = [
-                    agent for agent in self.driver_agents
-                    if agent.is_dispatchable(req_time)
-                ]
-
-                # Idle cruising: if a free driver was idle > 45 min, reposition along OSM graph
-                for agent in free_agents:
-                    if agent.idle_minutes(req_time) > 45.0 and self.rng.random() < 0.20:
-                        regime_name = get_gravity_regime_name(hour, dow)
-                        top_z = 9 if "rush" in regime_name else (4 if "night" in regime_name else 11)
-                        top_quads = self.world.zone_quadrants.get(top_z, self.quadrants)
-                        target_q = top_quads[int(self.rng.integers(0, len(top_quads)))].quadrant_id
-                        target_node = self.world.hub_node_indices[self.world.qid_to_hub_idx.get(target_q, 0)]
-                        agent.cruise_to(target_node, req_time)
-
-                        if self.rng.random() < 0.35:
-                            c_lat = float(self.world.node_coords[target_node, 0])
-                            c_lon = float(self.world.node_coords[target_node, 1])
-                            recorder.record_telemetry(
-                                driver_id=agent.driver_id,
-                                trip_id=None,
-                                quadrant_id=target_q,
-                                recorded_at=req_time,
-                                latitude=c_lat,
-                                longitude=c_lon,
-                                speed_kmh=round(float(self.rng.uniform(10.0, 24.0)), 2),
-                                availability_status="disponible",
-                            )
-
-                driver_agent, extra_wait, reject_reason = self.platform.dispatch_driver(
-                    free_drivers=free_agents,
-                    all_operational_drivers=self.driver_agents,
-                    lat_o=lat_o,
-                    lon_o=lon_o,
+                self._dispatch_trip_request(
                     req_time=req_time,
-                    world=self.world,
-                    rng=self.rng,
-                    service_type=chosen_service,
-                    trip_dist_km=dist_km,
-                    trip_dur_min=dur_min,
-                    fare=100.0,
-                    is_route_overflow=is_cauce_overflow,
-                    dest_zone_id=destination_zone.zone_id,
+                    recorder=recorder,
+                    driver_meal_logged=driver_meal_logged,
+                    daily_precip_mm=daily_precip_mm,
+                    daily_cong_idx=daily_cong_idx,
+                    hourly_matrices=hourly_matrices,
+                    date_hour_to_idx=date_hour_to_idx,
+                    eligible_users=eligible_users,
+                    eligible_stratum_probs=eligible_stratum_probs,
                 )
-
-                if reject_reason is not None:
-                    # Trip was rejected by all candidate drivers (risk aversion, fatigue, or deadhead)
-                    trip_status = "cancelado_conductor"
-                    start_time = None
-                    end_time = None
-                    tip_amount = 0.0
-                    payment_status = "anulado"
-                    cancelled_by = "conductor"
-                    wait_min = round(float(np.clip(extra_wait, 1.0, 4.0)), 2)
-                    driver_agent.assign_trip(driver_agent.current_node, req_time + timedelta(minutes=wait_min))
-
-                    trip_id = recorder.record_trip(
-                        user_id=user.user_id,
-                        driver_id=driver_agent.driver_id,
-                        origin_quadrant_id=q_o,
-                        destination_quadrant_id=q_d,
-                        origin_latitude=lat_o,
-                        origin_longitude=lon_o,
-                        destination_latitude=lat_d,
-                        destination_longitude=lon_d,
-                        requested_at=req_time,
-                        started_at=start_time,
-                        completed_at=end_time,
-                        distance_km=dist_km,
-                        duration_minutes=dur_min,
-                        trip_status=trip_status,
-                    )
-                    b_fare, f_fare = self.platform.compute_fare(
-                        flag_drop_fare, dist_km, dur_min, surge, service_type=driver_agent.vehicle_model.service_type
-                    )
-                    recorder.record_payment(
-                        trip_id=trip_id,
-                        payment_method=payment_method,
-                        base_fare=b_fare,
-                        surge_multiplier=surge,
-                        tip_amount=tip_amount,
-                        final_fare=f_fare,
-                        payment_status=payment_status,
-                    )
-                    recorder.record_cancellation(
-                        trip_id=trip_id,
-                        cancelled_by=cancelled_by,
-                        cancellation_reason=reject_reason,
-                        wait_time_minutes=wait_min,
-                        origin_active_requests=d_t,
-                        origin_available_drivers=s_t,
-                    )
-                    continue
-
-                # Compute fare based on actual dispatched vehicle category
-                base_fare, final_fare = self.platform.compute_fare(
-                    flag_drop_fare, dist_km, dur_min, surge, service_type=driver_agent.vehicle_model.service_type
-                )
-
-                # Pickup leg traversal on OSM graph
-                drv_n = driver_agent.current_node
-                drv_q = int(self.world.node_quadrants[drv_n]) if len(self.world.node_quadrants) > drv_n else q_o
-                pickup_nodes, pickup_km = self.get_osm_route(drv_n, node_o, drv_q, q_o, is_flood_aware=is_fl_aware)
-                pickup_overflow = bool(self.world.is_route_affected_by_overflow(pickup_nodes, overflow_quads) if overflow_quads else False)
-                if pickup_overflow:
-                    pickup_spd = max(5.5, 16.0 / effective_congestion)
-                    base_wait = (pickup_km / pickup_spd) * 60.0 + float(self.rng.uniform(2.0, 5.0))
-                else:
-                    pickup_spd = max(10.0, 30.0 / effective_congestion)
-                    base_wait = (pickup_km / pickup_spd) * 60.0 + float(self.rng.uniform(0.5, 2.0))
-                wait_min = round(float(np.clip(base_wait + extra_wait, 1.5, 28.0)), 2)
-
-                is_canceled, cancel_state, reason = self.evaluate_cancellation(
-                    stratum=origin_zone.socioeconomic_stratum,
-                    payment_method=payment_method,
-                    surge=surge,
-                    final_fare=final_fare,
-                    wait_min=wait_min,
-                    effective_water_mm=effective_water_mm,
-                    flood_affected=flood_affected,
-                    congestion_idx=effective_congestion,
-                    hour=hour,
-                )
-
-                if is_canceled:
-                    trip_status = cancel_state or "cancelado_usuario"
-                    start_time = None
-                    end_time = None
-                    tip_amount = 0.0
-                    payment_status = "anulado"
-                    cancelled_by = "conductor" if trip_status == "cancelado_conductor" else "usuario"
-                    c_step = min(len(pickup_nodes) - 1, max(0, int(len(pickup_nodes) * min(1.0, wait_min / 12.0))))
-                    driver_agent.assign_trip(pickup_nodes[c_step], req_time + timedelta(minutes=wait_min))
-                    pickup_fuel = driver_agent.compute_trip_fuel_liters(pickup_km, wait_min, effective_congestion, False)
-                    driver_agent.accumulate_distance_and_fuel(pickup_km, pickup_fuel, False, duration_min=wait_min, congestion_idx=effective_congestion)
-
-                    trip_id = recorder.record_trip(
-                        user_id=user.user_id,
-                        driver_id=driver_agent.driver_id,
-                        origin_quadrant_id=q_o,
-                        destination_quadrant_id=q_d,
-                        origin_latitude=lat_o,
-                        origin_longitude=lon_o,
-                        destination_latitude=lat_d,
-                        destination_longitude=lon_d,
-                        requested_at=req_time,
-                        started_at=start_time,
-                        completed_at=end_time,
-                        distance_km=dist_km,
-                        duration_minutes=dur_min,
-                        trip_status=trip_status,
-                    )
-                    recorder.record_cancellation(
-                        trip_id=trip_id,
-                        cancelled_by=cancelled_by,
-                        cancellation_reason=reason or "Tarifa dinámica sobrepasa presupuesto",
-                        wait_time_minutes=wait_min,
-                        origin_active_requests=d_t,
-                        origin_available_drivers=s_t,
-                    )
-                    if driver_agent.fuel_tank and driver_agent.fuel_tank.needs_refueling:
-                        driver_agent.refuel_pitstop(req_time + timedelta(minutes=wait_min), pitstop_minutes=15.0)
-                else:
-                    trip_status = "completado"
-                    start_time = req_time + timedelta(minutes=wait_min)
-                    end_time = start_time + timedelta(minutes=dur_min)
-                    driver_agent.assign_trip(node_d, end_time)
-                    trip_fuel = driver_agent.compute_trip_fuel_liters(dist_km, dur_min, effective_congestion, is_cauce_overflow or flood_affected)
-                    driver_agent.accumulate_distance_and_fuel(dist_km, trip_fuel, is_cauce_overflow or flood_affected, duration_min=dur_min, congestion_idx=effective_congestion)
-
-                    # Scheduled preventive maintenance check (every 5,000 km)
-                    if driver_agent.km_since_service >= 5000.0:
-                        service_odo = driver_agent.odometer_km
-                        maint_cost = round(float(self.rng.uniform(2400.0, 4800.0)), 2)
-                        down_hrs = round(float(self.rng.uniform(3.0, 6.5)), 1)
-                        target_workshop = self.world.find_closest_workshop(lat_d, lon_d)
-                        transit_km = max(0.5, haversine_km(lat_d, lon_d, target_workshop.latitude, target_workshop.longitude))
-                        transit_min = (transit_km / 28.0) * 60.0
-                        transit_fuel = driver_agent.compute_trip_fuel_liters(transit_km, transit_min, effective_congestion, False)
-                        driver_agent.accumulate_distance_and_fuel(transit_km, transit_fuel, False, duration_min=transit_min, congestion_idx=effective_congestion)
-                        arrival_at_workshop = end_time + timedelta(minutes=transit_min)
-
-                        start_svc, finish_svc, wait_queue_min = target_workshop.admit_vehicle(
-                            driver_agent.vehicle_model.vehicle_id, arrival_at_workshop, service_duration_hours=down_hrs
-                        )
-                        total_downtime_hours = max(1.0, round((finish_svc - end_time).total_seconds() / 3600.0, 1))
-                        milestone = int(round(service_odo / 5000.0) * 5000)
-                        recorder.record_maintenance(
-                            vehicle_id=driver_agent.vehicle_model.vehicle_id,
-                            service_date=curr_date,
-                            maintenance_type="preventivo",
-                            odometer_km=service_odo,
-                            description=f"Mantenimiento preventivo {milestone} km: cambio de aceite, filtro y revisión en bahía (espera cola: {round(wait_queue_min, 1)} min en {target_workshop.name})",
-                            cost_nio=maint_cost,
-                            downtime_hours=total_downtime_hours,
-                            workshop_name=target_workshop.name,
-                        )
-                        driver_agent.send_to_maintenance(finish_svc, queue_wait_min=wait_queue_min)
-                        driver_agent.current_node = target_workshop.node_id
-
-                    elif (is_cauce_overflow or flood_affected) and (self.rng.random() < (0.075 if is_cauce_overflow else 0.035)):
-                        # Corrective maintenance triggered by flooded cauce transit or overflowed crossing
-                        maint_cost = round(float(self.rng.uniform(6500.0, 15500.0)), 2)
-                        down_hrs = round(float(self.rng.uniform(8.0, 24.0)), 1)
-                        target_workshop = self.world.find_closest_workshop(lat_d, lon_d)
-                        transit_km = max(0.5, haversine_km(lat_d, lon_d, target_workshop.latitude, target_workshop.longitude))
-                        transit_min = (transit_km / 28.0) * 60.0
-                        transit_fuel = driver_agent.compute_trip_fuel_liters(transit_km, transit_min, effective_congestion, False)
-                        driver_agent.accumulate_distance_and_fuel(transit_km, transit_fuel, False, duration_min=transit_min, congestion_idx=effective_congestion)
-                        arrival_at_workshop = end_time + timedelta(minutes=transit_min)
-
-                        start_svc, finish_svc, wait_queue_min = target_workshop.admit_vehicle(
-                            driver_agent.vehicle_model.vehicle_id, arrival_at_workshop, service_duration_hours=down_hrs
-                        )
-                        total_downtime_hours = max(1.0, round((finish_svc - end_time).total_seconds() / 3600.0, 1))
-                        recorder.record_maintenance(
-                            vehicle_id=driver_agent.vehicle_model.vehicle_id,
-                            service_date=curr_date,
-                            maintenance_type="correctivo",
-                            odometer_km=driver_agent.odometer_km,
-                            description=f"Mantenimiento correctivo: reparación suspensión y secado frenos (espera cola: {round(wait_queue_min, 1)} min en {target_workshop.name})",
-                            cost_nio=maint_cost,
-                            downtime_hours=total_downtime_hours,
-                            workshop_name=target_workshop.name,
-                        )
-                        driver_agent.send_to_maintenance(finish_svc, queue_wait_min=wait_queue_min)
-                        driver_agent.current_node = target_workshop.node_id
-
-                    # Fuel tank check: autonomous pitstop if reserve drops below 15%
-                    if driver_agent.fuel_tank and driver_agent.fuel_tank.needs_refueling:
-                        driver_agent.refuel_pitstop(end_time, pitstop_minutes=15.0)
-
-                    rating_usr, rating_drv = self.platform.sample_ratings(self.rng)
-                    if driver_agent.vehicle_model.service_type == "movigo_moto" and effective_water_mm > 0.5:
-                        rating_usr = max(1.0, round(float(rating_usr - self.rng.uniform(0.3, 0.7)), 1))
-                    elif driver_agent.vehicle_model.service_type == "movigo_comfort":
-                        rating_usr = min(5.0, round(float(rating_usr + self.rng.uniform(0.1, 0.3)), 1))
-                    tip_amount = self.platform.sample_tip(self.rng)
-                    payment_status = "pagado"
-
-                    trip_id = recorder.record_trip(
-                        user_id=user.user_id,
-                        driver_id=driver_agent.driver_id,
-                        origin_quadrant_id=q_o,
-                        destination_quadrant_id=q_d,
-                        origin_latitude=lat_o,
-                        origin_longitude=lon_o,
-                        destination_latitude=lat_d,
-                        destination_longitude=lon_d,
-                        requested_at=req_time,
-                        started_at=start_time,
-                        completed_at=end_time,
-                        distance_km=dist_km,
-                        duration_minutes=dur_min,
-                        trip_status=trip_status,
-                    )
-                    recorder.record_rating(
-                        trip_id=trip_id,
-                        user_rating=rating_usr,
-                        driver_rating=rating_drv,
-                    )
-
-                recorder.record_payment(
-                    trip_id=trip_id,
-                    payment_method=payment_method,
-                    base_fare=base_fare,
-                    surge_multiplier=surge,
-                    tip_amount=tip_amount,
-                    final_fare=final_fare,
-                    payment_status=payment_status,
-                )
-
-                # Generate real street-snapped telemetry checkpoints along actual traversed OSM nodes
-                if not is_canceled and self.rng.random() < 0.14:
-                    if is_cauce_overflow:
-                        avg_speed_kmh = max(5.0, min(18.0, (dist_km / max(0.05, dur_min / 60.0))))
-                    else:
-                        avg_speed_kmh = max(9.0, min(75.0, (dist_km / max(0.05, dur_min / 60.0))))
-
-                    if len(pickup_nodes) > 1:
-                        mid_p_idx = pickup_nodes[len(pickup_nodes) // 2]
-                        p_lat = float(self.world.node_coords[mid_p_idx, 0])
-                        p_lon = float(self.world.node_coords[mid_p_idx, 1])
-                        p_qid = int(self.world.node_quadrants[mid_p_idx])
-                    else:
-                        p_lat, p_lon, p_qid = lat_o, lon_o, q_o
-
-                    recorder.record_telemetry(
-                        driver_id=driver_agent.driver_id,
-                        trip_id=trip_id,
-                        quadrant_id=p_qid,
-                        recorded_at=req_time + timedelta(minutes=round(wait_min * 0.5, 2)),
-                        latitude=p_lat,
-                        longitude=p_lon,
-                        speed_kmh=round(float(np.clip(avg_speed_kmh * self.rng.uniform(0.75, 1.15), 8.0, 60.0)), 2),
-                        availability_status="en_camino_recogida",
-                    )
-
-                    n_ride = len(ride_nodes)
-                    for frac in (0.20, 0.55, 0.88):
-                        step = min(n_ride - 1, max(0, int(n_ride * frac)))
-                        node_ckpt = ride_nodes[step]
-                        wp_lat = float(self.world.node_coords[node_ckpt, 0])
-                        wp_lon = float(self.world.node_coords[node_ckpt, 1])
-                        wp_qid = int(self.world.node_quadrants[node_ckpt])
-
-                        if flood_affected and frac == 0.55:
-                            wp_speed = float(self.rng.uniform(4.5, 11.5))
-                        else:
-                            wp_speed = float(np.clip(avg_speed_kmh * self.rng.uniform(0.80, 1.25), 12.0, 58.0))
-
-                        recorder.record_telemetry(
-                            driver_id=driver_agent.driver_id,
-                            trip_id=trip_id,
-                            quadrant_id=wp_qid,
-                            recorded_at=start_time + timedelta(minutes=round(dur_min * frac, 2)),
-                            latitude=wp_lat,
-                            longitude=wp_lon,
-                            speed_kmh=round(wp_speed, 2),
-                            availability_status="ocupado",
-                        )
 
             if (day_idx + 1) % 60 == 0 or (day_idx + 1) == len(weather_df):
                 logger.info(f"Simulated {day_idx + 1}/{len(weather_df)} days... ({len(recorder.trips)} rides generated)")
@@ -1014,3 +528,613 @@ class MoviGoSimulationEngine:
             f"and {len(maintenance)} maintenance services."
         )
         return trips, payments, ratings, cancellations, telemetry, maintenance
+
+    def _dispatch_trip_request(
+        self,
+        req_time: datetime,
+        recorder: SimulationRecorder,
+        driver_meal_logged: set[int],
+        daily_precip_mm: float = 0.0,
+        daily_cong_idx: float = 1.0,
+        hourly_matrices: dict[str, Any] | None = None,
+        date_hour_to_idx: dict[tuple[date, int], int] | None = None,
+        eligible_users: list[User] | None = None,
+        eligible_stratum_probs: dict[str, np.ndarray] | None = None,
+    ) -> None:
+        if eligible_users is None:
+            eligible_users = self.users
+        if eligible_stratum_probs is None:
+            eligible_stratum_probs = self.user_stratum_weights
+        curr_date = req_time.date()
+        dow = req_time.weekday()
+        hour = req_time.hour
+
+        # Mandatory meal break rest logging for on-duty drivers in their scheduled meal window
+        for agent in self.driver_agents:
+            if (
+                agent.driver_id not in driver_meal_logged
+                and agent.is_on_duty(req_time)
+                and agent.is_in_meal_break(req_time)
+                and agent.is_available_at(req_time)
+            ):
+                driver_meal_logged.add(agent.driver_id)
+                c_lat = float(self.world.node_coords[agent.current_node, 0])
+                c_lon = float(self.world.node_coords[agent.current_node, 1])
+                c_qid = (
+                    int(self.world.node_quadrants[agent.current_node])
+                    if len(self.world.node_quadrants) > agent.current_node
+                    else agent.home_quadrant_id
+                )
+                recorder.record_telemetry(
+                    driver_id=agent.driver_id,
+                    trip_id=None,
+                    quadrant_id=c_qid,
+                    recorded_at=req_time,
+                    latitude=c_lat,
+                    longitude=c_lon,
+                    speed_kmh=0.0,
+                    availability_status="descanso",
+                )
+
+        origin_zone, destination_zone = self.sample_origin_destination_zones(hour, dow)
+
+        u_probs = eligible_stratum_probs.get(origin_zone.socioeconomic_stratum)
+        if u_probs is not None:
+            u_idx = int(self.rng.choice(len(eligible_users), p=u_probs))
+        else:
+            u_idx = int(self.rng.integers(0, len(eligible_users)))
+        user = eligible_users[u_idx]
+
+        user_agent = self.rider_agents[user.user_id - 1]
+        persona = user_agent.persona
+
+        # Dual-mode demand: 70% recurrent persona anchor commutes vs 30% spontaneous gravity trips
+        is_commute = False
+        if persona is not None and dow in persona.commute_days:
+            if hour in persona.outbound_hours and float(self.rng.random()) < persona.routine_probability:
+                origin_zone = self.world.zones_map[persona.home_zone_id]
+                destination_zone = self.world.zones_map[persona.anchor_zone_id]
+                lat_o, lon_o, q_o, node_o = persona.home_lat, persona.home_lon, persona.home_quadrant_id, persona.home_node
+                lat_d, lon_d, q_d, node_d = persona.anchor_lat, persona.anchor_lon, persona.anchor_quadrant_id, persona.anchor_node
+                flood_street_o = (self.world.quadrants_map[q_o].flood_risk == "critico")
+                flood_street_d = (self.world.quadrants_map[q_d].flood_risk == "critico")
+                is_commute = True
+            elif hour in persona.return_hours and float(self.rng.random()) < persona.routine_probability:
+                origin_zone = self.world.zones_map[persona.anchor_zone_id]
+                destination_zone = self.world.zones_map[persona.home_zone_id]
+                lat_o, lon_o, q_o, node_o = persona.anchor_lat, persona.anchor_lon, persona.anchor_quadrant_id, persona.anchor_node
+                lat_d, lon_d, q_d, node_d = persona.home_lat, persona.home_lon, persona.home_quadrant_id, persona.home_node
+                flood_street_o = (self.world.quadrants_map[q_o].flood_risk == "critico")
+                flood_street_d = (self.world.quadrants_map[q_d].flood_risk == "critico")
+                is_commute = True
+
+        if not is_commute:
+            # Real OpenStreetMap coordinates inside exact square quadrants
+            lat_o, lon_o, q_o, flood_street_o, node_o = self.sample_street_coordinate(origin_zone)
+            lat_d, lon_d, q_d, flood_street_d, node_d = self.sample_street_coordinate(destination_zone)
+
+        # Look up localized hourly weather & cauce runoff for Origin and Destination Square Quadrants
+        t_idx = date_hour_to_idx.get((curr_date, hour)) if hourly_matrices else None
+        if hourly_matrices is not None and t_idx is not None:
+            qo_idx = q_o - 1
+            qd_idx = q_d - 1
+            h_precip_o = float(hourly_matrices["precip"][t_idx, qo_idx])
+            h_esc_o = float(hourly_matrices["runoff"][t_idx, qo_idx])
+            h_cong_o = float(hourly_matrices["congestion"][t_idx, qo_idx])
+            h_aneg_o = bool(hourly_matrices["flooded"][t_idx, qo_idx])
+
+            h_esc_d = float(hourly_matrices["runoff"][t_idx, qd_idx])
+            h_cong_d = float(hourly_matrices["congestion"][t_idx, qd_idx])
+            h_aneg_d = bool(hourly_matrices["flooded"][t_idx, qd_idx])
+
+            effective_congestion = round(0.60 * h_cong_o + 0.40 * h_cong_d, 2)
+            effective_water_mm = max(h_precip_o, h_esc_o, 0.80 * h_esc_d)
+
+            overflow_quads: set[int] = set()
+            if "cauce_overflow_quads" in hourly_matrices:
+                overflow_quads = set(np.where(hourly_matrices["cauce_overflow_quads"][t_idx])[0] + 1)
+
+            is_cauce_overflow = bool(
+                (q_o in overflow_quads) or (q_d in overflow_quads)
+            )
+            flood_affected = bool(
+                h_aneg_o
+                or h_aneg_d
+                or is_cauce_overflow
+                or ((flood_street_o or flood_street_d) and effective_water_mm >= 3.0)
+            )
+        else:
+            h_precip_o = daily_precip_mm / 8.0 if hour in range(13, 21) else 0.0
+            h_esc_o = h_precip_o
+            effective_congestion = daily_cong_idx
+            effective_water_mm = h_precip_o
+            overflow_quads = set()
+            is_cauce_overflow = False
+            flood_affected = bool((flood_street_o or flood_street_d) and daily_precip_mm > 15.0)
+            h_aneg_o = flood_affected
+
+        # 1. Independent supply, demand and dynamic surge multipliers across the 3 categories
+        cat_surge_dict = self.platform.simulate_category_surge_multipliers(
+            origin_zone, h_precip_o, h_esc_o, h_aneg_o, hour, dow, self.world, self.rng, curr_date=curr_date
+        )
+
+        # Precompute baseline fare quotes and expected wait times for mode choice
+        flag_drop_fare = round(float(origin_zone.base_flag_drop_fare), 2)
+        hav_approx = haversine_km(lat_o, lon_o, lat_d, lon_d)
+        est_km = max(0.65, hav_approx * 1.25)
+        est_min = max(3.0, (est_km / 26.0) * 60.0)
+
+        cat_fares: dict[str, float] = {}
+        cat_etas: dict[str, float] = {}
+        for cat in ["movigo_moto", "movigo_estandar", "movigo_comfort"]:
+            m_cat = cat_surge_dict[cat][2]
+            _, f_cat = self.platform.compute_fare(flag_drop_fare, est_km, est_min, m_cat, service_type=cat)
+            cat_fares[cat] = f_cat
+            s_cat = cat_surge_dict[cat][1]
+            cat_etas[cat] = max(2.5, min(18.0, 35.0 / max(1.0, float(s_cat))))
+
+        # 2. Rider Multinomial Logit Discrete Mode Choice
+        chosen_service, choice_probs = self.platform.sample_mode_choice(
+            stratum=origin_zone.socioeconomic_stratum,
+            effective_water_mm=effective_water_mm,
+            category_fares=cat_fares,
+            category_etas=cat_etas,
+            rng=self.rng,
+        )
+
+        d_t, s_t, surge = cat_surge_dict[chosen_service]
+
+        payment_method = self.sample_payment_method_for_stratum(
+            origin_zone.socioeconomic_stratum,
+            preferred_method=user.preferred_payment_method,
+        )
+
+        # Route selection on dense OSM graph (45% habitual, 35% perturbed detour, 20% weather-aware)
+        # When cauce overflow occurs, 75% of drivers switch to flood-aware detour routing
+        beh_roll = float(self.rng.random())
+        if is_cauce_overflow or flood_affected:
+            is_fl_aware = (beh_roll < 0.75)
+            is_pert = (0.75 <= beh_roll < 0.90)
+        else:
+            if beh_roll < 0.45:
+                is_fl_aware = False
+                is_pert = False
+            elif beh_roll < 0.80:
+                is_fl_aware = False
+                is_pert = True
+            else:
+                is_fl_aware = bool(flood_affected)
+                is_pert = False
+
+        ride_nodes, raw_road_km = self.get_osm_route(
+            node_o, node_d, q_o, q_d, is_flood_aware=is_fl_aware, is_perturbed=is_pert
+        )
+
+        # Check if the chosen path crosses an overflowing cauce quadrant
+        if not is_cauce_overflow and overflow_quads:
+            is_cauce_overflow = self.world.is_route_affected_by_overflow(ride_nodes, overflow_quads)
+
+        dist_km, dur_min, is_suboptimal = self.estimate_distance_and_duration(
+            lat_o, lon_o, lat_d, lon_d, effective_congestion, effective_water_mm, flood_affected,
+            raw_route_km=raw_road_km, is_suboptimal=is_pert, is_cauce_overflow=is_cauce_overflow
+        )
+
+        # Update driver shifts if new calendar date / shift begins
+        for agent in self.driver_agents:
+            agent.reset_shift_if_needed(req_time)
+
+        # Stateful on-duty free drivers & greedy proximity dispatch
+        free_agents = [
+            agent for agent in self.driver_agents
+            if agent.is_dispatchable(req_time)
+        ]
+
+        # Idle cruising: if a free driver was idle > 45 min, reposition along OSM graph
+        for agent in free_agents:
+            if agent.idle_minutes(req_time) > 45.0 and self.rng.random() < 0.20:
+                regime_name = get_gravity_regime_name(hour, dow)
+                top_z = 9 if "rush" in regime_name else (4 if "night" in regime_name else 11)
+                top_quads = self.world.zone_quadrants.get(top_z, self.quadrants)
+                target_q = top_quads[int(self.rng.integers(0, len(top_quads)))].quadrant_id
+                target_node = self.world.hub_node_indices[self.world.qid_to_hub_idx.get(target_q, 0)]
+                agent.cruise_to(target_node, req_time)
+
+                if self.rng.random() < 0.35:
+                    c_lat = float(self.world.node_coords[target_node, 0])
+                    c_lon = float(self.world.node_coords[target_node, 1])
+                    recorder.record_telemetry(
+                        driver_id=agent.driver_id,
+                        trip_id=None,
+                        quadrant_id=target_q,
+                        recorded_at=req_time,
+                        latitude=c_lat,
+                        longitude=c_lon,
+                        speed_kmh=round(float(self.rng.uniform(10.0, 24.0)), 2),
+                        availability_status="disponible",
+                    )
+
+        driver_agent, extra_wait, reject_reason = self.platform.dispatch_driver(
+            free_drivers=free_agents,
+            all_operational_drivers=self.driver_agents,
+            lat_o=lat_o,
+            lon_o=lon_o,
+            req_time=req_time,
+            world=self.world,
+            rng=self.rng,
+            service_type=chosen_service,
+            trip_dist_km=dist_km,
+            trip_dur_min=dur_min,
+            fare=100.0,
+            is_route_overflow=is_cauce_overflow,
+            dest_zone_id=destination_zone.zone_id,
+        )
+
+        if reject_reason is not None:
+            # Trip was rejected by all candidate drivers (risk aversion, fatigue, or deadhead)
+            trip_status = "cancelado_conductor"
+            start_time = None
+            end_time = None
+            tip_amount = 0.0
+            payment_status = "anulado"
+            cancelled_by = "conductor"
+            wait_min = round(float(np.clip(extra_wait, 1.0, 4.0)), 2)
+            driver_agent.assign_trip(driver_agent.current_node, req_time + timedelta(minutes=wait_min))
+
+            trip_id = recorder.record_trip(
+                user_id=user.user_id,
+                driver_id=driver_agent.driver_id,
+                origin_quadrant_id=q_o,
+                destination_quadrant_id=q_d,
+                origin_latitude=lat_o,
+                origin_longitude=lon_o,
+                destination_latitude=lat_d,
+                destination_longitude=lon_d,
+                requested_at=req_time,
+                started_at=start_time,
+                completed_at=end_time,
+                distance_km=dist_km,
+                duration_minutes=dur_min,
+                trip_status=trip_status,
+            )
+            b_fare, f_fare = self.platform.compute_fare(
+                flag_drop_fare, dist_km, dur_min, surge, service_type=driver_agent.vehicle_model.service_type
+            )
+            recorder.record_payment(
+                trip_id=trip_id,
+                payment_method=payment_method,
+                base_fare=b_fare,
+                surge_multiplier=surge,
+                tip_amount=tip_amount,
+                final_fare=f_fare,
+                payment_status=payment_status,
+            )
+            recorder.record_cancellation(
+                trip_id=trip_id,
+                cancelled_by=cancelled_by,
+                cancellation_reason=reject_reason,
+                wait_time_minutes=wait_min,
+                origin_active_requests=d_t,
+                origin_available_drivers=s_t,
+            )
+            return
+
+        # Compute fare based on actual dispatched vehicle category
+        base_fare, final_fare = self.platform.compute_fare(
+            flag_drop_fare, dist_km, dur_min, surge, service_type=driver_agent.vehicle_model.service_type
+        )
+
+        # Pickup leg traversal on OSM graph
+        drv_n = driver_agent.current_node
+        drv_q = int(self.world.node_quadrants[drv_n]) if len(self.world.node_quadrants) > drv_n else q_o
+        pickup_nodes, pickup_km = self.get_osm_route(drv_n, node_o, drv_q, q_o, is_flood_aware=is_fl_aware)
+        pickup_overflow = bool(self.world.is_route_affected_by_overflow(pickup_nodes, overflow_quads) if overflow_quads else False)
+        if pickup_overflow:
+            pickup_spd = max(5.5, 16.0 / effective_congestion)
+            base_wait = (pickup_km / pickup_spd) * 60.0 + float(self.rng.uniform(2.0, 5.0))
+        else:
+            pickup_spd = max(10.0, 30.0 / effective_congestion)
+            base_wait = (pickup_km / pickup_spd) * 60.0 + float(self.rng.uniform(0.5, 2.0))
+        wait_min = round(float(np.clip(base_wait + extra_wait, 1.5, 28.0)), 2)
+
+        is_canceled, cancel_state, reason = self.evaluate_cancellation(
+            stratum=origin_zone.socioeconomic_stratum,
+            payment_method=payment_method,
+            surge=surge,
+            final_fare=final_fare,
+            wait_min=wait_min,
+            effective_water_mm=effective_water_mm,
+            flood_affected=flood_affected,
+            congestion_idx=effective_congestion,
+            hour=hour,
+        )
+
+        if is_canceled:
+            trip_status = cancel_state or "cancelado_usuario"
+            start_time = None
+            end_time = None
+            tip_amount = 0.0
+            payment_status = "anulado"
+            cancelled_by = "conductor" if trip_status == "cancelado_conductor" else "usuario"
+            c_step = min(len(pickup_nodes) - 1, max(0, int(len(pickup_nodes) * min(1.0, wait_min / 12.0))))
+            driver_agent.assign_trip(pickup_nodes[c_step], req_time + timedelta(minutes=wait_min))
+            pickup_fuel = driver_agent.compute_trip_fuel_liters(pickup_km, wait_min, effective_congestion, False)
+            driver_agent.accumulate_distance_and_fuel(pickup_km, pickup_fuel, False, duration_min=wait_min, congestion_idx=effective_congestion)
+
+            trip_id = recorder.record_trip(
+                user_id=user.user_id,
+                driver_id=driver_agent.driver_id,
+                origin_quadrant_id=q_o,
+                destination_quadrant_id=q_d,
+                origin_latitude=lat_o,
+                origin_longitude=lon_o,
+                destination_latitude=lat_d,
+                destination_longitude=lon_d,
+                requested_at=req_time,
+                started_at=start_time,
+                completed_at=end_time,
+                distance_km=dist_km,
+                duration_minutes=dur_min,
+                trip_status=trip_status,
+            )
+            recorder.record_cancellation(
+                trip_id=trip_id,
+                cancelled_by=cancelled_by,
+                cancellation_reason=reason or "Tarifa dinámica sobrepasa presupuesto",
+                wait_time_minutes=wait_min,
+                origin_active_requests=d_t,
+                origin_available_drivers=s_t,
+            )
+            if driver_agent.fuel_tank and driver_agent.fuel_tank.needs_refueling:
+                driver_agent.refuel_pitstop(req_time + timedelta(minutes=wait_min), pitstop_minutes=15.0)
+        else:
+            trip_status = "completado"
+            start_time = req_time + timedelta(minutes=wait_min)
+            end_time = start_time + timedelta(minutes=dur_min)
+            driver_agent.assign_trip(node_d, end_time)
+            trip_fuel = driver_agent.compute_trip_fuel_liters(dist_km, dur_min, effective_congestion, is_cauce_overflow or flood_affected)
+            driver_agent.accumulate_distance_and_fuel(dist_km, trip_fuel, is_cauce_overflow or flood_affected, duration_min=dur_min, congestion_idx=effective_congestion)
+
+            # Scheduled preventive maintenance check (every 5,000 km)
+            if driver_agent.km_since_service >= 5000.0:
+                service_odo = driver_agent.odometer_km
+                maint_cost = round(float(self.rng.uniform(2400.0, 4800.0)), 2)
+                down_hrs = round(float(self.rng.uniform(3.0, 6.5)), 1)
+                target_workshop = self.world.find_closest_workshop(lat_d, lon_d)
+                transit_km = max(0.5, haversine_km(lat_d, lon_d, target_workshop.latitude, target_workshop.longitude))
+                transit_min = (transit_km / 28.0) * 60.0
+                transit_fuel = driver_agent.compute_trip_fuel_liters(transit_km, transit_min, effective_congestion, False)
+                driver_agent.accumulate_distance_and_fuel(transit_km, transit_fuel, False, duration_min=transit_min, congestion_idx=effective_congestion)
+                arrival_at_workshop = end_time + timedelta(minutes=transit_min)
+
+                start_svc, finish_svc, wait_queue_min = target_workshop.admit_vehicle(
+                    driver_agent.vehicle_model.vehicle_id, arrival_at_workshop, service_duration_hours=down_hrs
+                )
+                total_downtime_hours = max(1.0, round((finish_svc - end_time).total_seconds() / 3600.0, 1))
+                milestone = int(round(service_odo / 5000.0) * 5000)
+                recorder.record_maintenance(
+                    vehicle_id=driver_agent.vehicle_model.vehicle_id,
+                    service_date=curr_date,
+                    maintenance_type="preventivo",
+                    odometer_km=service_odo,
+                    description=f"Mantenimiento preventivo {milestone} km: cambio de aceite, filtro y revisión en bahía (espera cola: {round(wait_queue_min, 1)} min en {target_workshop.name})",
+                    cost_nio=maint_cost,
+                    downtime_hours=total_downtime_hours,
+                    workshop_name=target_workshop.name,
+                )
+                driver_agent.send_to_maintenance(finish_svc, queue_wait_min=wait_queue_min)
+                driver_agent.current_node = target_workshop.node_id
+
+            elif (is_cauce_overflow or flood_affected) and (self.rng.random() < (0.075 if is_cauce_overflow else 0.035)):
+                # Corrective maintenance triggered by flooded cauce transit or overflowed crossing
+                maint_cost = round(float(self.rng.uniform(6500.0, 15500.0)), 2)
+                down_hrs = round(float(self.rng.uniform(8.0, 24.0)), 1)
+                target_workshop = self.world.find_closest_workshop(lat_d, lon_d)
+                transit_km = max(0.5, haversine_km(lat_d, lon_d, target_workshop.latitude, target_workshop.longitude))
+                transit_min = (transit_km / 28.0) * 60.0
+                transit_fuel = driver_agent.compute_trip_fuel_liters(transit_km, transit_min, effective_congestion, False)
+                driver_agent.accumulate_distance_and_fuel(transit_km, transit_fuel, False, duration_min=transit_min, congestion_idx=effective_congestion)
+                arrival_at_workshop = end_time + timedelta(minutes=transit_min)
+
+                start_svc, finish_svc, wait_queue_min = target_workshop.admit_vehicle(
+                    driver_agent.vehicle_model.vehicle_id, arrival_at_workshop, service_duration_hours=down_hrs
+                )
+                total_downtime_hours = max(1.0, round((finish_svc - end_time).total_seconds() / 3600.0, 1))
+                recorder.record_maintenance(
+                    vehicle_id=driver_agent.vehicle_model.vehicle_id,
+                    service_date=curr_date,
+                    maintenance_type="correctivo",
+                    odometer_km=driver_agent.odometer_km,
+                    description=f"Mantenimiento correctivo: reparación suspensión y secado frenos (espera cola: {round(wait_queue_min, 1)} min en {target_workshop.name})",
+                    cost_nio=maint_cost,
+                    downtime_hours=total_downtime_hours,
+                    workshop_name=target_workshop.name,
+                )
+                driver_agent.send_to_maintenance(finish_svc, queue_wait_min=wait_queue_min)
+                driver_agent.current_node = target_workshop.node_id
+
+            # Fuel tank check: autonomous pitstop if reserve drops below 15%
+            if driver_agent.fuel_tank and driver_agent.fuel_tank.needs_refueling:
+                driver_agent.refuel_pitstop(end_time, pitstop_minutes=15.0)
+
+            rating_usr, rating_drv = self.platform.sample_ratings(self.rng)
+            if driver_agent.vehicle_model.service_type == "movigo_moto" and effective_water_mm > 0.5:
+                rating_usr = max(1.0, round(float(rating_usr - self.rng.uniform(0.3, 0.7)), 1))
+            elif driver_agent.vehicle_model.service_type == "movigo_comfort":
+                rating_usr = min(5.0, round(float(rating_usr + self.rng.uniform(0.1, 0.3)), 1))
+            tip_amount = self.platform.sample_tip(self.rng)
+            payment_status = "pagado"
+
+            trip_id = recorder.record_trip(
+                user_id=user.user_id,
+                driver_id=driver_agent.driver_id,
+                origin_quadrant_id=q_o,
+                destination_quadrant_id=q_d,
+                origin_latitude=lat_o,
+                origin_longitude=lon_o,
+                destination_latitude=lat_d,
+                destination_longitude=lon_d,
+                requested_at=req_time,
+                started_at=start_time,
+                completed_at=end_time,
+                distance_km=dist_km,
+                duration_minutes=dur_min,
+                trip_status=trip_status,
+            )
+            recorder.record_rating(
+                trip_id=trip_id,
+                user_rating=rating_usr,
+                driver_rating=rating_drv,
+            )
+
+        recorder.record_payment(
+            trip_id=trip_id,
+            payment_method=payment_method,
+            base_fare=base_fare,
+            surge_multiplier=surge,
+            tip_amount=tip_amount,
+            final_fare=final_fare,
+            payment_status=payment_status,
+        )
+
+        # Generate real street-snapped telemetry checkpoints along actual traversed OSM nodes
+        if not is_canceled and self.rng.random() < 0.14:
+            if is_cauce_overflow:
+                avg_speed_kmh = max(5.0, min(18.0, (dist_km / max(0.05, dur_min / 60.0))))
+            else:
+                avg_speed_kmh = max(9.0, min(75.0, (dist_km / max(0.05, dur_min / 60.0))))
+
+            if len(pickup_nodes) > 1:
+                mid_p_idx = pickup_nodes[len(pickup_nodes) // 2]
+                p_lat = float(self.world.node_coords[mid_p_idx, 0])
+                p_lon = float(self.world.node_coords[mid_p_idx, 1])
+                p_qid = int(self.world.node_quadrants[mid_p_idx])
+            else:
+                p_lat, p_lon, p_qid = lat_o, lon_o, q_o
+
+            recorder.record_telemetry(
+                driver_id=driver_agent.driver_id,
+                trip_id=trip_id,
+                quadrant_id=p_qid,
+                recorded_at=req_time + timedelta(minutes=round(wait_min * 0.5, 2)),
+                latitude=p_lat,
+                longitude=p_lon,
+                speed_kmh=round(float(np.clip(avg_speed_kmh * self.rng.uniform(0.75, 1.15), 8.0, 60.0)), 2),
+                availability_status="en_camino_recogida",
+            )
+
+            n_ride = len(ride_nodes)
+            for frac in (0.20, 0.55, 0.88):
+                step = min(n_ride - 1, max(0, int(n_ride * frac)))
+                node_ckpt = ride_nodes[step]
+                wp_lat = float(self.world.node_coords[node_ckpt, 0])
+                wp_lon = float(self.world.node_coords[node_ckpt, 1])
+                wp_qid = int(self.world.node_quadrants[node_ckpt])
+
+                if flood_affected and frac == 0.55:
+                    wp_speed = float(self.rng.uniform(4.5, 11.5))
+                else:
+                    wp_speed = float(np.clip(avg_speed_kmh * self.rng.uniform(0.80, 1.25), 12.0, 58.0))
+
+                recorder.record_telemetry(
+                    driver_id=driver_agent.driver_id,
+                    trip_id=trip_id,
+                    quadrant_id=wp_qid,
+                    recorded_at=start_time + timedelta(minutes=round(dur_min * frac, 2)),
+                    latitude=wp_lat,
+                    longitude=wp_lon,
+                    speed_kmh=round(wp_speed, 2),
+                    availability_status="ocupado",
+                )
+
+
+    def simulate_hourly_slice(
+        self,
+        target_dt: datetime,
+        weather_dict: dict[str, Any],
+        starting_ids: dict[str, int] | None = None,
+    ) -> tuple[
+        list[Trip],
+        list[TripPayment],
+        list[TripRating],
+        list[TripCancellation],
+        list[DriverTelemetry],
+        list[VehicleMaintenance],
+        list[QuadrantWeather],
+    ]:
+        """Simulate a single chronological hour slice of MoviGo urban mobility preserving driver physical agent state."""
+        hour = target_dt.hour
+        dow = target_dt.weekday()
+        curr_date = target_dt.date()
+        precip_mm = float(weather_dict.get("precipitation_mm", 0.0))
+        cong_idx = float(weather_dict.get("congestion_index", 1.0))
+
+        from movigo_sim.engine.platform import HOURLY_TRIP_WEIGHTS
+        hourly_base_lam = 175.0 * HOURLY_TRIP_WEIGHTS[hour]
+        rain_mult = 1.0 + 0.15 * min(3.0, precip_mm / 5.0)
+        n_trips = max(0, int(round(float(self.rng.poisson(lam=max(0.15, hourly_base_lam * rain_mult))))))
+        if n_trips == 0 and 7 <= hour <= 21:
+            n_trips = 1
+
+        recorder = SimulationRecorder()
+        if starting_ids:
+            recorder.set_counters(
+                trip_id=starting_ids.get("trip_id", 1),
+                payment_id=starting_ids.get("payment_id", 1),
+                rating_id=starting_ids.get("rating_id", 1),
+                cancellation_id=starting_ids.get("cancellation_id", 1),
+                telemetry_id=starting_ids.get("telemetry_id", 1),
+                maintenance_id=starting_ids.get("maintenance_id", 1),
+            )
+
+        eligible_stratum_probs: dict[str, np.ndarray] = {}
+        for stratum, w_arr in self.user_stratum_weights.items():
+            ew = w_arr.copy()
+            ew /= ew.sum()
+            eligible_stratum_probs[stratum] = ew
+
+        driver_meal_logged: set[int] = set()
+        req_times = sorted(
+            target_dt.replace(minute=int(self.rng.integers(0, 60)), second=int(self.rng.integers(0, 60)))
+            for _ in range(n_trips)
+        )
+
+        for req_time in req_times:
+            self._dispatch_trip_request(
+                req_time=req_time,
+                recorder=recorder,
+                driver_meal_logged=driver_meal_logged,
+                daily_precip_mm=precip_mm,
+                daily_cong_idx=cong_idx,
+                hourly_matrices=None,
+                date_hour_to_idx=None,
+                eligible_users=self.users,
+                eligible_stratum_probs=eligible_stratum_probs,
+            )
+
+        # Build QuadrantWeather records for all 92 quadrants
+        w_start_id = starting_ids.get("weather_id", 1) if starting_ids else 1
+        weather_records: list[QuadrantWeather] = []
+        for q_idx, q in enumerate(self.world.quadrants_map.values()):
+            elev_factor = 1.25 if q.flood_risk in ("alto", "critico") else 0.90
+            q_precip = round(precip_mm * elev_factor, 2)
+            q_runoff = round(q_precip * (0.85 if q.flood_risk == "critico" else 0.35), 2)
+            is_flooded = q_precip >= 8.0 or (q_precip >= 3.0 and q.flood_risk == "critico")
+            sky = "tormenta" if q_precip >= 15.0 else ("lluvia_ligera" if q_precip > 0.5 else ("nublado" if weather_dict.get("rain_mm", 0.0) > 0 else "despejado"))
+            weather_records.append(
+                QuadrantWeather(
+                    weather_id=w_start_id + q_idx,
+                    quadrant_id=q.quadrant_id,
+                    recorded_at=target_dt,
+                    date=curr_date,
+                    hour=hour,
+                    precipitation_mm=q_precip,
+                    channel_runoff_mm=q_runoff,
+                    temperature_c=float(weather_dict.get("temperature_c", 28.0)),
+                    congestion_index=cong_idx,
+                    flooded_roads=is_flooded,
+                    sky_condition=sky,
+                )
+            )
+
+        trips, payments, ratings, cancellations, telemetry, maintenance = recorder.get_results()
+        return trips, payments, ratings, cancellations, telemetry, maintenance, weather_records

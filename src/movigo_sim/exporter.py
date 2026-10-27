@@ -106,6 +106,7 @@ def generate_movigo_postgresql_ddl() -> str:
 CREATE SCHEMA IF NOT EXISTS raw_staging_movigo;
 SET search_path TO raw_staging_movigo, public;
 
+DROP TABLE IF EXISTS simulation_clock CASCADE;
 DROP TABLE IF EXISTS vehicle_maintenance CASCADE;
 DROP TABLE IF EXISTS driver_telemetry CASCADE;
 DROP TABLE IF EXISTS trip_cancellations CASCADE;
@@ -284,6 +285,17 @@ CREATE TABLE vehicle_maintenance (
     workshop_name VARCHAR(100) NOT NULL
 );
 
+CREATE TABLE simulation_clock (
+    clock_id INT PRIMARY KEY DEFAULT 1,
+    earliest_datetime TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    latest_datetime TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    current_status VARCHAR(30) NOT NULL DEFAULT 'ready' CHECK (current_status IN ('ready', 'catching_up', 'hourly_wait')),
+    total_hours_simulated INT NOT NULL DEFAULT 0,
+    total_trips_simulated BIGINT NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    CONSTRAINT chk_single_clock_row CHECK (clock_id = 1)
+);
+
 CREATE TABLE trip_audit_logs (
     audit_id SERIAL PRIMARY KEY,
     trip_id INT NOT NULL,
@@ -383,6 +395,25 @@ WITH DATA;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_movigo_hour_stratum 
 ON mv_hourly_mobility_kpis(hour_of_day, socioeconomic_stratum);
+
+-- Inicializacion del Reloj de Simulacion (Simulation Clock)
+INSERT INTO simulation_clock (clock_id, earliest_datetime, latest_datetime, current_status, total_hours_simulated, total_trips_simulated, updated_at)
+SELECT 
+    1,
+    COALESCE(MIN(requested_at), '2024-01-01 00:00:00'::timestamp),
+    COALESCE(MAX(requested_at), '2024-01-03 23:59:59'::timestamp),
+    'ready',
+    COALESCE(COUNT(DISTINCT DATE_TRUNC('hour', requested_at)), 0)::int,
+    COALESCE(COUNT(*), 0)::bigint,
+    NOW()
+FROM trips
+ON CONFLICT (clock_id) DO UPDATE SET
+    earliest_datetime = EXCLUDED.earliest_datetime,
+    latest_datetime = EXCLUDED.latest_datetime,
+    current_status = 'ready',
+    total_hours_simulated = EXCLUDED.total_hours_simulated,
+    total_trips_simulated = EXCLUDED.total_trips_simulated,
+    updated_at = NOW();
 
 -- Seguridad
 DO $$

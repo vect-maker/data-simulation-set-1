@@ -40,6 +40,23 @@ class SimulationRecorder:
         self.telemetry: list[DriverTelemetry] = []
         self.maintenance: list[VehicleMaintenance] = []
 
+    def set_counters(
+        self,
+        trip_id: int = 1,
+        payment_id: int = 1,
+        rating_id: int = 1,
+        cancellation_id: int = 1,
+        telemetry_id: int = 1,
+        maintenance_id: int = 1,
+    ) -> None:
+        """Set starting counter IDs for incremental simulation slicing."""
+        self.trip_counter = trip_id
+        self.payment_counter = payment_id
+        self.rating_counter = rating_id
+        self.cancellation_counter = cancellation_id
+        self.telemetry_counter = telemetry_id
+        self.maintenance_counter = maintenance_id
+
     def record_trip(
         self,
         user_id: int,

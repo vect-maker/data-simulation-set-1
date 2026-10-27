@@ -1,10 +1,11 @@
 """Routers for Caso 3: MoviGo (Transporte por Aplicación y Movilidad Urbana - Managua, Esquema OLTP 3NF)."""
 
-from datetime import date
+from datetime import date, datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Path, Query
 
+from src.api.movigo_clock import movigo_clock
 from src.api.schemas import (
     DriverOut,
     DriverTelemetryOut,
@@ -12,6 +13,7 @@ from src.api.schemas import (
     PaginatedResponse,
     QuadrantOut,
     QuadrantWeatherOut,
+    SimulationStatusOut,
     TripCancellationOut,
     TripOut,
     TripPaymentOut,
@@ -25,6 +27,25 @@ from src.api.utils import execute_paginated_query, fetch_single_resource
 
 router = APIRouter(prefix="/movigo", tags=["Caso 3: MoviGo"])
 SCHEMA = "raw_staging_movigo"
+
+
+@router.get(
+    "/simulation/status",
+    response_model=SimulationStatusOut,
+    summary="Estado del reloj de simulación y progreso horario",
+    description=(
+        "### Monitoreo del Reloj y Generación en Tiempo Real de MoviGo\n\n"
+        "Devuelve los límites temporales actualmente listos (`earliest_datetime` y `latest_datetime`), "
+        "el estado del worker (`ready`, `catching_up`, `hourly_wait`), las horas faltantes de conciliación "
+        "y el acumulado de viajes generados."
+    ),
+    responses={
+        200: {"description": "Estado del reloj de simulación obtenido exitosamente."},
+    },
+)
+def get_simulation_status():
+    """Consulta los límites de tiempo válidos y el estado del motor continuo de simulación."""
+    return movigo_clock.get_status()
 
 
 @router.get(
@@ -444,6 +465,14 @@ def get_weather_movigo(
         int | None,
         Query(ge=1, le=92, description="Filtrar por cuadrante cuadrado geográfico (1 a 92).", examples=[53]),
     ] = None,
+    start_time: Annotated[
+        datetime | None,
+        Query(description="Fecha y hora mínima de registro en formato ISO (YYYY-MM-DDTHH:MM:SS).", examples=["2024-01-01T08:00:00"]),
+    ] = None,
+    end_time: Annotated[
+        datetime | None,
+        Query(description="Fecha y hora máxima de registro en formato ISO (YYYY-MM-DDTHH:MM:SS).", examples=["2024-01-01T18:00:00"]),
+    ] = None,
     date_from: Annotated[
         date | None,
         Query(description="Fecha mínima en formato ISO (YYYY-MM-DD).", examples=["2024-01-01"]),
@@ -484,9 +513,14 @@ def get_weather_movigo(
     ] = 50,
 ):
     """Series horarias de microclima urbano, escorrentía de cauces e índice de congestión vial por cuadrante en Managua."""
+    movigo_clock.validate_time_bounds(start_time, end_time)
     filters: list[tuple[str, str, Any]] = []
     if quadrant_id is not None:
         filters.append(("quadrant_id", "=", quadrant_id))
+    if start_time is not None:
+        filters.append(("recorded_at", ">=", start_time))
+    if end_time is not None:
+        filters.append(("recorded_at", "<=", end_time))
     if date_from:
         filters.append(("date", ">=", date_from))
     if date_to:
@@ -538,6 +572,14 @@ def get_weather_movigo(
     },
 )
 def get_trips(
+    start_time: Annotated[
+        datetime | None,
+        Query(description="Fecha y hora mínima de solicitud en formato ISO (YYYY-MM-DDTHH:MM:SS inclusive).", examples=["2024-01-01T08:00:00"]),
+    ] = None,
+    end_time: Annotated[
+        datetime | None,
+        Query(description="Fecha y hora máxima de solicitud en formato ISO (YYYY-MM-DDTHH:MM:SS inclusive).", examples=["2024-01-01T18:00:00"]),
+    ] = None,
     origin_quadrant_id: Annotated[
         int | None,
         Query(description="Filtrar por cuadrante cuadrado de origen (1 a 92).", examples=[15]),
@@ -578,7 +620,12 @@ def get_trips(
     ] = 50,
 ):
     """Cabecera transaccional de viajes urbanos (3NF)."""
+    movigo_clock.validate_time_bounds(start_time, end_time)
     filters: list[tuple[str, str, Any]] = []
+    if start_time is not None:
+        filters.append(("requested_at", ">=", start_time))
+    if end_time is not None:
+        filters.append(("requested_at", "<=", end_time))
     if origin_quadrant_id:
         filters.append(("origin_quadrant_id", "=", origin_quadrant_id))
     if destination_quadrant_id:
@@ -848,6 +895,14 @@ def get_trip_cancellations(
     },
 )
 def get_telemetry(
+    start_time: Annotated[
+        datetime | None,
+        Query(description="Fecha y hora mínima de emisión GPS en formato ISO (YYYY-MM-DDTHH:MM:SS inclusive).", examples=["2024-01-01T08:00:00"]),
+    ] = None,
+    end_time: Annotated[
+        datetime | None,
+        Query(description="Fecha y hora máxima de emisión GPS en formato ISO (YYYY-MM-DDTHH:MM:SS inclusive).", examples=["2024-01-01T18:00:00"]),
+    ] = None,
     driver_id: Annotated[
         int | None,
         Query(description="Filtrar por identificador de conductor monitoreado.", examples=[1]),
@@ -884,7 +939,12 @@ def get_telemetry(
     ] = 50,
 ):
     """Datos telemétricos de conducción (velocidad, coordenadas, cuadrante, estado de disponibilidad)."""
+    movigo_clock.validate_time_bounds(start_time, end_time)
     filters: list[tuple[str, str, Any]] = []
+    if start_time is not None:
+        filters.append(("recorded_at", ">=", start_time))
+    if end_time is not None:
+        filters.append(("recorded_at", "<=", end_time))
     if driver_id:
         filters.append(("driver_id", "=", driver_id))
     if trip_id:
@@ -925,6 +985,14 @@ def get_telemetry(
     },
 )
 def get_vehicle_maintenance(
+    start_date: Annotated[
+        date | None,
+        Query(description="Fecha mínima de servicio técnico en formato ISO (YYYY-MM-DD inclusive).", examples=["2024-01-01"]),
+    ] = None,
+    end_date: Annotated[
+        date | None,
+        Query(description="Fecha máxima de servicio técnico en formato ISO (YYYY-MM-DD inclusive).", examples=["2024-01-03"]),
+    ] = None,
     vehicle_id: Annotated[
         int | None,
         Query(description="Filtrar por identificador de la unidad vehicular (1 a 150).", examples=[12]),
@@ -947,7 +1015,16 @@ def get_vehicle_maintenance(
     ] = 50,
 ):
     """Historial de mantenimiento preventivo y correctivo de la flota automotriz MoviGo."""
+    if start_date or end_date:
+        st = datetime.combine(start_date, datetime.min.time()) if start_date else None
+        et = datetime.combine(end_date, datetime.max.time()) if end_date else None
+        movigo_clock.validate_time_bounds(st, et)
+
     filters: list[tuple[str, str, Any]] = []
+    if start_date:
+        filters.append(("service_date", ">=", start_date))
+    if end_date:
+        filters.append(("service_date", "<=", end_date))
     if vehicle_id:
         filters.append(("vehicle_id", "=", vehicle_id))
     if maintenance_type:
