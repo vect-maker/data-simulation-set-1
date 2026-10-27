@@ -23,6 +23,20 @@ class Quadrant(BaseModel):
     main_drainage_channels: str
 
 
+class DrainageChannel(BaseModel):
+    """Managua natural drainage canal / cauce hydrological infrastructure."""
+    model_config = ConfigDict(from_attributes=True)
+
+    channel_id: int = Field(ge=1)
+    channel_name: str
+    zone_id: int = Field(ge=1)
+    latitude: float = Field(ge=12.00, le=12.30)
+    longitude: float = Field(ge=-86.45, le=-86.10)
+    critical_radius_km: float = Field(ge=0.2, le=3.0)
+    vulnerability_level: str = Field(pattern=r"^(bajo|medio|alto|critico)$")
+    flow_direction: str
+
+
 class UrbanZone(BaseModel):
     """Urban pricing and mobility zone in Managua (groups multiple square quadrants)."""
     model_config = ConfigDict(from_attributes=True)

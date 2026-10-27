@@ -93,6 +93,30 @@ def display_movigo_rich_summary(summary: dict):
         ]
         render_math_optimization_table("Métodos Numéricos & Optimización Prescriptiva", math_rows, border_style="cyan")
 
+    # 4. Ciencia de Datos Espacial & GIS
+    if "analitica_espacial_gis" in summary:
+        gis = summary["analitica_espacial_gis"]
+        od = gis.get("matriz_origen_destino", {})
+        grav = gis.get("modelo_gravedad_wilson", {})
+        moran = gis.get("autocorrelacion_espacial_moran", {})
+        lisa = gis.get("agrupamiento_lisa_puntos_calientes", {})
+        cauces = gis.get("vulnerabilidad_hidraulica_cauces", {})
+
+        top_hotspots_str = ", ".join([h["codigo"] for h in lisa.get("top_puntos_calientes_hotspots", [])[:4]])
+        p_moran = moran.get("p_value", 0.0)
+        p_moran_str = f"{p_moran:.2e}" if isinstance(p_moran, (float, int)) else str(p_moran)
+        p_grav = grav.get("p_value_friction", 0.0)
+        p_grav_str = f"{p_grav:.2e}" if isinstance(p_grav, (float, int)) else str(p_grav)
+
+        spatial_rows = [
+            ("Movilidad Interzonal vs Intrazonal", f"Interzonal: {od.get('porcentaje_viajes_interzonales')}% | Intrazonal: {od.get('porcentaje_viajes_intrazonales')}%"),
+            ("Modelo de Gravedad de Wilson", f"Fricción distancia γ = {grav.get('friction_gamma')} (R² = {grav.get('r_squared')}, p = {p_grav_str})"),
+            ("Autocorrelación Espacial (Moran's I)", f"I = {moran.get('moran_i')} (z = {moran.get('z_score')}, p = {p_moran_str}) -> {'Clustering Positivo' if moran.get('is_spatially_clustered') else 'Aleatorio'}"),
+            ("Puntos Calientes LISA (Hotspots)", f"{lisa.get('distribucion_clusters', {}).get('High-High', 0)} cuadrantes High-High ({top_hotspots_str})"),
+            ("Vulnerabilidad Hidráulica de Cauces", f"Índice Medio: {cauces.get('indice_vulnerabilidad_promedio')} | Crítico: {cauces.get('distribucion_riesgo', {}).get('critico', 0)}, Alto: {cauces.get('distribucion_riesgo', {}).get('alto', 0)}, Medio: {cauces.get('distribucion_riesgo', {}).get('medio', 0)}, Bajo: {cauces.get('distribucion_riesgo', {}).get('bajo', 0)}"),
+        ]
+        render_operational_table("Ciencia de Datos Espacial & GIS (Managua 2024)", spatial_rows, border_style="green")
+
 
 def run_generation(
     days=None,

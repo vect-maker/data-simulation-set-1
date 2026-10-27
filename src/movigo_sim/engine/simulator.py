@@ -36,6 +36,7 @@ from movigo_sim.models import (
     DriverTelemetry,
     IncentiveCampaign,
     VehicleMaintenance,
+    DrainageChannel,
 )
 from movigo_sim.engine.entities import DriverAgent, RiderAgent, RiderPersona
 from movigo_sim.engine.world import (
@@ -63,6 +64,16 @@ def load_movigo_vehicles() -> list[Vehicle]:
     """Load the 150 driver vehicles from deterministic JSON seed fixture."""
     with open(DETERMINISTIC_SEEDS_DIR / "vehicles.json", encoding="utf-8") as f:
         return [Vehicle(**v) for v in json.load(f)]
+
+
+def load_movigo_drainage_channels() -> list[DrainageChannel]:
+    """Load the 12 Managua drainage channels (cauces) from deterministic JSON seed fixture or catalog."""
+    path = DETERMINISTIC_SEEDS_DIR / "drainage_channels.json"
+    if path.exists():
+        with open(path, encoding="utf-8") as f:
+            return [DrainageChannel(**c) for c in json.load(f)]
+    from movigo_sim.spatial import build_deterministic_drainage_channels
+    return [DrainageChannel(**c) for c in build_deterministic_drainage_channels()]
 
 
 def load_movigo_seed_catalogs() -> tuple[

@@ -8,17 +8,21 @@
 SET search_path TO raw_staging_movigo, public;
 
 -- ------------------------------------------------------------------------------
--- 1. Exploración Inicial y Verificación de Conteos de Tablas (12 tablas OLTP 3NF)
+-- 1. Exploración Inicial y Verificación de Conteos de Tablas (14 tablas OLTP 3NF)
 -- ------------------------------------------------------------------------------
 SELECT 'urban_zones' AS table_name, COUNT(*) AS total_rows FROM urban_zones
 UNION ALL
 SELECT 'quadrants', COUNT(*) FROM quadrants
+UNION ALL
+SELECT 'drainage_channels', COUNT(*) FROM drainage_channels
 UNION ALL
 SELECT 'users', COUNT(*) FROM users
 UNION ALL
 SELECT 'drivers', COUNT(*) FROM drivers
 UNION ALL
 SELECT 'vehicles', COUNT(*) FROM vehicles
+UNION ALL
+SELECT 'vehicle_maintenance', COUNT(*) FROM vehicle_maintenance
 UNION ALL
 SELECT 'incentive_campaigns', COUNT(*) FROM incentive_campaigns
 UNION ALL
@@ -164,3 +168,35 @@ SELECT
 FROM incentive_campaigns ic
 JOIN urban_zones uz ON ic.target_zone_id = uz.zone_id
 ORDER BY ic.start_date ASC;
+
+-- ------------------------------------------------------------------------------
+-- 8. Mantenimiento Preventivo de Flota y Exposición a Cauces (vehicle_maintenance + vehicles)
+-- ------------------------------------------------------------------------------
+SELECT 
+    v.service_type,
+    v.vehicle_model,
+    COUNT(m.service_id) AS total_services,
+    SUM(CASE WHEN m.service_type = 'preventivo' THEN 1 ELSE 0 END) AS preventive_services,
+    SUM(CASE WHEN m.service_type = 'correctivo' THEN 1 ELSE 0 END) AS corrective_services,
+    ROUND(AVG(m.odometer_km)::numeric, 1) AS avg_odometer_km,
+    ROUND(SUM(m.cost_nio)::numeric, 2) AS total_maintenance_cost_nio,
+    ROUND(AVG(m.flood_exposure_trips)::numeric, 1) AS avg_flood_exposure_trips,
+    ROUND(SUM(m.downtime_hours)::numeric, 1) AS total_downtime_hours
+FROM vehicle_maintenance m
+JOIN vehicles v ON m.vehicle_id = v.vehicle_id
+GROUP BY v.service_type, v.vehicle_model
+ORDER BY total_maintenance_cost_nio DESC;
+
+-- ------------------------------------------------------------------------------
+-- 9. Catálogo de Corredores de Drenaje Pluvial (OpenStreetMap waterways)
+-- ------------------------------------------------------------------------------
+SELECT 
+    channel_id,
+    channel_name,
+    length_km,
+    osm_way_count,
+    base_flood_risk,
+    osm_centroid_lat,
+    osm_centroid_lon
+FROM drainage_channels
+ORDER BY length_km DESC;

@@ -19,7 +19,7 @@ import numpy as np
 import requests
 
 from movigo_sim.config import DETERMINISTIC_SEEDS_DIR, SIMULATION_SEED
-from movigo_sim.models import Driver, Quadrant, UrbanZone, User, Vehicle
+from movigo_sim.models import DrainageChannel, Driver, Quadrant, UrbanZone, User, Vehicle
 
 logger = logging.getLogger(__name__)
 
@@ -135,31 +135,144 @@ CANONICAL_URBAN_ZONES: list[dict[str, Any]] = [
     },
 ]
 
-# Real-world hydrological flood & cauce bottlenecks in Managua
-FLOOD_HOTSPOTS: list[dict[str, Any]] = [
-    {"name": "Cauce Oriental / Gancho de Camino", "lat": 12.1425, "lon": -86.2480, "radius_km": 0.95},
-    {"name": "Puente El Paraisito / Ciudad Jardín", "lat": 12.1390, "lon": -86.2540, "radius_km": 0.75},
-    {"name": "Paso a Desnivel Rubenia / Cauce El Dorado", "lat": 12.1295, "lon": -86.2355, "radius_km": 0.90},
-    {"name": "Rotonda La Virgen / Cauce Bello Horizonte", "lat": 12.1395, "lon": -86.2185, "radius_km": 1.00},
-    {"name": "Pista El Mayoreo / Sabana Grande", "lat": 12.1340, "lon": -86.2080, "radius_km": 0.90},
-    {"name": "Cauce Occidental / Linda Vista Sur", "lat": 12.1495, "lon": -86.2925, "radius_km": 0.90},
-    {"name": "Rotonda Centroamérica / Pista Juan Pablo II", "lat": 12.1190, "lon": -86.2650, "radius_km": 0.70},
-]
+def extract_osm_waterways(
+    raw_osm_elements: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], np.ndarray, list[dict[str, Any]]]:
+    """Extract authentic OpenStreetMap waterways, vector LineString features, and line segments.
 
-ZONE_CAUCES: dict[int, str] = {
-    1: "Cauce Central Villa Fontana / Club Terraza",
-    2: "Cuenca Sur Las Colinas / Carretera a Masaya Km 8",
-    3: "Cabecera Sierras de Santo Domingo / Las Sierritas",
-    4: "Eje Pista Juan Pablo II / Los Robles",
-    5: "Cauce Altamira / Pista Suburbana",
-    6: "Canal Pluvial Bolonia / Plaza España",
-    7: "Cauce Bello Horizonte / Rotonda La Virgen / Pista El Mayoreo",
-    8: "Cauce Occidental / Linda Vista / Gadala Maria",
-    9: "Rotonda Rubén Darío / Rotonda Centroamérica / Eje UCA",
-    10: "Cauce Oriental / Puente El Paraisito / Ciudad Jardín",
-    11: "Colector Cauce Oriental / Gancho de Camino / Mercado Oriental",
-    12: "Cauce El Dorado / Paso a Desnivel Rubenia / Roberto Huembes",
-}
+    Returns:
+    - features: list of GeoJSON Feature dicts with LineString geometry and OSM tags.
+    - seg_arr: np.ndarray of shape (S, 4) [y1, x1, y2, x2] in km projected space.
+    - seg_meta: list of dicts with name, waterway_type, osm_id, is_named.
+    """
+    raw_nodes = {
+        el["id"]: (round(el["lat"], 6), round(el["lon"], 6))
+        for el in raw_osm_elements
+        if el.get("type") == "node"
+    }
+    water_ways = [
+        el for el in raw_osm_elements
+        if el.get("type") == "way" and "waterway" in el.get("tags", {})
+    ]
+
+    features: list[dict[str, Any]] = []
+    seg_list: list[tuple[float, float, float, float]] = []
+    seg_meta: list[dict[str, Any]] = []
+
+    for w in water_ways:
+        tags = w.get("tags", {})
+        osm_name = tags.get("name")
+        w_nodes = w.get("nodes", [])
+        coords = [raw_nodes[nid] for nid in w_nodes if nid in raw_nodes]
+        if len(coords) < 2:
+            continue
+        default_name = osm_name or f"Canal de Drenaje Pluvial #{w['id']}"
+
+        # GeoJSON uses [lon, lat]
+        geo_coords = [[c[1], c[0]] for c in coords]
+        features.append({
+            "type": "Feature",
+            "id": w["id"],
+            "geometry": {"type": "LineString", "coordinates": geo_coords},
+            "properties": {
+                "osm_id": w["id"],
+                "name": default_name,
+                "waterway": tags.get("waterway", "drain"),
+                "is_named": bool(osm_name),
+            },
+        })
+
+        for k in range(len(coords) - 1):
+            lat1, lon1 = coords[k]
+            lat2, lon2 = coords[k + 1]
+            seg_list.append((lat1 * 111.0, lon1 * 108.5, lat2 * 111.0, lon2 * 108.5))
+            seg_meta.append({
+                "name": default_name,
+                "waterway": tags.get("waterway", "drain"),
+                "osm_id": w["id"],
+                "is_named": bool(osm_name),
+            })
+
+    seg_arr = np.array(seg_list, dtype=float) if seg_list else np.empty((0, 4), dtype=float)
+    return features, seg_arr, seg_meta
+
+
+def build_deterministic_drainage_channels(
+    raw_osm_elements: list[dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
+    """Build authentic 3NF drainage channel records derived directly from OpenStreetMap hydrography."""
+    if raw_osm_elements is None:
+        cache_path = DETERMINISTIC_SEEDS_DIR / "managua_osm_raw.json"
+        if cache_path.exists():
+            with open(cache_path, encoding="utf-8") as f:
+                raw_osm_elements = json.load(f)
+        else:
+            raw_osm_elements = []
+
+    raw_nodes = {
+        el["id"]: (round(el["lat"], 6), round(el["lon"], 6))
+        for el in raw_osm_elements
+        if el.get("type") == "node"
+    }
+    from collections import defaultdict
+    corridors: dict[str, list[Any]] = defaultdict(list)
+
+    for el in raw_osm_elements:
+        if el.get("type") == "way" and "waterway" in el.get("tags", {}):
+            tags = el.get("tags", {})
+            name = tags.get("name")
+            coords = [raw_nodes[nid] for nid in el.get("nodes", []) if nid in raw_nodes]
+            if len(coords) >= 2 and name:
+                corridors[name].append((el["id"], coords, tags))
+
+    vulnerability_rules = {
+        "Cauce Oriental": "critico",
+        "Cauce Occidental": "critico",
+        "Interceptora Tiscapa": "alto",
+        "Cauce Cuajachillo": "alto",
+        "Cauce Pochocuape": "alto",
+        "Cauce Altamira": "medio",
+        "Cauce Camino de Bolas": "medio",
+        "Cauce Santo Domingo": "medio",
+        "Túnel Interceptor Santo Domingo": "medio",
+        "Cauce Las Cuarezmas": "medio",
+        "Cauce Los Cuarezmas": "medio",
+        "Cauce Cuarezmas Oeste": "medio",
+        "Quebrada de Pochocuape": "bajo",
+        "Canal Desague Agua Pluviales Sta María de la Victoria": "bajo",
+    }
+
+    channels: list[dict[str, Any]] = []
+    chan_id = 1
+    for name, ways in sorted(corridors.items(), key=lambda x: len(x[1]), reverse=True):
+        all_pts = [pt for w in ways for pt in w[1]]
+        c_lat = round(float(np.mean([p[0] for p in all_pts])), 6)
+        c_lon = round(float(np.mean([p[1] for p in all_pts])), 6)
+        tot_len = sum(
+            haversine_km(w[1][k][0], w[1][k][1], w[1][k + 1][0], w[1][k + 1][1])
+            for w in ways
+            for k in range(len(w[1]) - 1)
+        )
+        best_z = min(
+            CANONICAL_URBAN_ZONES,
+            key=lambda z: haversine_km(c_lat, c_lon, z["latitude"], z["longitude"]),
+        )
+        vuln = vulnerability_rules.get(name, "medio")
+        flow_dir = "Sur a Norte (hacia Lago Xolotlán)" if c_lat > 12.11 else "Suroeste a Noreste (cuenca media-alta)"
+
+        channels.append({
+            "channel_id": chan_id,
+            "channel_name": name,
+            "zone_id": best_z["zone_id"],
+            "latitude": c_lat,
+            "longitude": c_lon,
+            "critical_radius_km": round(max(0.40, min(1.20, tot_len * 0.15)), 2),
+            "vulnerability_level": vuln,
+            "flow_direction": flow_dir,
+        })
+        chan_id += 1
+
+    return channels
 
 DRIVABLE_HIGHWAY_TYPES = {
     "motorway",
@@ -486,6 +599,19 @@ def build_deterministic_quadrants_and_dense_osm_graph(
         and el.get("tags", {}).get("highway") in DRIVABLE_HIGHWAY_TYPES
     ]
 
+    # Extract authentic OpenStreetMap waterways for real physical distance calculations
+    waterway_features, waterway_seg_arr, waterway_seg_meta = extract_osm_waterways(raw_osm_elements)
+    has_waterways = waterway_seg_arr.shape[0] > 0
+    if has_waterways:
+        y1_w = waterway_seg_arr[:, 0]
+        x1_w = waterway_seg_arr[:, 1]
+        y2_w = waterway_seg_arr[:, 2]
+        x2_w = waterway_seg_arr[:, 3]
+        dx_w = x2_w - x1_w
+        dy_w = y2_w - y1_w
+        len_sq_w = dx_w * dx_w + dy_w * dy_w
+        len_sq_w[len_sq_w == 0] = 1e-9
+
     # 2. Define or load the 92 Quadrants (~0.88 km x 0.88 km square cells)
     quad_bounds: dict[int, tuple[float, float, float, float]] = {}
 
@@ -498,6 +624,27 @@ def build_deterministic_quadrants_and_dense_osm_graph(
                 float(q["lon_min"]),
                 float(q["lon_max"]),
             )
+            # Dynamically compute real flood risk and canal proximity from authentic OSM waterways
+            if has_waterways:
+                clat = 0.5 * (float(q["lat_min"]) + float(q["lat_max"]))
+                clon = 0.5 * (float(q["lon_min"]) + float(q["lon_max"]))
+                py_q = clat * 111.0
+                px_q = clon * 108.5
+                t_q = np.clip(((px_q - x1_w) * dx_w + (py_q - y1_w) * dy_w) / len_sq_w, 0.0, 1.0)
+                dists_q = np.hypot(px_q - (x1_w + t_q * dx_w), py_q - (y1_w + t_q * dy_w))
+                min_idx = int(np.argmin(dists_q))
+                min_d = float(dists_q[min_idx])
+                near_meta = waterway_seg_meta[min_idx]
+                alt = int(q.get("mean_altitude_masl", 120))
+                if (min_d <= 0.40 and alt <= 85) or (min_d <= 0.22 and near_meta["is_named"]):
+                    q["flood_risk"] = "critico"
+                elif min_d <= 0.75:
+                    q["flood_risk"] = "alto"
+                elif min_d <= 1.30:
+                    q["flood_risk"] = "medio"
+                else:
+                    q["flood_risk"] = "bajo"
+                q["main_drainage_channels"] = near_meta["name"]
     else:
         cell_size = 0.008
         lon_grid = np.round(np.arange(-86.316, -86.204, cell_size), 6)
@@ -561,25 +708,26 @@ def build_deterministic_quadrants_and_dense_osm_graph(
                 norm_south = max(0.0, min(1.0, (12.164 - clat) / (12.164 - 12.086)))
                 alt_masl = int(round(46.0 + 195.0 * (norm_south ** 1.38)))
 
-                nearest_hotspot = min(
-                    FLOOD_HOTSPOTS, key=lambda h: haversine_km(clat, clon, h["lat"], h["lon"])
-                )
-                dist_hotspot = haversine_km(clat, clon, nearest_hotspot["lat"], nearest_hotspot["lon"])
-
-                if dist_hotspot <= nearest_hotspot["radius_km"] * 0.78 or (
-                    alt_masl <= 66 and zid in (7, 10, 11)
-                ):
-                    risk = "critico"
-                    cauce_desc = nearest_hotspot["name"]
-                elif dist_hotspot <= nearest_hotspot["radius_km"] * 1.25 or alt_masl <= 82:
-                    risk = "alto"
-                    cauce_desc = nearest_hotspot["name"] if dist_hotspot <= 1.2 else ZONE_CAUCES[zid]
-                elif alt_masl <= 135:
-                    risk = "medio"
-                    cauce_desc = ZONE_CAUCES[zid]
+                if has_waterways:
+                    py_q = clat * 111.0
+                    px_q = clon * 108.5
+                    t_q = np.clip(((px_q - x1_w) * dx_w + (py_q - y1_w) * dy_w) / len_sq_w, 0.0, 1.0)
+                    dists_q = np.hypot(px_q - (x1_w + t_q * dx_w), py_q - (y1_w + t_q * dy_w))
+                    min_idx = int(np.argmin(dists_q))
+                    min_d = float(dists_q[min_idx])
+                    near_meta = waterway_seg_meta[min_idx]
+                    if (min_d <= 0.40 and alt_masl <= 85) or (min_d <= 0.22 and near_meta["is_named"]):
+                        risk = "critico"
+                    elif min_d <= 0.75:
+                        risk = "alto"
+                    elif min_d <= 1.30:
+                        risk = "medio"
+                    else:
+                        risk = "bajo"
+                    cauce_desc = near_meta["name"]
                 else:
-                    risk = "bajo"
-                    cauce_desc = ZONE_CAUCES[zid]
+                    risk = "medio"
+                    cauce_desc = "Canal de Drenaje Pluvial Managua"
 
                 code = f"Q{cell_id:02d}-Z{zid:02d}"
                 name = f"{zname} - Cuadrante Q{cell_id:02d} (F{j+1}C{i+1})"
@@ -679,12 +827,14 @@ def build_deterministic_quadrants_and_dense_osm_graph(
                     d = 0.001
                 mlat = 0.5 * (lat1 + lat2)
                 mlon = 0.5 * (lon1 + lon2)
-                is_fl = int(
-                    any(
-                        haversine_km(mlat, mlon, h["lat"], h["lon"]) <= h["radius_km"]
-                        for h in FLOOD_HOTSPOTS
-                    )
-                )
+                if has_waterways:
+                    py_e = mlat * 111.0
+                    px_e = mlon * 108.5
+                    t_e = np.clip(((px_e - x1_w) * dx_w + (py_e - y1_w) * dy_w) / len_sq_w, 0.0, 1.0)
+                    dists_e = np.hypot(px_e - (x1_w + t_e * dx_w), py_e - (y1_w + t_e * dy_w))
+                    is_fl = int(np.min(dists_e) <= 0.050)
+                else:
+                    is_fl = 0
                 eqid = node_records[iu][2]
                 if pair not in seen_edges:
                     seen_edges.add(pair)
@@ -760,6 +910,7 @@ def build_deterministic_quadrants_and_dense_osm_graph(
         "quadrant_streets": quadrant_streets,
         "quadrant_flood_flags": quadrant_flood_flags,
         "arterials": arterials[:1500],
+        "waterways": waterway_features,
     }
     return quadrants, enriched_network
 
@@ -790,12 +941,14 @@ def generate_deterministic_spatial_seeds(
     drivers_dicts, vehicles_dicts = build_deterministic_drivers_and_vehicles(
         seed=seed, count=150
     )
+    drainage_dicts = build_deterministic_drainage_channels(raw_osm_elements=raw_osm)
 
     zones_models = [UrbanZone(**z) for z in zones_dicts]
     quadrants_models = [Quadrant(**q) for q in quadrants_dicts]
     _ = [User(**u) for u in users_dicts]
     _ = [Driver(**d) for d in drivers_dicts]
     _ = [Vehicle(**v) for v in vehicles_dicts]
+    _ = [DrainageChannel(**c) for c in drainage_dicts]
 
     if not dry_run:
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -803,6 +956,8 @@ def generate_deterministic_spatial_seeds(
             json.dump(zones_dicts, f, indent=2, ensure_ascii=False)
         with open(output_dir / "quadrants.json", "w", encoding="utf-8") as f:
             json.dump(quadrants_dicts, f, indent=2, ensure_ascii=False)
+        with open(output_dir / "drainage_channels.json", "w", encoding="utf-8") as f:
+            json.dump(drainage_dicts, f, indent=2, ensure_ascii=False)
         with open(output_dir / "users.json", "w", encoding="utf-8") as f:
             json.dump(users_dicts, f, indent=2, ensure_ascii=False)
         with open(output_dir / "drivers.json", "w", encoding="utf-8") as f:

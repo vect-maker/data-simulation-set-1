@@ -12,6 +12,7 @@ from movigo_sim.engine.simulator import (
     MoviGoSimulationEngine,
     load_movigo_quadrants,
     load_movigo_vehicles,
+    load_movigo_drainage_channels,
     load_movigo_seed_catalogs,
     load_managua_street_network,
 )
@@ -48,6 +49,7 @@ __all__ = [
     "STRATUM_SURGE_BETA",
     "load_movigo_quadrants",
     "load_movigo_vehicles",
+    "load_movigo_drainage_channels",
     "load_movigo_seed_catalogs",
     "load_managua_street_network",
 ]

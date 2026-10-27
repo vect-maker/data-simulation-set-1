@@ -30,6 +30,14 @@ from data_sim.core.optimization import (
     knapsack_01,
 )
 from movigo_sim.spatial import haversine_km
+from movigo_sim.spatial_analytics import (
+    build_od_matrix,
+    calibrate_gravity_model,
+    build_spatial_weights_matrix,
+    compute_global_moran,
+    compute_local_lisa,
+    compute_cauce_vulnerability_surface,
+)
 
 
 def compute_movigo_estadistica_ii(
@@ -402,5 +410,80 @@ def compute_movigo_optimizacion(
         "programacion_mantenimiento_flota": {
             "descripcion": "Optimizacion prescriptiva (Mochila 0/1 / ILP) para ingreso a taller de mantenimiento vehicular bajo restriccion presupuestaria (C$ 35,000 NIO) garantizando operatividad de flota.",
             "resultado_optimo": maint_opt_res,
+        },
+    }
+
+
+def compute_movigo_spatial_gis(
+    df_trips: pd.DataFrame,
+    df_quadrants: pd.DataFrame,
+    df_zones: pd.DataFrame,
+    df_drainage: pd.DataFrame | None = None,
+    df_payments: pd.DataFrame | None = None,
+) -> dict[str, Any]:
+    """Compute comprehensive Spatial GIS and Spatial Econometrics metrics for MoviGo.
+    
+    Includes:
+    1. Origin-Destination (OD) mobility flow matrix between Managua's 12 urban zones.
+    2. Wilson's Spatial Interaction Gravity Model calibration (estimating distance friction gamma).
+    3. Global Moran's I spatial autocorrelation test (pickup demand clustering across quadrants).
+    4. Local LISA quadrant hotspot and coldspot classification.
+    5. Cauce Hydrological Flood Vulnerability Surface across quadrants.
+    """
+    # 1. Origin-Destination (OD) Flow Matrix
+    od_res = build_od_matrix(df_trips, df_quadrants, df_zones, df_payments=df_payments)
+
+    # 2. Wilson's Gravity Model Calibration
+    gravity_res = calibrate_gravity_model(od_res["zone_flows"], df_zones)
+
+    # 3. Spatial Weights Matrix W & Spatial Autocorrelation (Moran's I)
+    W_std, quadrant_ids = build_spatial_weights_matrix(df_quadrants, threshold_km=1.25)
+
+    # Aggregate trip pickups per quadrant
+    pickup_counts_map = (
+        df_trips.groupby("origin_quadrant_id").size().to_dict()
+        if not df_trips.empty
+        else {}
+    )
+    demand_values = np.array([float(pickup_counts_map.get(qid, 0)) for qid in quadrant_ids])
+
+    moran_res = compute_global_moran(demand_values, W_std)
+
+    # 4. Local LISA Hotspots & Coldspots
+    lisa_res = compute_local_lisa(demand_values, W_std, quadrant_ids, df_quadrants)
+
+    # 5. Cauce Hydrological Flood Vulnerability Surface
+    if df_drainage is None or df_drainage.empty:
+        from movigo_sim.spatial import build_deterministic_drainage_channels
+        df_drainage = pd.DataFrame(build_deterministic_drainage_channels())
+
+    cauce_res = compute_cauce_vulnerability_surface(df_quadrants, df_drainage)
+
+    return {
+        "matriz_origen_destino": {
+            "total_flujos_interzonales": len(od_res["zone_flows"]),
+            "porcentaje_viajes_intrazonales": od_res["intra_zone_share_pct"],
+            "porcentaje_viajes_interzonales": od_res["inter_zone_share_pct"],
+            "top_corredores_cuadrantes": od_res["top_quadrant_corridors"][:5],
+        },
+        "modelo_gravedad_wilson": gravity_res,
+        "autocorrelacion_espacial_moran": moran_res,
+        "agrupamiento_lisa_puntos_calientes": {
+            "distribucion_clusters": lisa_res["cluster_counts"],
+            "total_cuadrantes_evaluados": lisa_res["total_quadrants"],
+            "top_puntos_calientes_hotspots": [
+                {
+                    "cuadrante": h["quadrant_name"],
+                    "codigo": h["quadrant_code"],
+                    "viajes_origen": int(h["value"]),
+                    "moran_local": h["local_moran_i"],
+                }
+                for h in lisa_res["top_hotspots"][:5]
+            ],
+        },
+        "vulnerabilidad_hidraulica_cauces": {
+            "distribucion_riesgo": cauce_res["risk_distribution"],
+            "indice_vulnerabilidad_promedio": cauce_res["mean_hazard_index"],
+            "total_cuadrantes_evaluados": cauce_res["total_quadrants"],
         },
     }

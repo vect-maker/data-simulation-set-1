@@ -1,0 +1,142 @@
+[
+  {
+    "channel_id": 1,
+    "channel_name": "Cauce Occidental",
+    "zone_id": 6,
+    "latitude": 12.135052,
+    "longitude": -86.291744,
+    "critical_radius_km": 1.2,
+    "vulnerability_level": "critico",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 2,
+    "channel_name": "Cauce Oriental",
+    "zone_id": 11,
+    "latitude": 12.146303,
+    "longitude": -86.243478,
+    "critical_radius_km": 0.47,
+    "vulnerability_level": "critico",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 3,
+    "channel_name": "Cauce Cuajachillo",
+    "zone_id": 6,
+    "latitude": 12.130271,
+    "longitude": -86.297539,
+    "critical_radius_km": 0.52,
+    "vulnerability_level": "alto",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 4,
+    "channel_name": "Cauce Pochocuape",
+    "zone_id": 6,
+    "latitude": 12.131341,
+    "longitude": -86.292931,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "alto",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 5,
+    "channel_name": "Interceptora Tiscapa",
+    "zone_id": 4,
+    "latitude": 12.130115,
+    "longitude": -86.274227,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "alto",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 6,
+    "channel_name": "Cauce Las Cuarezmas",
+    "zone_id": 5,
+    "latitude": 12.135889,
+    "longitude": -86.251185,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "medio",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 7,
+    "channel_name": "Cauce Santo Domingo",
+    "zone_id": 10,
+    "latitude": 12.13548,
+    "longitude": -86.255545,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "medio",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 8,
+    "channel_name": "Quebrada de Pochocuape",
+    "zone_id": 9,
+    "latitude": 12.090822,
+    "longitude": -86.301578,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "bajo",
+    "flow_direction": "Suroeste a Noreste (cuenca media-alta)"
+  },
+  {
+    "channel_id": 9,
+    "channel_name": "Cauce Camino de Bolas",
+    "zone_id": 9,
+    "latitude": 12.122015,
+    "longitude": -86.289108,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "medio",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 10,
+    "channel_name": "Cauce Los Cuarezmas",
+    "zone_id": 5,
+    "latitude": 12.132676,
+    "longitude": -86.249097,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "medio",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 11,
+    "channel_name": "Cauce Altamira",
+    "zone_id": 1,
+    "latitude": 12.12421,
+    "longitude": -86.255244,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "medio",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 12,
+    "channel_name": "Túnel Interceptor Santo Domingo",
+    "zone_id": 5,
+    "latitude": 12.12979,
+    "longitude": -86.256579,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "medio",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 13,
+    "channel_name": "Cauce Cuarezmas Oeste",
+    "zone_id": 12,
+    "latitude": 12.115472,
+    "longitude": -86.239743,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "medio",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 14,
+    "channel_name": "Canal Desague Agua Pluviales Sta María de la Victoria",
+    "zone_id": 7,
+    "latitude": 12.15901,
+    "longitude": -86.204426,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "bajo",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  }
+]

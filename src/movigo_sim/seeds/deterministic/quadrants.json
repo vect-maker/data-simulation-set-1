@@ -11,8 +11,8 @@
     "lon_min": -86.252,
     "lon_max": -86.244,
     "mean_altitude_masl": 227,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cuenca Sur Las Colinas / Carretera a Masaya Km 8"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #392364024"
   },
   {
     "quadrant_id": 2,
@@ -26,8 +26,8 @@
     "lon_min": -86.244,
     "lon_max": -86.236,
     "mean_altitude_masl": 227,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cabecera Sierras de Santo Domingo / Las Sierritas"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #284353529"
   },
   {
     "quadrant_id": 3,
@@ -41,8 +41,8 @@
     "lon_min": -86.236,
     "lon_max": -86.228,
     "mean_altitude_masl": 227,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cabecera Sierras de Santo Domingo / Las Sierritas"
+    "flood_risk": "medio",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #703167215"
   },
   {
     "quadrant_id": 4,
@@ -57,7 +57,7 @@
     "lon_max": -86.22,
     "mean_altitude_masl": 227,
     "flood_risk": "bajo",
-    "main_drainage_channels": "Cabecera Sierras de Santo Domingo / Las Sierritas"
+    "main_drainage_channels": "Canal de Drenaje Pluvial #954248451"
   },
   {
     "quadrant_id": 5,
@@ -72,7 +72,7 @@
     "lon_max": -86.212,
     "mean_altitude_masl": 227,
     "flood_risk": "bajo",
-    "main_drainage_channels": "Cabecera Sierras de Santo Domingo / Las Sierritas"
+    "main_drainage_channels": "Canal de Drenaje Pluvial #1308384932"
   },
   {
     "quadrant_id": 6,
@@ -86,8 +86,8 @@
     "lon_min": -86.26,
     "lon_max": -86.252,
     "mean_altitude_masl": 201,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cuenca Sur Las Colinas / Carretera a Masaya Km 8"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #926303339"
   },
   {
     "quadrant_id": 7,
@@ -101,8 +101,8 @@
     "lon_min": -86.252,
     "lon_max": -86.244,
     "mean_altitude_masl": 201,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cuenca Sur Las Colinas / Carretera a Masaya Km 8"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #309939442"
   },
   {
     "quadrant_id": 8,
@@ -116,8 +116,8 @@
     "lon_min": -86.244,
     "lon_max": -86.236,
     "mean_altitude_masl": 201,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cuenca Sur Las Colinas / Carretera a Masaya Km 8"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #240586399"
   },
   {
     "quadrant_id": 9,
@@ -131,8 +131,8 @@
     "lon_min": -86.236,
     "lon_max": -86.228,
     "mean_altitude_masl": 201,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cabecera Sierras de Santo Domingo / Las Sierritas"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #954248451"
   },
   {
     "quadrant_id": 10,
@@ -146,8 +146,8 @@
     "lon_min": -86.228,
     "lon_max": -86.22,
     "mean_altitude_masl": 201,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cabecera Sierras de Santo Domingo / Las Sierritas"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #954248451"
   },
   {
     "quadrant_id": 11,
@@ -161,8 +161,8 @@
     "lon_min": -86.22,
     "lon_max": -86.212,
     "mean_altitude_masl": 201,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cabecera Sierras de Santo Domingo / Las Sierritas"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #1308384932"
   },
   {
     "quadrant_id": 12,
@@ -176,8 +176,8 @@
     "lon_min": -86.284,
     "lon_max": -86.276,
     "mean_altitude_masl": 176,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Rotonda Rubén Darío / Rotonda Centroamérica / Eje UCA"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #298173845"
   },
   {
     "quadrant_id": 13,
@@ -191,8 +191,8 @@
     "lon_min": -86.276,
     "lon_max": -86.268,
     "mean_altitude_masl": 176,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Rotonda Rubén Darío / Rotonda Centroamérica / Eje UCA"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #391126446"
   },
   {
     "quadrant_id": 14,
@@ -206,8 +206,8 @@
     "lon_min": -86.268,
     "lon_max": -86.26,
     "mean_altitude_masl": 176,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cauce Central Villa Fontana / Club Terraza"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #392018513"
   },
   {
     "quadrant_id": 15,
@@ -221,8 +221,8 @@
     "lon_min": -86.26,
     "lon_max": -86.252,
     "mean_altitude_masl": 176,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cauce Central Villa Fontana / Club Terraza"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #926303343"
   },
   {
     "quadrant_id": 16,
@@ -236,8 +236,8 @@
     "lon_min": -86.252,
     "lon_max": -86.244,
     "mean_altitude_masl": 176,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cuenca Sur Las Colinas / Carretera a Masaya Km 8"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #512933224"
   },
   {
     "quadrant_id": 17,
@@ -251,8 +251,8 @@
     "lon_min": -86.244,
     "lon_max": -86.236,
     "mean_altitude_masl": 176,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cuenca Sur Las Colinas / Carretera a Masaya Km 8"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #242413716"
   },
   {
     "quadrant_id": 18,
@@ -266,8 +266,8 @@
     "lon_min": -86.236,
     "lon_max": -86.228,
     "mean_altitude_masl": 176,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cabecera Sierras de Santo Domingo / Las Sierritas"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #954248455"
   },
   {
     "quadrant_id": 19,
@@ -281,8 +281,8 @@
     "lon_min": -86.228,
     "lon_max": -86.22,
     "mean_altitude_masl": 176,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cabecera Sierras de Santo Domingo / Las Sierritas"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #237098895"
   },
   {
     "quadrant_id": 20,
@@ -296,8 +296,8 @@
     "lon_min": -86.22,
     "lon_max": -86.212,
     "mean_altitude_masl": 176,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cabecera Sierras de Santo Domingo / Las Sierritas"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #1308384932"
   },
   {
     "quadrant_id": 21,
@@ -311,8 +311,8 @@
     "lon_min": -86.284,
     "lon_max": -86.276,
     "mean_altitude_masl": 152,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Rotonda Rubén Darío / Rotonda Centroamérica / Eje UCA"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #26562005"
   },
   {
     "quadrant_id": 22,
@@ -326,8 +326,8 @@
     "lon_min": -86.276,
     "lon_max": -86.268,
     "mean_altitude_masl": 152,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Rotonda Rubén Darío / Rotonda Centroamérica / Eje UCA"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #391126453"
   },
   {
     "quadrant_id": 23,
@@ -342,7 +342,7 @@
     "lon_max": -86.26,
     "mean_altitude_masl": 152,
     "flood_risk": "alto",
-    "main_drainage_channels": "Rotonda Centroamérica / Pista Juan Pablo II"
+    "main_drainage_channels": "Canal de Drenaje Pluvial #238398373"
   },
   {
     "quadrant_id": 24,
@@ -356,8 +356,8 @@
     "lon_min": -86.26,
     "lon_max": -86.252,
     "mean_altitude_masl": 152,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cauce Central Villa Fontana / Club Terraza"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #201752912"
   },
   {
     "quadrant_id": 25,
@@ -371,8 +371,8 @@
     "lon_min": -86.252,
     "lon_max": -86.244,
     "mean_altitude_masl": 152,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cauce Central Villa Fontana / Club Terraza"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #239511946"
   },
   {
     "quadrant_id": 26,
@@ -386,8 +386,8 @@
     "lon_min": -86.244,
     "lon_max": -86.236,
     "mean_altitude_masl": 152,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cuenca Sur Las Colinas / Carretera a Masaya Km 8"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #39208847"
   },
   {
     "quadrant_id": 27,
@@ -401,8 +401,8 @@
     "lon_min": -86.236,
     "lon_max": -86.228,
     "mean_altitude_masl": 152,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cauce El Dorado / Paso a Desnivel Rubenia / Roberto Huembes"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #27165098"
   },
   {
     "quadrant_id": 28,
@@ -416,8 +416,8 @@
     "lon_min": -86.228,
     "lon_max": -86.22,
     "mean_altitude_masl": 152,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cabecera Sierras de Santo Domingo / Las Sierritas"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #237098909"
   },
   {
     "quadrant_id": 29,
@@ -431,8 +431,8 @@
     "lon_min": -86.22,
     "lon_max": -86.212,
     "mean_altitude_masl": 152,
-    "flood_risk": "bajo",
-    "main_drainage_channels": "Cabecera Sierras de Santo Domingo / Las Sierritas"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #1308383609"
   },
   {
     "quadrant_id": 30,
@@ -446,8 +446,8 @@
     "lon_min": -86.284,
     "lon_max": -86.276,
     "mean_altitude_masl": 129,
-    "flood_risk": "medio",
-    "main_drainage_channels": "Rotonda Rubén Darío / Rotonda Centroamérica / Eje UCA"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #391126170"
   },
   {
     "quadrant_id": 31,
@@ -462,7 +462,7 @@
     "lon_max": -86.268,
     "mean_altitude_masl": 129,
     "flood_risk": "alto",
-    "main_drainage_channels": "Rotonda Centroamérica / Pista Juan Pablo II"
+    "main_drainage_channels": "Canal de Drenaje Pluvial #391126163"
   },
   {
     "quadrant_id": 32,
@@ -476,8 +476,8 @@
     "lon_min": -86.268,
     "lon_max": -86.26,
     "mean_altitude_masl": 129,
-    "flood_risk": "critico",
-    "main_drainage_channels": "Rotonda Centroamérica / Pista Juan Pablo II"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #238398356"
   },
   {
     "quadrant_id": 33,
@@ -491,8 +491,8 @@
     "lon_min": -86.26,
     "lon_max": -86.252,
     "mean_altitude_masl": 129,
-    "flood_risk": "medio",
-    "main_drainage_channels": "Cauce Central Villa Fontana / Club Terraza"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #391323987"
   },
   {
     "quadrant_id": 34,
@@ -506,8 +506,8 @@
     "lon_min": -86.252,
     "lon_max": -86.244,
     "mean_altitude_masl": 129,
-    "flood_risk": "medio",
-    "main_drainage_channels": "Cauce Central Villa Fontana / Club Terraza"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #237604006"
   },
   {
     "quadrant_id": 35,
@@ -522,7 +522,7 @@
     "lon_max": -86.236,
     "mean_altitude_masl": 129,
     "flood_risk": "alto",
-    "main_drainage_channels": "Paso a Desnivel Rubenia / Cauce El Dorado"
+    "main_drainage_channels": "Canal de Drenaje Pluvial #921423836"
   },
   {
     "quadrant_id": 36,
@@ -537,7 +537,7 @@
     "lon_max": -86.228,
     "mean_altitude_masl": 129,
     "flood_risk": "alto",
-    "main_drainage_channels": "Paso a Desnivel Rubenia / Cauce El Dorado"
+    "main_drainage_channels": "Canal de Drenaje Pluvial #298260068"
   },
   {
     "quadrant_id": 37,
@@ -551,8 +551,8 @@
     "lon_min": -86.228,
     "lon_max": -86.22,
     "mean_altitude_masl": 129,
-    "flood_risk": "medio",
-    "main_drainage_channels": "Cauce El Dorado / Paso a Desnivel Rubenia / Roberto Huembes"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #38750824"
   },
   {
     "quadrant_id": 38,
@@ -566,8 +566,8 @@
     "lon_min": -86.22,
     "lon_max": -86.212,
     "mean_altitude_masl": 129,
-    "flood_risk": "medio",
-    "main_drainage_channels": "Cauce Bello Horizonte / Rotonda La Virgen / Pista El Mayoreo"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #203417792"
   },
   {
     "quadrant_id": 39,
@@ -581,8 +581,8 @@
     "lon_min": -86.292,
     "lon_max": -86.284,
     "mean_altitude_masl": 108,
-    "flood_risk": "medio",
-    "main_drainage_channels": "Canal Pluvial Bolonia / Plaza España"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #390000307"
   },
   {
     "quadrant_id": 40,
@@ -596,8 +596,8 @@
     "lon_min": -86.284,
     "lon_max": -86.276,
     "mean_altitude_masl": 108,
-    "flood_risk": "medio",
-    "main_drainage_channels": "Canal Pluvial Bolonia / Plaza España"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #201752908"
   },
   {
     "quadrant_id": 41,
@@ -611,8 +611,8 @@
     "lon_min": -86.276,
     "lon_max": -86.268,
     "mean_altitude_masl": 108,
-    "flood_risk": "medio",
-    "main_drainage_channels": "Eje Pista Juan Pablo II / Los Robles"
+    "flood_risk": "critico",
+    "main_drainage_channels": "Interceptora Tiscapa"
   },
   {
     "quadrant_id": 42,
@@ -626,8 +626,8 @@
     "lon_min": -86.268,
     "lon_max": -86.26,
     "mean_altitude_masl": 108,
-    "flood_risk": "medio",
-    "main_drainage_channels": "Eje Pista Juan Pablo II / Los Robles"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #391322148"
   },
   {
     "quadrant_id": 43,
@@ -641,8 +641,8 @@
     "lon_min": -86.26,
     "lon_max": -86.252,
     "mean_altitude_masl": 108,
-    "flood_risk": "medio",
-    "main_drainage_channels": "Cauce Altamira / Pista Suburbana"
+    "flood_risk": "critico",
+    "main_drainage_channels": "Túnel Interceptor Santo Domingo"
   },
   {
     "quadrant_id": 44,
@@ -656,8 +656,8 @@
     "lon_min": -86.252,
     "lon_max": -86.244,
     "mean_altitude_masl": 108,
-    "flood_risk": "medio",
-    "main_drainage_channels": "Cauce Altamira / Pista Suburbana"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #391425975"
   },
   {
     "quadrant_id": 45,
@@ -671,8 +671,8 @@
     "lon_min": -86.244,
     "lon_max": -86.236,
     "mean_altitude_masl": 108,
-    "flood_risk": "critico",
-    "main_drainage_channels": "Paso a Desnivel Rubenia / Cauce El Dorado"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #857357527"
   },
   {
     "quadrant_id": 46,
@@ -686,8 +686,8 @@
     "lon_min": -86.236,
     "lon_max": -86.228,
     "mean_altitude_masl": 108,
-    "flood_risk": "critico",
-    "main_drainage_channels": "Paso a Desnivel Rubenia / Cauce El Dorado"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #239750849"
   },
   {
     "quadrant_id": 47,
@@ -702,7 +702,7 @@
     "lon_max": -86.22,
     "mean_altitude_masl": 108,
     "flood_risk": "alto",
-    "main_drainage_channels": "Cauce Bello Horizonte / Rotonda La Virgen / Pista El Mayoreo"
+    "main_drainage_channels": "Canal de Drenaje Pluvial #38750835"
   },
   {
     "quadrant_id": 48,
@@ -717,7 +717,7 @@
     "lon_max": -86.212,
     "mean_altitude_masl": 108,
     "flood_risk": "alto",
-    "main_drainage_channels": "Pista El Mayoreo / Sabana Grande"
+    "main_drainage_channels": "Canal de Drenaje Pluvial #237604010"
   },
   {
     "quadrant_id": 49,
@@ -731,8 +731,8 @@
     "lon_min": -86.212,
     "lon_max": -86.204,
     "mean_altitude_masl": 108,
-    "flood_risk": "critico",
-    "main_drainage_channels": "Pista El Mayoreo / Sabana Grande"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #203417793"
   },
   {
     "quadrant_id": 50,
@@ -747,7 +747,7 @@
     "lon_max": -86.3,
     "mean_altitude_masl": 89,
     "flood_risk": "medio",
-    "main_drainage_channels": "Cauce Occidental / Linda Vista / Gadala Maria"
+    "main_drainage_channels": "Cauce Cuajachillo"
   },
   {
     "quadrant_id": 51,
@@ -761,8 +761,8 @@
     "lon_min": -86.3,
     "lon_max": -86.292,
     "mean_altitude_masl": 89,
-    "flood_risk": "medio",
-    "main_drainage_channels": "Cauce Occidental / Linda Vista / Gadala Maria"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Cauce Cuajachillo"
   },
   {
     "quadrant_id": 52,
@@ -776,8 +776,8 @@
     "lon_min": -86.292,
     "lon_max": -86.284,
     "mean_altitude_masl": 89,
-    "flood_risk": "medio",
-    "main_drainage_channels": "Canal Pluvial Bolonia / Plaza España"
+    "flood_risk": "critico",
+    "main_drainage_channels": "Cauce Occidental"
   },
   {
     "quadrant_id": 53,
@@ -792,7 +792,7 @@
     "lon_max": -86.276,
     "mean_altitude_masl": 89,
     "flood_risk": "medio",
-    "main_drainage_channels": "Canal Pluvial Bolonia / Plaza España"
+    "main_drainage_channels": "Canal de Drenaje Pluvial #390740670"
   },
   {
     "quadrant_id": 54,
@@ -806,8 +806,8 @@
     "lon_min": -86.276,
     "lon_max": -86.268,
     "mean_altitude_masl": 89,
-    "flood_risk": "medio",
-    "main_drainage_channels": "Canal Pluvial Bolonia / Plaza España"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #887739932"
   },
   {
     "quadrant_id": 55,
@@ -821,8 +821,8 @@
     "lon_min": -86.268,
     "lon_max": -86.26,
     "mean_altitude_masl": 89,
-    "flood_risk": "medio",
-    "main_drainage_channels": "Cauce Oriental / Puente El Paraisito / Ciudad Jardín"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #238398360"
   },
   {
     "quadrant_id": 56,
@@ -836,8 +836,8 @@
     "lon_min": -86.26,
     "lon_max": -86.252,
     "mean_altitude_masl": 89,
-    "flood_risk": "critico",
-    "main_drainage_channels": "Puente El Paraisito / Ciudad Jardín"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Cauce Santo Domingo"
   },
   {
     "quadrant_id": 57,
@@ -852,7 +852,7 @@
     "lon_max": -86.244,
     "mean_altitude_masl": 89,
     "flood_risk": "critico",
-    "main_drainage_channels": "Cauce Oriental / Gancho de Camino"
+    "main_drainage_channels": "Cauce Oriental"
   },
   {
     "quadrant_id": 58,
@@ -867,7 +867,7 @@
     "lon_max": -86.236,
     "mean_altitude_masl": 89,
     "flood_risk": "alto",
-    "main_drainage_channels": "Cauce Oriental / Gancho de Camino"
+    "main_drainage_channels": "Cauce Oriental"
   },
   {
     "quadrant_id": 59,
@@ -882,7 +882,7 @@
     "lon_max": -86.228,
     "mean_altitude_masl": 89,
     "flood_risk": "alto",
-    "main_drainage_channels": "Paso a Desnivel Rubenia / Cauce El Dorado"
+    "main_drainage_channels": "Canal de Drenaje Pluvial #392871479"
   },
   {
     "quadrant_id": 60,
@@ -896,8 +896,8 @@
     "lon_min": -86.228,
     "lon_max": -86.22,
     "mean_altitude_masl": 89,
-    "flood_risk": "critico",
-    "main_drainage_channels": "Rotonda La Virgen / Cauce Bello Horizonte"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #38750835"
   },
   {
     "quadrant_id": 61,
@@ -911,8 +911,8 @@
     "lon_min": -86.22,
     "lon_max": -86.212,
     "mean_altitude_masl": 89,
-    "flood_risk": "critico",
-    "main_drainage_channels": "Rotonda La Virgen / Cauce Bello Horizonte"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #353264701"
   },
   {
     "quadrant_id": 62,
@@ -926,8 +926,8 @@
     "lon_min": -86.212,
     "lon_max": -86.204,
     "mean_altitude_masl": 89,
-    "flood_risk": "critico",
-    "main_drainage_channels": "Pista El Mayoreo / Sabana Grande"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #38763886"
   },
   {
     "quadrant_id": 63,
@@ -941,8 +941,8 @@
     "lon_min": -86.316,
     "lon_max": -86.308,
     "mean_altitude_masl": 72,
-    "flood_risk": "alto",
-    "main_drainage_channels": "Cauce Occidental / Linda Vista / Gadala Maria"
+    "flood_risk": "critico",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #390488144"
   },
   {
     "quadrant_id": 64,
@@ -957,7 +957,7 @@
     "lon_max": -86.3,
     "mean_altitude_masl": 72,
     "flood_risk": "alto",
-    "main_drainage_channels": "Cauce Occidental / Linda Vista / Gadala Maria"
+    "main_drainage_channels": "Canal de Drenaje Pluvial #390488142"
   },
   {
     "quadrant_id": 65,
@@ -971,8 +971,8 @@
     "lon_min": -86.3,
     "lon_max": -86.292,
     "mean_altitude_masl": 72,
-    "flood_risk": "critico",
-    "main_drainage_channels": "Cauce Occidental / Linda Vista Sur"
+    "flood_risk": "medio",
+    "main_drainage_channels": "Cauce Cuajachillo"
   },
   {
     "quadrant_id": 66,
@@ -987,7 +987,7 @@
     "lon_max": -86.284,
     "mean_altitude_masl": 72,
     "flood_risk": "critico",
-    "main_drainage_channels": "Cauce Occidental / Linda Vista Sur"
+    "main_drainage_channels": "Cauce Occidental"
   },
   {
     "quadrant_id": 67,
@@ -1002,7 +1002,7 @@
     "lon_max": -86.276,
     "mean_altitude_masl": 72,
     "flood_risk": "alto",
-    "main_drainage_channels": "Canal Pluvial Bolonia / Plaza España"
+    "main_drainage_channels": "Cauce Occidental"
   },
   {
     "quadrant_id": 68,
@@ -1016,8 +1016,8 @@
     "lon_min": -86.276,
     "lon_max": -86.268,
     "mean_altitude_masl": 72,
-    "flood_risk": "alto",
-    "main_drainage_channels": "Canal Pluvial Bolonia / Plaza España"
+    "flood_risk": "medio",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #237433897"
   },
   {
     "quadrant_id": 69,
@@ -1031,8 +1031,8 @@
     "lon_min": -86.268,
     "lon_max": -86.26,
     "mean_altitude_masl": 72,
-    "flood_risk": "alto",
-    "main_drainage_channels": "Cauce Oriental / Puente El Paraisito / Ciudad Jardín"
+    "flood_risk": "medio",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #237433894"
   },
   {
     "quadrant_id": 70,
@@ -1046,8 +1046,8 @@
     "lon_min": -86.26,
     "lon_max": -86.252,
     "mean_altitude_masl": 72,
-    "flood_risk": "alto",
-    "main_drainage_channels": "Puente El Paraisito / Ciudad Jardín"
+    "flood_risk": "medio",
+    "main_drainage_channels": "Cauce Oriental"
   },
   {
     "quadrant_id": 71,
@@ -1061,8 +1061,8 @@
     "lon_min": -86.252,
     "lon_max": -86.244,
     "mean_altitude_masl": 72,
-    "flood_risk": "critico",
-    "main_drainage_channels": "Cauce Oriental / Gancho de Camino"
+    "flood_risk": "alto",
+    "main_drainage_channels": "Cauce Oriental"
   },
   {
     "quadrant_id": 72,
@@ -1076,8 +1076,8 @@
     "lon_min": -86.244,
     "lon_max": -86.236,
     "mean_altitude_masl": 72,
-    "flood_risk": "alto",
-    "main_drainage_channels": "Cauce Oriental / Gancho de Camino"
+    "flood_risk": "critico",
+    "main_drainage_channels": "Cauce Oriental"
   },
   {
     "quadrant_id": 73,
@@ -1091,8 +1091,8 @@
     "lon_min": -86.236,
     "lon_max": -86.228,
     "mean_altitude_masl": 72,
-    "flood_risk": "alto",
-    "main_drainage_channels": "Cauce Bello Horizonte / Rotonda La Virgen / Pista El Mayoreo"
+    "flood_risk": "critico",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #238419112"
   },
   {
     "quadrant_id": 74,
@@ -1106,8 +1106,8 @@
     "lon_min": -86.228,
     "lon_max": -86.22,
     "mean_altitude_masl": 72,
-    "flood_risk": "alto",
-    "main_drainage_channels": "Rotonda La Virgen / Cauce Bello Horizonte"
+    "flood_risk": "critico",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #912549561"
   },
   {
     "quadrant_id": 75,
@@ -1122,7 +1122,7 @@
     "lon_max": -86.212,
     "mean_altitude_masl": 72,
     "flood_risk": "critico",
-    "main_drainage_channels": "Rotonda La Virgen / Cauce Bello Horizonte"
+    "main_drainage_channels": "Canal de Drenaje Pluvial #39247920"
   },
   {
     "quadrant_id": 76,
@@ -1136,8 +1136,8 @@
     "lon_min": -86.212,
     "lon_max": -86.204,
     "mean_altitude_masl": 72,
-    "flood_risk": "alto",
-    "main_drainage_channels": "Cauce Bello Horizonte / Rotonda La Virgen / Pista El Mayoreo"
+    "flood_risk": "critico",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #1420695022"
   },
   {
     "quadrant_id": 77,
@@ -1151,8 +1151,8 @@
     "lon_min": -86.316,
     "lon_max": -86.308,
     "mean_altitude_masl": 57,
-    "flood_risk": "alto",
-    "main_drainage_channels": "Cauce Occidental / Linda Vista / Gadala Maria"
+    "flood_risk": "critico",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #269426548"
   },
   {
     "quadrant_id": 78,
@@ -1167,7 +1167,7 @@
     "lon_max": -86.3,
     "mean_altitude_masl": 57,
     "flood_risk": "alto",
-    "main_drainage_channels": "Cauce Occidental / Linda Vista / Gadala Maria"
+    "main_drainage_channels": "Canal de Drenaje Pluvial #701182333"
   },
   {
     "quadrant_id": 79,
@@ -1182,7 +1182,7 @@
     "lon_max": -86.292,
     "mean_altitude_masl": 57,
     "flood_risk": "critico",
-    "main_drainage_channels": "Cauce Occidental / Linda Vista Sur"
+    "main_drainage_channels": "Cauce Occidental"
   },
   {
     "quadrant_id": 80,
@@ -1197,7 +1197,7 @@
     "lon_max": -86.284,
     "mean_altitude_masl": 57,
     "flood_risk": "critico",
-    "main_drainage_channels": "Cauce Occidental / Linda Vista Sur"
+    "main_drainage_channels": "Cauce Occidental"
   },
   {
     "quadrant_id": 81,
@@ -1212,7 +1212,7 @@
     "lon_max": -86.276,
     "mean_altitude_masl": 57,
     "flood_risk": "alto",
-    "main_drainage_channels": "Canal Pluvial Bolonia / Plaza España"
+    "main_drainage_channels": "Cauce Occidental"
   },
   {
     "quadrant_id": 82,
@@ -1227,7 +1227,7 @@
     "lon_max": -86.268,
     "mean_altitude_masl": 57,
     "flood_risk": "alto",
-    "main_drainage_channels": "Canal Pluvial Bolonia / Plaza España"
+    "main_drainage_channels": "Canal de Drenaje Pluvial #239828721"
   },
   {
     "quadrant_id": 83,
@@ -1241,8 +1241,8 @@
     "lon_min": -86.268,
     "lon_max": -86.26,
     "mean_altitude_masl": 57,
-    "flood_risk": "critico",
-    "main_drainage_channels": "Puente El Paraisito / Ciudad Jardín"
+    "flood_risk": "bajo",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #239828721"
   },
   {
     "quadrant_id": 84,
@@ -1256,8 +1256,8 @@
     "lon_min": -86.26,
     "lon_max": -86.252,
     "mean_altitude_masl": 57,
-    "flood_risk": "critico",
-    "main_drainage_channels": "Cauce Oriental / Gancho de Camino"
+    "flood_risk": "bajo",
+    "main_drainage_channels": "Cauce Oriental"
   },
   {
     "quadrant_id": 85,
@@ -1271,8 +1271,8 @@
     "lon_min": -86.252,
     "lon_max": -86.244,
     "mean_altitude_masl": 57,
-    "flood_risk": "critico",
-    "main_drainage_channels": "Cauce Oriental / Gancho de Camino"
+    "flood_risk": "medio",
+    "main_drainage_channels": "Cauce Oriental"
   },
   {
     "quadrant_id": 86,
@@ -1287,7 +1287,7 @@
     "lon_max": -86.22,
     "mean_altitude_masl": 57,
     "flood_risk": "critico",
-    "main_drainage_channels": "Rotonda La Virgen / Cauce Bello Horizonte"
+    "main_drainage_channels": "Canal de Drenaje Pluvial #392704185"
   },
   {
     "quadrant_id": 87,
@@ -1302,7 +1302,7 @@
     "lon_max": -86.212,
     "mean_altitude_masl": 57,
     "flood_risk": "critico",
-    "main_drainage_channels": "Rotonda La Virgen / Cauce Bello Horizonte"
+    "main_drainage_channels": "Canal de Drenaje Pluvial #203499829"
   },
   {
     "quadrant_id": 88,
@@ -1316,8 +1316,8 @@
     "lon_min": -86.316,
     "lon_max": -86.308,
     "mean_altitude_masl": 47,
-    "flood_risk": "alto",
-    "main_drainage_channels": "Cauce Occidental / Linda Vista / Gadala Maria"
+    "flood_risk": "critico",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #269426547"
   },
   {
     "quadrant_id": 89,
@@ -1331,8 +1331,8 @@
     "lon_min": -86.308,
     "lon_max": -86.3,
     "mean_altitude_masl": 47,
-    "flood_risk": "alto",
-    "main_drainage_channels": "Cauce Occidental / Linda Vista / Gadala Maria"
+    "flood_risk": "medio",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #1217846260"
   },
   {
     "quadrant_id": 90,
@@ -1346,8 +1346,8 @@
     "lon_min": -86.3,
     "lon_max": -86.292,
     "mean_altitude_masl": 47,
-    "flood_risk": "alto",
-    "main_drainage_channels": "Cauce Occidental / Linda Vista / Gadala Maria"
+    "flood_risk": "critico",
+    "main_drainage_channels": "Cauce Occidental"
   },
   {
     "quadrant_id": 91,
@@ -1361,8 +1361,8 @@
     "lon_min": -86.292,
     "lon_max": -86.284,
     "mean_altitude_masl": 47,
-    "flood_risk": "alto",
-    "main_drainage_channels": "Cauce Occidental / Linda Vista / Gadala Maria"
+    "flood_risk": "critico",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #239828719"
   },
   {
     "quadrant_id": 92,
@@ -1376,7 +1376,7 @@
     "lon_min": -86.284,
     "lon_max": -86.276,
     "mean_altitude_masl": 47,
-    "flood_risk": "alto",
-    "main_drainage_channels": "Canal Pluvial Bolonia / Plaza España"
+    "flood_risk": "critico",
+    "main_drainage_channels": "Canal de Drenaje Pluvial #239828719"
   }
 ]

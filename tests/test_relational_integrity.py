@@ -11,7 +11,7 @@ from volcan_sim.weather import get_coffee_weather_series
 from volcan_sim.generator import VolcanSimulationEngine
 
 from movigo_sim.weather import get_movigo_weather_series
-from movigo_sim.generator import MoviGoSimulationEngine
+from movigo_sim.generator import MoviGoSimulationEngine, load_movigo_drainage_channels
 from movigo_sim.spatial import generate_deterministic_spatial_seeds
 
 
@@ -115,6 +115,14 @@ class TestRelationalIntegrity(unittest.TestCase):
         self.assertEqual([q.model_dump() for q in det_quadrants], [q.model_dump() for q in engine.quadrants])
         for q in engine.quadrants:
             self.assertIn(q.zone_id, valid_zones)
+
+        # Verify 3NF drainage channels (cauces)
+        drainage_channels = load_movigo_drainage_channels()
+        self.assertEqual(len(drainage_channels), 14)
+        for dc in drainage_channels:
+            self.assertIn(dc.zone_id, valid_zones)
+            self.assertIn(dc.vulnerability_level, {"bajo", "medio", "alto", "critico"})
+            self.assertGreater(dc.critical_radius_km, 0.0)
 
         for c in weather_records[:184]:
             self.assertIn(c.quadrant_id, valid_quadrants)

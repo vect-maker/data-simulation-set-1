@@ -35,12 +35,18 @@ from movigo_sim.models import (
     TripRating,
     TripCancellation,
     DriverTelemetry,
+    DrainageChannel,
 )
-from movigo_sim.generator import load_movigo_quadrants, load_movigo_vehicles
+from movigo_sim.generator import (
+    load_movigo_quadrants,
+    load_movigo_vehicles,
+    load_movigo_drainage_channels,
+)
 from movigo_sim.analytics import (
     compute_movigo_estadistica_ii,
     compute_movigo_metodos_numericos,
     compute_movigo_optimizacion,
+    compute_movigo_spatial_gis,
 )
 
 logger = logging.getLogger(__name__)
@@ -59,15 +65,19 @@ def export_movigo_to_csv(
     cancellations: list[TripCancellation],
     telemetry: list[DriverTelemetry],
     maintenance: list[Any] | None = None,
+    drainage_channels: list[DrainageChannel] | None = None,
     output_dir: Path = CSV_ARTIFACTS_DIR,
     quadrants: list[Quadrant] | None = None,
 ) -> dict[str, Path]:
-    """Export all 13 relational 3NF OLTP tables to CSV format with standardized English table names."""
+    """Export all relational 3NF OLTP tables to CSV format with standardized English table names."""
     if quadrants is None:
         quadrants = load_movigo_quadrants()
+    if drainage_channels is None:
+        drainage_channels = load_movigo_drainage_channels()
     tables = {
         "urban_zones": zones,
         "quadrants": quadrants,
+        "drainage_channels": drainage_channels,
         "users": users,
         "drivers": drivers,
         "vehicles": vehicles,
@@ -105,6 +115,7 @@ DROP TABLE IF EXISTS incentive_campaigns CASCADE;
 DROP TABLE IF EXISTS vehicles CASCADE;
 DROP TABLE IF EXISTS drivers CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS drainage_channels CASCADE;
 DROP TABLE IF EXISTS quadrants CASCADE;
 DROP TABLE IF EXISTS urban_zones CASCADE;
 
@@ -132,6 +143,17 @@ CREATE TABLE quadrants (
     mean_altitude_masl INT NOT NULL,
     flood_risk VARCHAR(20) NOT NULL CHECK (flood_risk IN ('bajo', 'medio', 'alto', 'critico')),
     main_drainage_channels VARCHAR(200) NOT NULL
+);
+
+CREATE TABLE drainage_channels (
+    channel_id INT PRIMARY KEY,
+    channel_name VARCHAR(120) NOT NULL,
+    zone_id INT NOT NULL REFERENCES urban_zones(zone_id),
+    latitude DECIMAL(9,6) NOT NULL,
+    longitude DECIMAL(9,6) NOT NULL,
+    critical_radius_km DECIMAL(4,2) NOT NULL,
+    vulnerability_level VARCHAR(20) NOT NULL CHECK (vulnerability_level IN ('bajo', 'medio', 'alto', 'critico')),
+    flow_direction VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE users (
@@ -375,6 +397,7 @@ def export_movigo_to_sql_dump(
     copy_order = [
         "urban_zones",
         "quadrants",
+        "drainage_channels",
         "users",
         "drivers",
         "vehicles",
@@ -397,6 +420,154 @@ def export_movigo_to_sql_dump(
     )
 
 
+def export_movigo_spatial_layers(
+    output_dir: Path | None = None,
+    quadrants: list[Quadrant] | None = None,
+    zones: list[UrbanZone] | None = None,
+    drainage_channels: list[DrainageChannel] | None = None,
+) -> dict[str, Path]:
+    """Export standard RFC 7946 GeoJSON spatial layers for QGIS / Kepler.gl / GeoPandas.
+    
+    Generates:
+    - managua_quadrants.geojson (quadrant polygon bounds and risk metadata)
+    - managua_zones.geojson (urban pricing zone centroids and coverage buffers)
+    - managua_cauces.geojson (drainage channel points and critical spill radii)
+    - managua_hex_grid.geojson (regular hexagonal discrete mesh)
+    """
+    import json
+    from movigo_sim.spatial_analytics import generate_hexagonal_grid
+
+    if output_dir is None:
+        output_dir = ARTIFACTS_DIR / "spatial"
+    if quadrants is None:
+        quadrants = load_movigo_quadrants()
+    if drainage_channels is None:
+        drainage_channels = load_movigo_drainage_channels()
+    if zones is None:
+        from movigo_sim.spatial import build_deterministic_urban_zones
+        zones = [UrbanZone(**z) for z in build_deterministic_urban_zones()]
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    results: dict[str, Path] = {}
+
+    # 1. Quadrants Polygon GeoJSON
+    quad_features = []
+    for q in quadrants:
+        ring = [
+            [round(q.lon_min, 6), round(q.lat_min, 6)],
+            [round(q.lon_max, 6), round(q.lat_min, 6)],
+            [round(q.lon_max, 6), round(q.lat_max, 6)],
+            [round(q.lon_min, 6), round(q.lat_max, 6)],
+            [round(q.lon_min, 6), round(q.lat_min, 6)],
+        ]
+        quad_features.append({
+            "type": "Feature",
+            "id": q.quadrant_id,
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [ring],
+            },
+            "properties": {
+                "quadrant_id": q.quadrant_id,
+                "quadrant_code": q.quadrant_code,
+                "quadrant_name": q.quadrant_name,
+                "zone_id": q.zone_id,
+                "grid_row": q.grid_row,
+                "grid_col": q.grid_col,
+                "mean_altitude_masl": q.mean_altitude_masl,
+                "flood_risk": q.flood_risk,
+                "main_drainage_channels": q.main_drainage_channels,
+            },
+        })
+    p_quad = output_dir / "managua_quadrants.geojson"
+    with open(p_quad, "w", encoding="utf-8") as f:
+        json.dump({"type": "FeatureCollection", "features": quad_features}, f, indent=2, ensure_ascii=False)
+    results["managua_quadrants"] = p_quad
+
+    # 2. Urban Zones Point / Buffer GeoJSON
+    zone_features = []
+    for z in zones:
+        zone_features.append({
+            "type": "Feature",
+            "id": z.zone_id,
+            "geometry": {
+                "type": "Point",
+                "coordinates": [round(z.longitude, 6), round(z.latitude, 6)],
+            },
+            "properties": {
+                "zone_id": z.zone_id,
+                "zone_name": z.zone_name,
+                "socioeconomic_stratum": z.socioeconomic_stratum,
+                "coverage_radius_km": z.coverage_radius_km,
+                "base_flag_drop_fare": z.base_flag_drop_fare,
+            },
+        })
+    p_zone = output_dir / "managua_zones.geojson"
+    with open(p_zone, "w", encoding="utf-8") as f:
+        json.dump({"type": "FeatureCollection", "features": zone_features}, f, indent=2, ensure_ascii=False)
+    results["managua_zones"] = p_zone
+
+    # 3. Authentic OpenStreetMap Hydrographic Vector Network (LineStrings)
+    cache_osm = Path(__file__).resolve().parent / "seeds" / "deterministic" / "managua_osm_raw.json"
+    if cache_osm.exists():
+        with open(cache_osm, encoding="utf-8") as f:
+            raw_osm = json.load(f)
+        from movigo_sim.spatial import extract_osm_waterways
+        cauce_features, _, _ = extract_osm_waterways(raw_osm)
+    else:
+        cauce_features = []
+        for c in drainage_channels:
+            cauce_features.append({
+                "type": "Feature",
+                "id": c.channel_id,
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [round(c.longitude, 6), round(c.latitude, 6)],
+                },
+                "properties": {
+                    "channel_id": c.channel_id,
+                    "channel_name": c.channel_name,
+                    "zone_id": c.zone_id,
+                    "critical_radius_km": c.critical_radius_km,
+                    "vulnerability_level": c.vulnerability_level,
+                    "flow_direction": c.flow_direction,
+                },
+            })
+
+    p_cauce = output_dir / "managua_cauces.geojson"
+    with open(p_cauce, "w", encoding="utf-8") as f:
+        json.dump({"type": "FeatureCollection", "features": cauce_features}, f, indent=2, ensure_ascii=False)
+    results["managua_cauces"] = p_cauce
+
+    # 4. Hexagonal Mesh GeoJSON
+    hex_cells = generate_hexagonal_grid()
+    hex_features = []
+    for h in hex_cells:
+        hex_features.append({
+            "type": "Feature",
+            "id": h["hex_id"],
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": h["polygon_coordinates"],
+            },
+            "properties": {
+                "hex_id": h["hex_id"],
+                "row": h["row"],
+                "col": h["col"],
+                "center_lat": h["center_lat"],
+                "center_lon": h["center_lon"],
+                "radius_km": h["radius_km"],
+            },
+        })
+    p_hex = output_dir / "managua_hex_grid.geojson"
+    with open(p_hex, "w", encoding="utf-8") as f:
+        json.dump({"type": "FeatureCollection", "features": hex_features}, f, indent=2, ensure_ascii=False)
+    results["managua_hex_grid"] = p_hex
+
+    logger.info("Exported 4 GeoJSON spatial layers to %s", output_dir)
+    return results
+
+
 def compute_movigo_simulation_summary(
     zones: list[UrbanZone],
     quadrants: list[Quadrant],
@@ -406,6 +577,7 @@ def compute_movigo_simulation_summary(
     campaigns: list[IncentiveCampaign],
     cancellations: list[TripCancellation] | None = None,
     maintenance: list[Any] | None = None,
+    drainage_channels: list[DrainageChannel] | None = None,
     seed: int = SIMULATION_SEED,
     summary_path: Path | None = None,
 ) -> dict[str, Any]:
@@ -416,6 +588,9 @@ def compute_movigo_simulation_summary(
     df_quadrants = pd.DataFrame([q.model_dump() for q in quadrants])
     df_cancellations = pd.DataFrame([c.model_dump() for c in cancellations]) if cancellations else pd.DataFrame()
     df_maintenance = pd.DataFrame([m.model_dump() for m in maintenance]) if maintenance else pd.DataFrame()
+    if drainage_channels is None:
+        drainage_channels = load_movigo_drainage_channels()
+    df_drainage = pd.DataFrame([c.model_dump() for c in drainage_channels])
 
     if isinstance(weather, pd.DataFrame):
         df_weather = weather
@@ -479,6 +654,19 @@ def compute_movigo_simulation_summary(
     opt_results = compute_movigo_optimizacion(
         df_trips, df_payments, df_quadrants, df_zones, df_campaigns, df_weather, df_maintenance=df_maintenance
     )
+    spatial_results = compute_movigo_spatial_gis(
+        df_trips, df_quadrants, df_zones, df_drainage, df_payments=df_payments
+    )
+
+    # Export GeoJSON layers
+    try:
+        export_movigo_spatial_layers(
+            quadrants=quadrants,
+            zones=zones,
+            drainage_channels=drainage_channels,
+        )
+    except Exception as exc:
+        logger.warning("Could not export spatial GeoJSON layers: %s", exc)
 
     summary = {
         "case_name": "MoviGo (Transporte por Aplicación)",
@@ -516,6 +704,7 @@ def compute_movigo_simulation_summary(
         "estadistica_ii": est_results,
         "metodos_numericos": num_results,
         "optimizacion": opt_results,
+        "analitica_espacial_gis": spatial_results,
     }
 
     target_summary_path = summary_path if summary_path is not None else (ARTIFACTS_DIR / "simulation_summary.json")
