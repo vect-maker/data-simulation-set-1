@@ -323,6 +323,8 @@ class MoviGoSimulationEngine:
         origin_qid: int,
         dest_qid: int,
         is_flood_aware: bool = False,
+        is_traffic_aware: bool = False,
+        hour: Any | None = None,
         is_perturbed: bool = False,
     ) -> tuple[list[int], float]:
         """Reconstruct continuous sequence of real OSM nodes."""
@@ -332,6 +334,8 @@ class MoviGoSimulationEngine:
             origin_qid,
             dest_qid,
             is_flood_aware=is_flood_aware,
+            is_traffic_aware=is_traffic_aware,
+            hour=hour,
             is_perturbed=is_perturbed,
             rng=self.rng,
         )
@@ -658,6 +662,13 @@ class MoviGoSimulationEngine:
             flood_affected = bool((flood_street_o or flood_street_d) and daily_precip_mm > 15.0)
             h_aneg_o = flood_affected
 
+        # Ensure dynamic traffic indicators and Dijkstra hub tables are primed for current date-hour
+        cache_key = (curr_date, hour)
+        if hourly_matrices is not None and t_idx is not None:
+            self.world.update_hourly_traffic(cache_key, hourly_matrices["congestion"][t_idx, :])
+        else:
+            self.world.update_hourly_traffic(cache_key, {q.quadrant_id: daily_cong_idx for q in self.quadrants})
+
         # 1. Independent supply, demand and dynamic surge multipliers across the 3 categories
         cat_surge_dict = self.platform.simulate_category_surge_multipliers(
             origin_zone, h_precip_o, h_esc_o, h_aneg_o, hour, dow, self.world, self.rng, curr_date=curr_date
@@ -828,6 +839,56 @@ class MoviGoSimulationEngine:
             )
             return
 
+        # Determine if driver uses traffic-aware navigation and dynamic hourly indicators
+        is_traffic_aware = driver_agent.decide_traffic_aware_navigation(
+            hour=hour,
+            effective_congestion=effective_congestion,
+            rng=self.rng,
+        )
+
+        if is_traffic_aware:
+            ride_nodes_ta, raw_road_km_ta = self.get_osm_route(
+                node_o,
+                node_d,
+                q_o,
+                q_d,
+                is_flood_aware=is_fl_aware,
+                is_traffic_aware=True,
+                hour=cache_key,
+                is_perturbed=is_pert,
+            )
+            if len(self.world.node_quadrants) > 0 and ride_nodes_ta:
+                path_q = self.world.node_quadrants[ride_nodes_ta]
+                if hourly_matrices is not None and t_idx is not None:
+                    cong_vals = [float(hourly_matrices["congestion"][t_idx, q - 1]) for q in set(path_q) if 1 <= q <= 92]
+                    path_cong = float(np.mean(cong_vals)) if cong_vals else effective_congestion
+                else:
+                    path_cong = effective_congestion
+            else:
+                path_cong = effective_congestion
+
+            experienced_congestion = min(effective_congestion, round(path_cong, 2))
+            dist_km_ta, dur_min_ta, _ = self.estimate_distance_and_duration(
+                lat_o,
+                lon_o,
+                lat_d,
+                lon_d,
+                experienced_congestion,
+                effective_water_mm,
+                flood_affected,
+                raw_route_km=raw_road_km_ta,
+                is_suboptimal=False,
+                is_cauce_overflow=is_cauce_overflow,
+            )
+            time_saved = max(0.0, round(dur_min - dur_min_ta, 2))
+            driver_agent.traffic_minutes_saved += time_saved
+            driver_agent.trips_rerouted_traffic += 1
+            ride_nodes = ride_nodes_ta
+            dist_km = dist_km_ta
+            dur_min = dur_min_ta
+        else:
+            experienced_congestion = effective_congestion
+
         # Compute fare based on actual dispatched vehicle category
         base_fare, final_fare = self.platform.compute_fare(
             flag_drop_fare, dist_km, dur_min, surge, service_type=driver_agent.vehicle_model.service_type
@@ -836,13 +897,21 @@ class MoviGoSimulationEngine:
         # Pickup leg traversal on OSM graph
         drv_n = driver_agent.current_node
         drv_q = int(self.world.node_quadrants[drv_n]) if len(self.world.node_quadrants) > drv_n else q_o
-        pickup_nodes, pickup_km = self.get_osm_route(drv_n, node_o, drv_q, q_o, is_flood_aware=is_fl_aware)
+        pickup_nodes, pickup_km = self.get_osm_route(
+            drv_n,
+            node_o,
+            drv_q,
+            q_o,
+            is_flood_aware=is_fl_aware,
+            is_traffic_aware=is_traffic_aware,
+            hour=cache_key,
+        )
         pickup_overflow = bool(self.world.is_route_affected_by_overflow(pickup_nodes, overflow_quads) if overflow_quads else False)
         if pickup_overflow:
-            pickup_spd = max(5.5, 16.0 / effective_congestion)
+            pickup_spd = max(5.5, 16.0 / experienced_congestion)
             base_wait = (pickup_km / pickup_spd) * 60.0 + float(self.rng.uniform(2.0, 5.0))
         else:
-            pickup_spd = max(10.0, 30.0 / effective_congestion)
+            pickup_spd = max(10.0, 30.0 / experienced_congestion)
             base_wait = (pickup_km / pickup_spd) * 60.0 + float(self.rng.uniform(0.5, 2.0))
         wait_min = round(float(np.clip(base_wait + extra_wait, 1.5, 28.0)), 2)
 
@@ -854,7 +923,7 @@ class MoviGoSimulationEngine:
             wait_min=wait_min,
             effective_water_mm=effective_water_mm,
             flood_affected=flood_affected,
-            congestion_idx=effective_congestion,
+            congestion_idx=experienced_congestion,
             hour=hour,
         )
 
@@ -867,8 +936,8 @@ class MoviGoSimulationEngine:
             cancelled_by = "conductor" if trip_status == "cancelado_conductor" else "usuario"
             c_step = min(len(pickup_nodes) - 1, max(0, int(len(pickup_nodes) * min(1.0, wait_min / 12.0))))
             driver_agent.assign_trip(pickup_nodes[c_step], req_time + timedelta(minutes=wait_min))
-            pickup_fuel = driver_agent.compute_trip_fuel_liters(pickup_km, wait_min, effective_congestion, False)
-            driver_agent.accumulate_distance_and_fuel(pickup_km, pickup_fuel, False, duration_min=wait_min, congestion_idx=effective_congestion)
+            pickup_fuel = driver_agent.compute_trip_fuel_liters(pickup_km, wait_min, experienced_congestion, False)
+            driver_agent.accumulate_distance_and_fuel(pickup_km, pickup_fuel, False, duration_min=wait_min, congestion_idx=experienced_congestion)
 
             trip_id = recorder.record_trip(
                 user_id=user.user_id,
@@ -901,8 +970,8 @@ class MoviGoSimulationEngine:
             start_time = req_time + timedelta(minutes=wait_min)
             end_time = start_time + timedelta(minutes=dur_min)
             driver_agent.assign_trip(node_d, end_time)
-            trip_fuel = driver_agent.compute_trip_fuel_liters(dist_km, dur_min, effective_congestion, is_cauce_overflow or flood_affected)
-            driver_agent.accumulate_distance_and_fuel(dist_km, trip_fuel, is_cauce_overflow or flood_affected, duration_min=dur_min, congestion_idx=effective_congestion)
+            trip_fuel = driver_agent.compute_trip_fuel_liters(dist_km, dur_min, experienced_congestion, is_cauce_overflow or flood_affected)
+            driver_agent.accumulate_distance_and_fuel(dist_km, trip_fuel, is_cauce_overflow or flood_affected, duration_min=dur_min, congestion_idx=experienced_congestion)
 
             # Scheduled preventive maintenance check (every 5,000 km)
             if driver_agent.km_since_service >= 5000.0:

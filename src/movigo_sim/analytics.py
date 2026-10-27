@@ -718,3 +718,38 @@ def compute_operations_research_maintenance_and_queue_metrics(
         "costo_total_mantenimiento_flota_nio": total_cost,
         "horas_totales_inactividad_flota": total_downtime,
     }
+
+
+def compute_traffic_routing_metrics(
+    driver_agents: list[Any],
+    df_trips: pd.DataFrame,
+) -> dict[str, Any]:
+    """Compute comparative traffic indicator and dynamic routing metrics across driver agents and vehicle tiers."""
+    total_trips = len(df_trips) if not df_trips.empty else 0
+    total_rerouted = sum(getattr(a, "trips_rerouted_traffic", 0) for a in driver_agents)
+    total_minutes_saved = sum(getattr(a, "traffic_minutes_saved", 0.0) for a in driver_agents)
+
+    by_category = {}
+    for cat in ["movigo_comfort", "movigo_estandar", "movigo_moto"]:
+        cat_agents = [a for a in driver_agents if getattr(getattr(a, "vehicle_model", None), "service_type", "") == cat]
+        cat_reroutes = sum(getattr(a, "trips_rerouted_traffic", 0) for a in cat_agents)
+        cat_saved = sum(getattr(a, "traffic_minutes_saved", 0.0) for a in cat_agents)
+        cat_stress = float(np.mean([getattr(a, "traffic_stress_accumulated", 0.0) for a in cat_agents])) if cat_agents else 0.0
+        by_category[cat] = {
+            "conductores_activos": len(cat_agents),
+            "viajes_re_enrutados_por_trafico": cat_reroutes,
+            "minutos_demora_evitados": round(cat_saved, 1),
+            "estres_promedio_acumulado": round(cat_stress, 2),
+        }
+
+    overall_reroute_pct = round((total_rerouted / max(1, total_trips)) * 100.0, 2)
+    avg_min_saved = round(total_minutes_saved / max(1, total_rerouted), 2)
+
+    return {
+        "total_viajes": total_trips,
+        "total_viajes_re_enrutados_trafico": total_rerouted,
+        "porcentaje_re_enrutamiento_trafico": overall_reroute_pct,
+        "minutos_totales_demora_evitados": round(total_minutes_saved, 1),
+        "promedio_minutos_ahorrados_por_re_enrutamiento": avg_min_saved,
+        "desglose_por_categoria_servicio": by_category,
+    }

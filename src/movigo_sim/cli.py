@@ -171,6 +171,38 @@ def display_movigo_rich_summary(summary: dict):
         ))
         render_operational_table("Investigación de Operaciones: Talleres, Colas M/M/c & Desgaste", or_rows, border_style="blue")
 
+    # 8. Indicadores de Tráfico Horario & Enrutamiento Dinámico de Conductores
+    if "indicadores_trafico_y_enrutamiento_dinamico" in summary:
+        td = summary["indicadores_trafico_y_enrutamiento_dinamico"]
+        cats = td.get("desglose_por_categoria_servicio", {})
+        comf = cats.get("movigo_comfort", {})
+        std = cats.get("movigo_estandar", {})
+        moto = cats.get("movigo_moto", {})
+
+        traffic_rows = [
+            (
+                "Adopción de Enrutamiento Inteligente",
+                f"{td.get('total_viajes_re_enrutados_trafico', 0)} viajes re-enrutados ({td.get('porcentaje_re_enrutamiento_trafico', 0.0)}% del total)",
+            ),
+            (
+                "Demora Total Evitada por Tráfico",
+                f"{td.get('minutos_totales_demora_evitados', 0.0)} minutos evitados (promedio {td.get('promedio_minutos_ahorrados_por_re_enrutamiento', 0.0)} min/viaje re-enrutado)",
+            ),
+            (
+                "Re-enrutamiento por Categoría",
+                f"Comfort: {comf.get('viajes_re_enrutados_por_trafico', 0)} ({comf.get('minutos_demora_evitados', 0.0)} min) | Estándar: {std.get('viajes_re_enrutados_por_trafico', 0)} ({std.get('minutos_demora_evitados', 0.0)} min) | Moto: {moto.get('viajes_re_enrutados_por_trafico', 0)} ({moto.get('minutos_demora_evitados', 0.0)} min)",
+            ),
+            (
+                "Estrés Promedio de Flota",
+                f"Comfort: {comf.get('estres_promedio_acumulado', 0.0)} | Estándar: {std.get('estres_promedio_acumulado', 0.0)} | Moto: {moto.get('estres_promedio_acumulado', 0.0)}",
+            ),
+        ]
+        render_operational_table(
+            "Indicadores de Tráfico Horario & Enrutamiento Dinámico de Conductores",
+            traffic_rows,
+            border_style="bright_cyan",
+        )
+
 
 def run_generation(
     days=None,
@@ -244,6 +276,7 @@ def run_generation(
         maintenance=maintenance,
         vehicles=engine.vehicles,
         drivers=engine.drivers,
+        driver_agents=engine.driver_agents,
         workshops=engine.world.workshops,
         seed=seed,
         summary_path=summary_path,

@@ -333,6 +333,9 @@ class WorldEnvironment:
         # Dense OpenStreetMap Street Graph & Hub Predecessors
         nodes_raw = self.street_network.get("nodes", [])
         edges_raw = self.street_network.get("edges", [])
+        self.hourly_preds_traffic_hubs: dict[int, np.ndarray] = {}
+        self.hourly_dists_traffic_hubs: dict[int, np.ndarray] = {}
+
         if nodes_raw and edges_raw:
             self.node_coords = np.array([[n[0], n[1]] for n in nodes_raw], dtype=float)
             self.node_quadrants = np.array([n[2] for n in nodes_raw], dtype=int)
@@ -343,7 +346,12 @@ class WorldEnvironment:
             u_idx = edge_arr[:, 0].astype(int)
             v_idx = edge_arr[:, 1].astype(int)
             lengths = edge_arr[:, 2]
+            speeds = edge_arr[:, 3]
             flood_flags = edge_arr[:, 5].astype(int)
+            self.edge_u_idx = u_idx
+            self.edge_v_idx = v_idx
+            self.edge_lengths = lengths
+            self.edge_base_speeds = speeds
             self.edge_quadrants = edge_arr[:, 4].astype(int)
             self.edge_flood_flags = flood_flags
 
@@ -383,6 +391,12 @@ class WorldEnvironment:
             self.dists_flood_hubs = None
             self.preds_flood_hubs = None
             self.quad_node_indices = {}
+            self.edge_u_idx = np.empty(0, dtype=int)
+            self.edge_v_idx = np.empty(0, dtype=int)
+            self.edge_lengths = np.empty(0, dtype=float)
+            self.edge_base_speeds = np.empty(0, dtype=float)
+            self.edge_quadrants = np.empty(0, dtype=int)
+            self.edge_flood_flags = np.empty(0, dtype=int)
 
         # Precompute OD gravity pairs & matrices
         self.od_pairs: list[tuple[UrbanZone, UrbanZone]] = []
@@ -528,6 +542,52 @@ class WorldEnvironment:
         lat, lon, qid, _, _ = self.sample_street_coordinate(fallback_zone, rng)
         return lat, lon, fallback_zone.zone_id, qid
 
+    def update_hourly_traffic(
+        self,
+        hour: Any,
+        quadrant_congestions: np.ndarray | dict[int, float],
+    ) -> None:
+        """Dynamically compute and cache traffic-aware Dijkstra hub predecessor matrices for the given hour.
+
+        Uses the Unified Cost Function:
+        cost = (length / effective_speed) * flood_penalty
+        where effective_speed = max(5.0, base_speed / quadrant_congestion).
+        """
+        if self.num_nodes == 0 or len(self.hub_node_indices) == 0:
+            return
+        if hour in self.hourly_preds_traffic_hubs:
+            return
+
+        # Cap cache size to 24 hourly tables to keep RAM usage lean (~17 MB per matrix)
+        if len(self.hourly_preds_traffic_hubs) >= 24:
+            oldest_key = next(iter(self.hourly_preds_traffic_hubs))
+            self.hourly_preds_traffic_hubs.pop(oldest_key, None)
+            self.hourly_dists_traffic_hubs.pop(oldest_key, None)
+
+        if isinstance(quadrant_congestions, dict):
+            cong_map = quadrant_congestions
+            edge_congs = np.array(
+                [cong_map.get(int(q), 1.0) for q in self.edge_quadrants], dtype=float
+            )
+        else:
+            cong_arr = np.asarray(quadrant_congestions, dtype=float)
+            q_indices = np.clip(self.edge_quadrants - 1, 0, len(cong_arr) - 1)
+            edge_congs = cong_arr[q_indices]
+
+        eff_speeds = np.maximum(5.0, self.edge_base_speeds / np.maximum(1.0, edge_congs))
+        travel_times = self.edge_lengths / eff_speeds
+        flood_penalties = np.where(self.edge_flood_flags == 1, 15.0, 1.0)
+        costs = travel_times * flood_penalties
+
+        rows = np.concatenate([self.edge_u_idx, self.edge_v_idx])
+        cols = np.concatenate([self.edge_v_idx, self.edge_u_idx])
+        weights = np.concatenate([costs, costs])
+
+        csr_traffic = csr_matrix((weights, (rows, cols)), shape=(self.num_nodes, self.num_nodes))
+        dists, preds = dijkstra(csr_traffic, indices=self.hub_node_indices, return_predecessors=True)
+        self.hourly_preds_traffic_hubs[hour] = preds
+        self.hourly_dists_traffic_hubs[hour] = dists
+
     def get_osm_route(
         self,
         origin_node_idx: int,
@@ -535,6 +595,8 @@ class WorldEnvironment:
         origin_qid: int,
         dest_qid: int,
         is_flood_aware: bool = False,
+        is_traffic_aware: bool = False,
+        hour: int | None = None,
         is_perturbed: bool = False,
         rng: np.random.Generator | None = None,
     ) -> tuple[list[int], float]:
@@ -556,11 +618,12 @@ class WorldEnvironment:
 
         h_idx = self.qid_to_hub_idx.get(origin_qid, 0)
         hub_node = self.hub_node_indices[h_idx]
-        preds = (
-            self.preds_flood_hubs[h_idx]
-            if is_flood_aware
-            else self.preds_norm_hubs[h_idx]
-        )
+        if is_traffic_aware and hour is not None and hour in self.hourly_preds_traffic_hubs:
+            preds = self.hourly_preds_traffic_hubs[hour][h_idx]
+        elif is_flood_aware:
+            preds = self.preds_flood_hubs[h_idx]
+        else:
+            preds = self.preds_norm_hubs[h_idx]
 
         path_rev = [dest_node_idx]
         curr = dest_node_idx

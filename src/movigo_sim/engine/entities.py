@@ -86,6 +86,8 @@ class DriverAgent:
     current_shift_date: date | None = None
     fuel_tank: FuelTank | None = None
     maintenance_queue_wait_minutes: float = 0.0
+    trips_rerouted_traffic: int = 0
+    traffic_minutes_saved: float = 0.0
 
     def __post_init__(self) -> None:
         st = self.vehicle_model.service_type
@@ -197,6 +199,42 @@ class DriverAgent:
         self.traffic_stress_accumulated += max(0.0, congestion_idx - 1.0) * (duration_min / 30.0)
         if flooded:
             self.flood_exposure_count += 1
+
+    def decide_traffic_aware_navigation(
+        self,
+        hour: int,
+        effective_congestion: float,
+        rng: np.random.Generator,
+    ) -> bool:
+        """Dynamically decide whether to engage traffic-aware navigation based on vehicle tier, rush hours, and stress."""
+        prob = 0.20
+
+        # Rush-hour boost (morning 7-9 or evening 17-19)
+        if hour in (7, 8, 17, 18):
+            prob += 0.35
+        elif hour in (12, 13, 16, 19):
+            prob += 0.15
+
+        # Vehicle category weighting
+        st = self.vehicle_model.service_type
+        if st == "movigo_comfort":
+            prob += 0.25
+        elif st == "movigo_standard":
+            prob += 0.05
+        elif st == "movigo_moto":
+            prob -= 0.20
+
+        # Driver accumulated stress
+        prob += 0.12 * min(2.0, self.traffic_stress_accumulated)
+
+        # Localized congestion severity
+        if effective_congestion > 2.2:
+            prob += 0.20
+        elif effective_congestion < 1.15:
+            prob -= 0.15
+
+        final_prob = float(np.clip(prob, 0.05, 0.95))
+        return bool(rng.random() < final_prob)
 
     def reset_shift_if_needed(self, dt: datetime) -> None:
         """Reset shift counters when a new calendar day / shift begins."""
