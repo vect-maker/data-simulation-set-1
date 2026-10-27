@@ -14,9 +14,47 @@ COMPOSE := "podman compose"
 default:
     @just --list
 
-# Set up virtual environment and install dependencies in editable mode
-install:
-    {{ PIP }} install -e .
+# Set up local virtual environment with uv (installs uv automatically if not present)
+setup-uv:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+
+    if ! command -v uv >/dev/null 2>&1; then
+        echo "==> uv not found in PATH. Installing uv via official installer..."
+        if command -v curl >/dev/null 2>&1; then
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+        elif command -v wget >/dev/null 2>&1; then
+            wget -qO- https://astral.sh/uv/install.sh | sh
+        elif command -v python3 >/dev/null 2>&1; then
+            python3 -m pip install --user uv
+        else
+            pip install --user uv
+        fi
+        export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+    fi
+
+    if ! command -v uv >/dev/null 2>&1; then
+        echo "ERROR: uv could not be found or installed. Please install uv manually." >&2
+        exit 1
+    fi
+
+    echo "✓ Detected $(uv --version)"
+
+    if [ ! -d ".venv" ]; then
+        echo "==> Creating virtual environment (.venv)..."
+        uv venv
+    fi
+
+    echo "==> Installing dependencies in editable mode via uv..."
+    uv pip install -e ".[dev]"
+    echo "✓ Local uv environment successfully configured in .venv!"
+
+# Alias for setup-uv
+setup: setup-uv
+
+# Install dependencies into virtual environment (delegates to setup-uv)
+install: setup-uv
 
 # Clean all generated artifacts, caches, and temporary files
 clean:

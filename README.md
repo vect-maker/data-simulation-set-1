@@ -110,7 +110,8 @@ Modelos prescriptivos aplicados al negocio:
 | Comando | Descripción |
 | :--- | :--- |
 | `just` | Lista todas las recetas disponibles |
-| `just install` | Instala paquetes y dependencias en modo editable (`pip install -e .`) |
+| `just setup-uv` / `just setup` | Configura el entorno virtual local con `uv` (instala `uv` si el host no lo tiene) e instala dependencias en modo editable |
+| `just install` | Alias para `just setup-uv`: instala paquetes y dependencias en modo editable en el entorno local |
 | `just test-unit` | Ejecuta suite de pruebas unitarias (Stats, Métodos Numéricos, Optimización, Integridad) |
 | `just test` | Ejecuta suite unitaria + simulación rápida de 3 días + inspección analítica |
 | `just generate-all [days]` | Ejecuta las simulaciones para los 3 casos (ej. `just generate-all 7`) |
