@@ -38,7 +38,7 @@ def export_models_to_csv(
             df = pd.DataFrame(records)
 
         for col in df.columns:
-            if col.startswith("id_") and pd.api.types.is_float_dtype(df[col]):
+            if (col.startswith("id_") or col.endswith("_id") or col == "id") and pd.api.types.is_float_dtype(df[col]):
                 df[col] = df[col].astype("Int64")
 
         df.to_csv(csv_path, index=False, encoding="utf-8")

@@ -75,8 +75,14 @@ just inspect-all
 # Iniciar contenedor Podman de PostgreSQL 18
 just db-up
 
-# Cargar automáticamente los 3 esquemas relacionales
+# Cargar automáticamente los 3 esquemas relacionales desde los artefactos
 just load-all
+
+# Si se requiere reiniciar completamente la base de datos y recargarla desde los artefactos:
+just db-reload
+
+# O purgar esquemas y resembrar sin destruir el contenedor:
+just db-reseed
 ```
 
 ### D. Empaquetar y Distribuir a los Estudiantes

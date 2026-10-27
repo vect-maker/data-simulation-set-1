@@ -65,69 +65,33 @@ def load_sql_script(
     host: str = DEFAULT_POSTGRES_HOST,
     port: int = DEFAULT_POSTGRES_PORT,
 ) -> bool:
-    """Execute SQL dump containing \\copy statements via local psql or Podman/Docker exec."""
+    """Execute SQL dump containing \\copy statements via Podman compose exec."""
     if not sql_file.exists():
         logger.error(f"SQL file not found: {sql_file}")
         return False
 
-    # 1. Try local psql
-    if shutil.which("psql"):
-        logger.info(f"Executing {sql_file.name} using local psql...")
-        env = os.environ.copy()
-        env["PGPASSWORD"] = password
-        cmd = [
-            "psql",
-            "-h", host,
-            "-p", str(port),
-            "-U", user,
-            "-d", db_name,
-            "-f", str(sql_file.resolve()),
-        ]
-        try:
-            res = subprocess.run(cmd, cwd=working_dir, env=env, capture_output=True, text=True)
-            if res.returncode == 0:
-                logger.info(f"Successfully executed {sql_file.name} via psql.")
-                return True
-            else:
-                logger.warning(f"Local psql returned error: {res.stderr}")
-        except Exception as e:
-            logger.warning(f"Failed local psql execution: {e}")
+    logger.info(f"Executing {sql_file.name} via Podman compose container...")
+    rel_working = os.path.relpath(working_dir, Path.cwd())
+    rel_sql = os.path.relpath(sql_file, working_dir)
+    container_workdir = f"/workspace/{rel_working}"
 
-    # 2. Try Podman / Docker compose exec fallback
-    compose_bin = None
-    if shutil.which("podman"):
-        compose_bin = ["podman", "compose"]
-    elif shutil.which("docker"):
-        compose_bin = ["docker", "compose"]
-
-    if compose_bin:
-        tool_name = compose_bin[0].capitalize()
-        logger.info(f"Executing {sql_file.name} via {tool_name} container...")
-        # Relative path inside mounted /workspace
-        rel_working = os.path.relpath(working_dir, Path.cwd())
-        rel_sql = os.path.relpath(sql_file, working_dir)
-        container_workdir = f"/workspace/{rel_working}"
-
-        cmd = [
-            *compose_bin, "exec",
-            "-w", container_workdir,
-            "-T", "postgres",
-            "psql",
-            "-U", user,
-            "-d", db_name,
-            "-f", rel_sql,
-        ]
-        try:
-            res = subprocess.run(cmd, capture_output=True, text=True)
-            if res.returncode == 0:
-                logger.info(f"Successfully loaded schema via {tool_name} psql: {res.stdout[-200:] if len(res.stdout) > 200 else res.stdout}")
-                return True
-            else:
-                logger.error(f"{tool_name} psql failed: {res.stderr}")
-                return False
-        except Exception as e:
-            logger.error(f"Failed {tool_name} exec: {e}")
+    cmd = [
+        "podman", "compose", "exec",
+        "-w", container_workdir,
+        "-T", "postgres",
+        "psql",
+        "-U", user,
+        "-d", db_name,
+        "-f", rel_sql,
+    ]
+    try:
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        if res.returncode == 0:
+            logger.info(f"Successfully loaded schema via Podman compose psql: {res.stdout[-200:] if len(res.stdout) > 200 else res.stdout}")
+            return True
+        else:
+            logger.error(f"Podman compose psql failed: {res.stderr}")
             return False
-
-    logger.error("Neither local psql nor Podman/Docker compose is available to execute the SQL script.")
-    return False
+    except Exception as e:
+        logger.error(f"Failed Podman compose exec: {e}")
+        return False

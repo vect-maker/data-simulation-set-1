@@ -116,6 +116,8 @@ Modelos prescriptivos aplicados al negocio:
 | `just generate-all [days]` | Ejecuta las simulaciones para los 3 casos (ej. `just generate-all 7`) |
 | `just inspect-all` | Despliega tablas Rich con estadística, métodos numéricos y optimización |
 | `just load-all` | Carga esquemas, triggers, procedimientos, CSVs y vistas materializadas en PostgreSQL |
+| `just db-reload` / `just reload-db` | Reinicia completamente la base de datos (borra volumen) y recarga todos los datos desde los artefactos |
+| `just db-reseed` | Purga esquemas (`DROP SCHEMA ... CASCADE`) y recarga todos los artefactos sin reiniciar el contenedor |
 | `just db-up` / `just db-down` | Levanta o apaga el contenedor de PostgreSQL 18 Alpine |
 | `just db-psql` | Abre una sesión interactiva `psql` dentro de la base de datos |
 | `just api-up` / `just api-down` | Levanta o apaga todos los servicios (PostgreSQL + FastAPI API en puerto 8000) |

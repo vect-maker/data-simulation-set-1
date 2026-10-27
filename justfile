@@ -8,7 +8,7 @@ ANTOJITOS := VENV_BIN + "antojitos-sim"
 VOLCAN := VENV_BIN + "volcan-sim"
 MOVIGO := VENV_BIN + "movigo-sim"
 DATA_SIM := VENV_BIN + "data-sim"
-COMPOSE := env_var_or_default("COMPOSE_CMD", "podman compose")
+COMPOSE := "podman compose"
 
 # Default: List all available recipes
 default:
@@ -143,6 +143,11 @@ db-down:
 db-reset:
     {{ COMPOSE }} down -v
     {{ COMPOSE }} up -d postgres
+    @echo "Waiting for PostgreSQL to be ready..."
+    @until {{ COMPOSE }} exec -T postgres pg_isready -p ${POSTGRES_PORT:-5433} -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-integrador_db} >/dev/null 2>&1; do \
+        sleep 0.5; \
+    done
+    @echo "✓ PostgreSQL is ready."
 
 # Start all services (PostgreSQL + FastAPI API) via Podman Compose
 api-up:
@@ -174,39 +179,27 @@ db-psql:
 
 # Load Antojitos Express data into PostgreSQL (schema raw_staging)
 load-antojitos:
-	@if [ -f artifacts/antojitos/sql/schema_and_data.sql ]; then \
-		if command -v psql >/dev/null 2>&1; then \
-			cd artifacts/antojitos/csv && PGPASSWORD=postgres psql -h localhost -p ${POSTGRES_PORT:-5433} -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
-		else \
-			{{ COMPOSE }} exec -w /workspace/artifacts/antojitos/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
-		fi \
-	else \
-		{{ ANTOJITOS }} load; \
-	fi
+    @if [ -f artifacts/antojitos/sql/schema_and_data.sql ]; then \
+        {{ COMPOSE }} exec -w /workspace/artifacts/antojitos/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
+    else \
+        {{ ANTOJITOS }} load; \
+    fi
 
 # Load Cooperativa El Volcán data into PostgreSQL (schema raw_staging_volcan)
 load-volcan:
-	@if [ -f artifacts/volcan/sql/schema_and_data.sql ]; then \
-		if command -v psql >/dev/null 2>&1; then \
-			cd artifacts/volcan/csv && PGPASSWORD=postgres psql -h localhost -p ${POSTGRES_PORT:-5433} -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
-		else \
-			{{ COMPOSE }} exec -w /workspace/artifacts/volcan/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
-		fi \
-	else \
-		{{ VOLCAN }} load; \
-	fi
+    @if [ -f artifacts/volcan/sql/schema_and_data.sql ]; then \
+        {{ COMPOSE }} exec -w /workspace/artifacts/volcan/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
+    else \
+        {{ VOLCAN }} load; \
+    fi
 
 # Load MoviGo data into PostgreSQL (schema raw_staging_movigo)
 load-movigo:
-	@if [ -f artifacts/movigo/sql/schema_and_data.sql ]; then \
-		if command -v psql >/dev/null 2>&1; then \
-			cd artifacts/movigo/csv && PGPASSWORD=postgres psql -h localhost -p ${POSTGRES_PORT:-5433} -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
-		else \
-			{{ COMPOSE }} exec -w /workspace/artifacts/movigo/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
-		fi \
-	else \
-		{{ MOVIGO }} load; \
-	fi
+    @if [ -f artifacts/movigo/sql/schema_and_data.sql ]; then \
+        {{ COMPOSE }} exec -w /workspace/artifacts/movigo/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
+    else \
+        {{ MOVIGO }} load; \
+    fi
 
 # Load all 3 cases into PostgreSQL
 load-all:
@@ -214,6 +207,29 @@ load-all:
     @just load-volcan
     @just load-movigo
     @echo "✓ All 3 case schemas loaded into PostgreSQL."
+
+# Reset PostgreSQL database entirely (wipe volume) and reload all data from artifacts
+db-reload:
+    @echo "=== [1/2] Resetting PostgreSQL database entirely (wiping storage volume) ==="
+    @just db-reset
+    @echo "\n=== [2/2] Loading all 3 case schemas and data from artifacts ==="
+    @just load-all
+    @echo "\n✓ Database successfully reset and fully reloaded from artifacts!"
+
+# Alias for db-reload
+reload-db: db-reload
+
+# Drop all 3 staging schemas without restarting the PostgreSQL container
+db-reset-schemas:
+    @echo "Purging all 3 schemas (raw_staging, raw_staging_volcan, raw_staging_movigo)..."
+    @{{ COMPOSE }} exec -T postgres psql -U postgres -d integrador_db -c "DROP SCHEMA IF EXISTS raw_staging CASCADE; DROP SCHEMA IF EXISTS raw_staging_volcan CASCADE; DROP SCHEMA IF EXISTS raw_staging_movigo CASCADE;"
+    @echo "✓ Staging schemas purged."
+
+# Reseed all staging schemas from artifacts without restarting the container
+db-reseed:
+    @just db-reset-schemas
+    @just load-all
+    @echo "\n✓ Database schemas successfully reseeded from artifacts!"
 
 # Run fast unit and integration tests (Stats, Numerics, Optimization, Relational Integrity)
 test-unit:
@@ -239,7 +255,7 @@ pipeline days="":
     @just clean
     @just generate-all {{ days }}
     @just inspect-all
-    @if {{ COMPOSE }} ps -q postgres 2>/dev/null | grep -q . || pg_isready -h localhost -p ${POSTGRES_PORT:-5433} >/dev/null 2>&1; then \
+    @if {{ COMPOSE }} ps -q postgres 2>/dev/null | grep -q .; then \
         just load-all; \
     else \
         echo "ℹ PostgreSQL is not running. Start it with 'just db-up' and run 'just load-all' to populate DB."; \
