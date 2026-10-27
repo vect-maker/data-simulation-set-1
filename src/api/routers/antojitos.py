@@ -60,8 +60,8 @@ def get_zonas(
         int,
         Query(
             ge=1,
-            le=200,
-            description="Cantidad máxima de registros a retornar por página (máximo permitido: 200).",
+            le=1000,
+            description="Cantidad máxima de registros a retornar por página (máximo permitido: 1000).",
             examples=[50],
         ),
     ] = 50,
@@ -82,6 +82,7 @@ def get_zonas(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=1000,
     )
 
 
@@ -129,7 +130,7 @@ def get_repartidores(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Límite de registros por página.", examples=[50]),
+        Query(ge=1, le=1000, description="Límite de registros por página.", examples=[50]),
     ] = 50,
 ):
     """Consulta la flota de repartidores disponibles, vehículos y calificaciones."""
@@ -155,6 +156,7 @@ def get_repartidores(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=1000,
     )
 
 
@@ -187,7 +189,7 @@ def get_categorias(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+        Query(ge=1, le=1000, description="Cantidad máxima de registros por página.", examples=[50]),
     ] = 50,
 ):
     """Consulta las categorías gastronómicas y márgenes de contribución."""
@@ -200,6 +202,7 @@ def get_categorias(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=1000,
     )
 
 
@@ -253,7 +256,7 @@ def get_platillos(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+        Query(ge=1, le=1000, description="Cantidad máxima de registros por página.", examples=[50]),
     ] = 50,
 ):
     """Consulta el catálogo de platillos del menú con costos de ingredientes y tiempos de preparación."""
@@ -282,6 +285,7 @@ def get_platillos(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=1000,
     )
 
 
@@ -314,7 +318,7 @@ def get_promociones(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+        Query(ge=1, le=1000, description="Cantidad máxima de registros por página.", examples=[50]),
     ] = 50,
 ):
     """Campañas de promociones, presupuesto de marketing y descuentos aplicados."""
@@ -334,6 +338,7 @@ def get_promociones(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=1000,
     )
 
 
@@ -381,7 +386,7 @@ def get_clima(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+        Query(ge=1, le=1000, description="Cantidad máxima de registros por página.", examples=[50]),
     ] = 50,
 ):
     """Condiciones climáticas diarias en Managua (precipitación en mm y temperatura)."""
@@ -403,6 +408,7 @@ def get_clima(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=1000,
     )
 
 
@@ -465,8 +471,8 @@ def get_ordenes(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
-    ] = 50,
+        Query(ge=1, le=5000, description="Cantidad máxima de registros por página (hasta 5,000).", examples=[100]),
+    ] = 100,
 ):
     """Consulta el histórico transaccional de órdenes de comida rápida y delivery."""
     filters: list[tuple[str, str, Any]] = []
@@ -497,6 +503,7 @@ def get_ordenes(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=5000,
     )
 
 
@@ -571,8 +578,8 @@ def get_detalles_orden(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
-    ] = 50,
+        Query(ge=1, le=5000, description="Cantidad máxima de registros por página (hasta 5,000).", examples=[200]),
+    ] = 200,
 ):
     """Consulta las líneas de detalle de platillos ordenados."""
     filters: list[tuple[str, str, Any]] = []
@@ -591,4 +598,5 @@ def get_detalles_orden(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=5000,
     )

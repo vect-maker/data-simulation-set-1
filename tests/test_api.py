@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 
 from src.api.main import app
 from src.api.utils import (
+    execute_aggregated_weather_query,
     execute_paginated_query,
     sanitize_row,
     validate_identifier,
@@ -379,6 +380,142 @@ class TestAPIService(unittest.TestCase):
         response = self.client.get("/movigo/trips/1")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["trip_id"], 1)
+
+    @patch("src.api.routers.movigo.execute_aggregated_weather_query")
+    def test_movigo_weather_granularity_aggregation(self, mock_agg_query):
+        """Test GET /movigo/weather delegates to execute_aggregated_weather_query when granularity != 'hour'."""
+        import datetime
+        mock_agg_query.return_value = {
+            "items": [
+                {
+                    "period_start": datetime.datetime(2024, 1, 1, 0, 0, 0),
+                    "period_end": datetime.datetime(2024, 1, 2, 0, 0, 0),
+                    "quadrant_id": 1,
+                    "granularity": "day",
+                    "avg_temperature_c": 27.5,
+                    "min_temperature_c": 22.0,
+                    "max_temperature_c": 33.0,
+                    "total_precipitation_mm": 12.4,
+                    "max_precipitation_mm": 8.0,
+                    "avg_channel_runoff_mm": 1.5,
+                    "max_channel_runoff_mm": 3.2,
+                    "avg_congestion_index": 1.25,
+                    "flooded_hours_count": 0,
+                    "records_count": 24,
+                    "dominant_sky_condition": "nublado",
+                }
+            ],
+            "count": 1,
+            "total": 1,
+            "offset": 0,
+            "limit": 1000,
+        }
+        response = self.client.get("/movigo/weather?granularity=day&by_quadrant=true&limit=1000")
+        self.assertEqual(response.status_code, 200)
+        mock_agg_query.assert_called_once()
+        _, kwargs = mock_agg_query.call_args
+        self.assertEqual(kwargs.get("granularity"), "day")
+        self.assertTrue(kwargs.get("by_quadrant"))
+        self.assertEqual(kwargs.get("limit"), 1000)
+        data = response.json()
+        self.assertEqual(data["count"], 1)
+        self.assertEqual(data["items"][0]["granularity"], "day")
+        self.assertEqual(data["items"][0]["avg_temperature_c"], 27.5)
+
+    @patch("src.api.routers.movigo.execute_paginated_query")
+    @patch("src.api.routers.antojitos.execute_paginated_query")
+    @patch("src.api.routers.volcan.execute_paginated_query")
+    def test_expanded_batch_limits_validation(self, mock_volcan_query, mock_antojitos_query, mock_movigo_query):
+        """Test validation boundaries for expanded batch limits across all three cases."""
+        empty_page = {"items": [], "count": 0, "total": 0, "offset": 0, "limit": 10}
+        mock_movigo_query.return_value = empty_page
+        mock_antojitos_query.return_value = empty_page
+        mock_volcan_query.return_value = empty_page
+
+        # 1. MoviGo Weather: limit up to 10000 accepted, 10001 rejected
+        res = self.client.get("/movigo/weather?limit=10000")
+        self.assertEqual(res.status_code, 200)
+        res = self.client.get("/movigo/weather?limit=10001")
+        self.assertEqual(res.status_code, 422)
+
+        # 2. MoviGo Telemetry: limit up to 10000 accepted, 10001 rejected
+        res = self.client.get("/movigo/telemetry?limit=10000")
+        self.assertEqual(res.status_code, 200)
+        res = self.client.get("/movigo/telemetry?limit=10001")
+        self.assertEqual(res.status_code, 422)
+
+        # 3. MoviGo Trips: limit up to 5000 accepted, 5001 rejected
+        res = self.client.get("/movigo/trips?limit=5000")
+        self.assertEqual(res.status_code, 200)
+        res = self.client.get("/movigo/trips?limit=5001")
+        self.assertEqual(res.status_code, 422)
+
+        # 4. Antojitos Ordenes: limit up to 5000 accepted, 5001 rejected
+        res = self.client.get("/antojitos/ordenes?limit=5000")
+        self.assertEqual(res.status_code, 200)
+        res = self.client.get("/antojitos/ordenes?limit=5001")
+        self.assertEqual(res.status_code, 422)
+
+        # 5. Volcan Lotes: limit up to 5000 accepted, 5001 rejected
+        res = self.client.get("/volcan/lotes?limit=5000")
+        self.assertEqual(res.status_code, 200)
+        res = self.client.get("/volcan/lotes?limit=5001")
+        self.assertEqual(res.status_code, 422)
+
+    @patch("src.api.utils.fetch_all")
+    @patch("src.api.utils.fetch_count")
+    def test_execute_aggregated_weather_query_execution(self, mock_fetch_count, mock_fetch_all):
+        """Test SQL building and execution in execute_aggregated_weather_query."""
+        import datetime
+        mock_fetch_count.return_value = 5
+        mock_fetch_all.return_value = [
+            {
+                "period_start": datetime.datetime(2024, 1, 1, 0, 0, 0),
+                "period_end": datetime.datetime(2024, 1, 2, 0, 0, 0),
+                "quadrant_id": None,
+                "granularity": "day",
+                "avg_temperature_c": 26.8,
+                "min_temperature_c": 21.0,
+                "max_temperature_c": 32.5,
+                "total_precipitation_mm": 5.4,
+                "max_precipitation_mm": 4.0,
+                "avg_channel_runoff_mm": 0.8,
+                "max_channel_runoff_mm": 1.9,
+                "avg_congestion_index": 1.10,
+                "flooded_hours_count": 0,
+                "records_count": 2208,
+                "dominant_sky_condition": "despejado",
+            }
+        ]
+
+        result = execute_aggregated_weather_query(
+            schema="movigo",
+            table="quadrant_weather",
+            granularity="day",
+            filters=[("recorded_at", ">=", datetime.datetime(2024, 1, 1))],
+            by_quadrant=False,
+            quadrant_id=None,
+            offset=0,
+            limit=500,
+            sort="period_start",
+        )
+
+        self.assertEqual(result["total"], 5)
+        self.assertEqual(result["count"], 1)
+        self.assertEqual(result["limit"], 500)
+        self.assertIsNone(result["items"][0]["quadrant_id"])
+        self.assertEqual(result["items"][0]["dominant_sky_condition"], "despejado")
+
+        # Verify SQL contains DATE_TRUNC('day', recorded_at) and MODE() WITHIN GROUP
+        count_query, count_params = mock_fetch_count.call_args[0]
+        self.assertIn("DATE_TRUNC('day', recorded_at)", count_query)
+        self.assertIn("FROM movigo.quadrant_weather", count_query)
+
+        data_query, data_params = mock_fetch_all.call_args[0]
+        self.assertIn("MODE() WITHIN GROUP (ORDER BY sky_condition)", data_query)
+        self.assertIn("DATE_TRUNC('day', recorded_at)", data_query)
+        self.assertNotIn("GROUP BY quadrant_id", data_query)  # by_quadrant=False
+        self.assertIn("NULL::int AS quadrant_id", data_query)
 
 
 if __name__ == "__main__":

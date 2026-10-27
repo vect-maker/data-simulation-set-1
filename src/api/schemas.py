@@ -1263,6 +1263,88 @@ class QuadrantWeatherOut(BaseModel):
     )
 
 
+class WeatherAggregatedOut(BaseModel):
+    """Métrica climática e hidrológica agregada temporalmente (día, semana, mes) para cuadrante o ciudad consolidada."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    period_start: dt_date | datetime = Field(
+        ...,
+        description="Inicio del período de agregación temporal (YYYY-MM-DD o ISO 8601).",
+        examples=["2024-05-18"],
+    )
+    period_end: dt_date | datetime | None = Field(
+        None,
+        description="Fin del período de agregación temporal (YYYY-MM-DD o ISO 8601).",
+        examples=["2024-05-24"],
+    )
+    quadrant_id: int | None = Field(
+        None,
+        description="Identificador del cuadrante analizado (1 a 92), o null si es promedio consolidado de Managua.",
+        examples=[53],
+    )
+    granularity: str = Field(
+        ...,
+        description="Nivel de granularidad aplicado ('day', 'week', 'month').",
+        examples=["day"],
+    )
+    avg_temperature_c: float = Field(
+        ...,
+        description="Temperatura promedio en el período (°C).",
+        examples=[27.5],
+    )
+    min_temperature_c: float | None = Field(
+        None,
+        description="Temperatura mínima registrada en el período (°C).",
+        examples=[22.1],
+    )
+    max_temperature_c: float | None = Field(
+        None,
+        description="Temperatura máxima registrada en el período (°C).",
+        examples=[34.2],
+    )
+    total_precipitation_mm: float = Field(
+        ...,
+        description="Precipitación acumulada total en el período (mm).",
+        examples=[45.8],
+    )
+    max_precipitation_mm: float | None = Field(
+        None,
+        description="Precipitación horaria máxima en el período (mm).",
+        examples=[18.5],
+    )
+    avg_channel_runoff_mm: float = Field(
+        ...,
+        description="Escorrentía promedio de cauces en el período (mm).",
+        examples=[5.2],
+    )
+    max_channel_runoff_mm: float | None = Field(
+        None,
+        description="Escorrentía pico máxima registrada en el período (mm).",
+        examples=[18.4],
+    )
+    avg_congestion_index: float = Field(
+        ...,
+        description="Índice promedio de congestión vial (1.00 a 3.95).",
+        examples=[1.85],
+    )
+    flooded_hours_count: int = Field(
+        0,
+        description="Cantidad total de horas con cauces o vías inundadas durante el período.",
+        examples=[3],
+    )
+    records_count: int = Field(
+        ...,
+        description="Total de observaciones horarias consolidadas en este intervalo.",
+        examples=[24],
+    )
+    dominant_sky_condition: str | None = Field(
+        None,
+        description="Condición atmosférica más frecuente en el período (moda estadística).",
+        examples=["lluvia_ligera"],
+    )
+
+
 class TripOut(BaseModel):
     """Cabecera transaccional esbelta (3NF) de un viaje solicitado en la plataforma MoviGo."""
 

@@ -74,7 +74,7 @@ def get_fincas(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+        Query(ge=1, le=1000, description="Cantidad máxima de registros por página.", examples=[50]),
     ] = 50,
 ):
     """Consulta el registro de fincas cafetaleras asociadas a la cooperativa."""
@@ -96,6 +96,7 @@ def get_fincas(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=1000,
     )
 
 
@@ -135,7 +136,7 @@ def get_variedades(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+        Query(ge=1, le=1000, description="Cantidad máxima de registros por página.", examples=[50]),
     ] = 50,
 ):
     """Consulta el catálogo de variedades botánicas de café cultivadas."""
@@ -153,6 +154,7 @@ def get_variedades(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=1000,
     )
 
 
@@ -192,7 +194,7 @@ def get_beneficios(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+        Query(ge=1, le=1000, description="Cantidad máxima de registros por página.", examples=[50]),
     ] = 50,
 ):
     """Consulta la infraestructura de procesamiento de beneficio de café."""
@@ -216,6 +218,7 @@ def get_beneficios(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=1000,
     )
 
 
@@ -255,7 +258,7 @@ def get_cuadrillas(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+        Query(ge=1, le=1000, description="Cantidad máxima de registros por página.", examples=[50]),
     ] = 50,
 ):
     """Consulta las cuadrillas de recolectores para la cosecha de café."""
@@ -273,6 +276,7 @@ def get_cuadrillas(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=1000,
     )
 
 
@@ -325,7 +329,7 @@ def get_clima_volcan(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+        Query(ge=1, le=2000, description="Cantidad máxima de registros por página.", examples=[50]),
     ] = 50,
 ):
     """Series meteorológicas agropecuarias en las cordilleras cafetaleras de Jinotega."""
@@ -349,6 +353,7 @@ def get_clima_volcan(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=2000,
     )
 
 
@@ -421,8 +426,8 @@ def get_lotes(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
-    ] = 50,
+        Query(ge=1, le=5000, description="Cantidad máxima de registros por página (hasta 5,000).", examples=[100]),
+    ] = 100,
 ):
     """Consulta los lotes cosechados y entregados en centros de acopio."""
     filters: list[tuple[str, str, Any]] = []
@@ -451,6 +456,7 @@ def get_lotes(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=5000,
     )
 
 
@@ -523,8 +529,8 @@ def get_procesamiento(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
-    ] = 50,
+        Query(ge=1, le=5000, description="Cantidad máxima de registros por página (hasta 5,000).", examples=[200]),
+    ] = 200,
 ):
     """Registro de transformaciones, secado y evaluación del café en beneficios."""
     filters: list[tuple[str, str, Any]] = []
@@ -545,6 +551,7 @@ def get_procesamiento(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=5000,
     )
 
 
@@ -584,7 +591,7 @@ def get_subastas(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+        Query(ge=1, le=1000, description="Cantidad máxima de registros por página.", examples=[50]),
     ] = 50,
 ):
     """Consulta de subastas internacionales de café de especialidad."""
@@ -610,6 +617,7 @@ def get_subastas(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=1000,
     )
 
 
@@ -658,8 +666,8 @@ def get_embarques(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
-    ] = 50,
+        Query(ge=1, le=2000, description="Cantidad máxima de registros por página (hasta 2,000).", examples=[100]),
+    ] = 100,
 ):
     """Consulta de exportaciones y despachos marítimos hacia mercados internacionales."""
     filters: list[tuple[str, str, Any]] = []
@@ -680,4 +688,5 @@ def get_embarques(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=2000,
     )

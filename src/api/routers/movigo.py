@@ -1,7 +1,7 @@
 """Routers for Caso 3: MoviGo (Transporte por Aplicación y Movilidad Urbana - Managua, Esquema OLTP 3NF)."""
 
 from datetime import date, datetime
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Path, Query
 
@@ -22,8 +22,9 @@ from src.api.schemas import (
     UserOut,
     VehicleOut,
     VehicleMaintenanceOut,
+    WeatherAggregatedOut,
 )
-from src.api.utils import execute_paginated_query, fetch_single_resource
+from src.api.utils import execute_paginated_query, execute_aggregated_weather_query, fetch_single_resource
 
 router = APIRouter(prefix="/movigo", tags=["Caso 3: MoviGo"])
 SCHEMA = "raw_staging_movigo"
@@ -89,8 +90,8 @@ def get_quadrants_movigo(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
-    ] = 50,
+        Query(ge=1, le=1000, description="Cantidad máxima de registros por página.", examples=[100]),
+    ] = 100,
 ):
     """Consulta la grilla de 92 cuadrantes cuadrados geográficos e hidrológicos de Managua."""
     filters: list[tuple[str, str, Any]] = []
@@ -118,6 +119,7 @@ def get_quadrants_movigo(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=1000,
     )
 
 
@@ -158,7 +160,7 @@ def get_zones_movigo(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+        Query(ge=1, le=1000, description="Cantidad máxima de registros por página.", examples=[50]),
     ] = 50,
 ):
     """Consulta la zonificación urbana de Managua y tarifas base de bajada de bandera."""
@@ -176,6 +178,7 @@ def get_zones_movigo(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=1000,
     )
 
 
@@ -215,8 +218,8 @@ def get_users(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
-    ] = 50,
+        Query(ge=1, le=2000, description="Cantidad máxima de registros por página.", examples=[100]),
+    ] = 100,
 ):
     """Consulta los perfiles y hábitos de pago de pasajeros en la aplicación."""
     filters: list[tuple[str, str, Any]] = []
@@ -233,6 +236,7 @@ def get_users(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=2000,
     )
 
 
@@ -281,8 +285,8 @@ def get_drivers(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
-    ] = 50,
+        Query(ge=1, le=1000, description="Cantidad máxima de registros por página.", examples=[150]),
+    ] = 150,
 ):
     """Consulta el directorio de conductores, calificación y tasa de aceptación."""
     filters: list[tuple[str, str, Any]] = []
@@ -301,6 +305,7 @@ def get_drivers(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=1000,
     )
 
 
@@ -344,8 +349,8 @@ def get_vehicles(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
-    ] = 50,
+        Query(ge=1, le=1000, description="Cantidad máxima de registros por página.", examples=[150]),
+    ] = 150,
 ):
     """Consulta las unidades vehiculares asociadas a los socios conductores."""
     filters: list[tuple[str, str, Any]] = []
@@ -364,6 +369,7 @@ def get_vehicles(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=1000,
     )
 
 
@@ -411,7 +417,7 @@ def get_campaigns(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
+        Query(ge=1, le=1000, description="Cantidad máxima de registros por página.", examples=[50]),
     ] = 50,
 ):
     """Consulta los programas de incentivos y bonos para conductores."""
@@ -442,21 +448,29 @@ def get_campaigns(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=1000,
     )
 
 
 @router.get(
     "/weather",
-    response_model=PaginatedResponse[QuadrantWeatherOut],
-    summary="Clima urbano e índice de congestión vial por cuadrante",
+    response_model=PaginatedResponse[QuadrantWeatherOut | WeatherAggregatedOut],
+    summary="Clima urbano e índice de congestión vial por cuadrante o métricas agregadas",
     description=(
-        "### Monitoreo Meteorológico y Saturación Vial en Managua\n\n"
-        "Series temporales horarias de microclima que asocian la precipitación en milímetros (`precipitation_mm`), escorrentía de cauces (`channel_runoff_mm`) "
-        "y temperatura (`temperature_c`) con el índice de congestión del tráfico en Managua (`congestion_index`)."
+        "### Monitoreo Meteorológico, Saturación Vial y Agregación Temporal en Managua\n\n"
+        "Series temporales de microclima urbano que asocian la precipitación en milímetros (`precipitation_mm`), escorrentía de cauces (`channel_runoff_mm`) "
+        "y temperatura (`temperature_c`) con el índice de congestión del tráfico en Managua (`congestion_index`).\n\n"
+        "**Niveles de Granularidad (`granularity`):**\n"
+        "- `hour` (por defecto): Entrega los registros normalizados 3NF de cada hora y cuadrante.\n"
+        "- `day`: Agrega la serie diaria (precipitación total acumulada, temperatura promedio/mín/máx, congestión y horas de inundación).\n"
+        "- `week`: Agrega la serie semanal por cuadrante o ciudad consolidada.\n"
+        "- `month`: Agrega la serie mensual.\n\n"
+        "**Consolidación Urbana (`by_quadrant`):** Si `by_quadrant=False` en agregaciones (`day`, `week`, `month`), consolida el promedio/total de toda la ciudad de Managua en una única fila por período."
     ),
-    response_description="Serie climática e índice de congestión en Managua",
+    response_description="Serie climática e índice de congestión horaria o agregada en Managua",
     responses={
         200: {"description": "Consulta exitosa de registros climáticos y viales."},
+        400: {"description": "Rango de fechas fuera de los límites de simulación."},
         422: {"description": "Error en el formato de fechas o parámetros de paginación."},
     },
 )
@@ -483,7 +497,7 @@ def get_weather_movigo(
     ] = None,
     hour: Annotated[
         int | None,
-        Query(ge=0, le=23, description="Filtrar por hora del día (0 a 23).", examples=[17]),
+        Query(ge=0, le=23, description="Filtrar por hora del día (0 a 23, aplicable a granularidad 'hour').", examples=[17]),
     ] = None,
     flooded_roads: Annotated[
         bool | None,
@@ -496,11 +510,31 @@ def get_weather_movigo(
             examples=["despejado", "nublado", "lluvia_ligera", "tormenta"],
         ),
     ] = None,
+    granularity: Annotated[
+        Literal["hour", "day", "week", "month"],
+        Query(
+            description=(
+                "Nivel de granularidad temporal de las métricas climáticas:\n"
+                "- 'hour': Registro 3NF original por hora y cuadrante (por defecto).\n"
+                "- 'day': Resumen diario (precipitación total, temperatura promedio/mín/máx, escorrentía).\n"
+                "- 'week': Resumen semanal.\n"
+                "- 'month': Resumen mensual."
+            ),
+            examples=["hour", "day", "week", "month"],
+        ),
+    ] = "hour",
+    by_quadrant: Annotated[
+        bool,
+        Query(
+            description="Si es False y granularity != 'hour', calcula el consolidado general de toda Managua sin separar por cuadrante.",
+            examples=[True, False],
+        ),
+    ] = True,
     sort: Annotated[
         str | None,
         Query(
-            description="Campo de ordenamiento (ej. 'weather_id', 'recorded_at', '-congestion_index', '-channel_runoff_mm').",
-            examples=["weather_id", "recorded_at", "-congestion_index", "-channel_runoff_mm"],
+            description="Campo de ordenamiento (ej. 'weather_id', 'recorded_at', 'period_start', '-total_precipitation_mm').",
+            examples=["weather_id", "recorded_at", "period_start", "-total_precipitation_mm"],
         ),
     ] = None,
     offset: Annotated[
@@ -509,10 +543,10 @@ def get_weather_movigo(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
-    ] = 50,
+        Query(ge=1, le=10000, description="Cantidad máxima de registros por página (hasta 10,000 para pipelines de descarga masiva).", examples=[1000]),
+    ] = 1000,
 ):
-    """Series horarias de microclima urbano, escorrentía de cauces e índice de congestión vial por cuadrante en Managua."""
+    """Series horarias o agregadas de microclima urbano, escorrentía de cauces e índice de congestión vial."""
     movigo_clock.validate_time_bounds(start_time, end_time)
     filters: list[tuple[str, str, Any]] = []
     if quadrant_id is not None:
@@ -532,28 +566,43 @@ def get_weather_movigo(
     if sky_condition:
         filters.append(("sky_condition", "=", sky_condition))
 
-    allowed = {
-        "weather_id",
-        "quadrant_id",
-        "recorded_at",
-        "date",
-        "hour",
-        "precipitation_mm",
-        "channel_runoff_mm",
-        "congestion_index",
-        "flooded_roads",
-        "sky_condition",
-    }
-    return execute_paginated_query(
-        schema=SCHEMA,
-        table="quadrant_weather",
-        filters=filters,
-        allowed_sort_columns=allowed,
-        default_sort="weather_id",
-        sort=sort,
-        offset=offset,
-        limit=limit,
-    )
+    if granularity == "hour":
+        allowed = {
+            "weather_id",
+            "quadrant_id",
+            "recorded_at",
+            "date",
+            "hour",
+            "precipitation_mm",
+            "channel_runoff_mm",
+            "congestion_index",
+            "flooded_roads",
+            "sky_condition",
+        }
+        return execute_paginated_query(
+            schema=SCHEMA,
+            table="quadrant_weather",
+            filters=filters,
+            allowed_sort_columns=allowed,
+            default_sort="weather_id",
+            sort=sort,
+            offset=offset,
+            limit=limit,
+            max_limit=10000,
+        )
+    else:
+        return execute_aggregated_weather_query(
+            schema=SCHEMA,
+            table="quadrant_weather",
+            granularity=granularity,
+            filters=filters,
+            quadrant_id=quadrant_id,
+            by_quadrant=by_quadrant,
+            sort=sort,
+            offset=offset,
+            limit=limit,
+            max_limit=10000,
+        )
 
 
 @router.get(
@@ -616,8 +665,8 @@ def get_trips(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
-    ] = 50,
+        Query(ge=1, le=5000, description="Cantidad máxima de registros por página (hasta 5,000).", examples=[200]),
+    ] = 200,
 ):
     """Cabecera transaccional de viajes urbanos (3NF)."""
     movigo_clock.validate_time_bounds(start_time, end_time)
@@ -657,6 +706,7 @@ def get_trips(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=5000,
     )
 
 
@@ -732,8 +782,8 @@ def get_trip_payments(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
-    ] = 50,
+        Query(ge=1, le=5000, description="Cantidad máxima de registros por página (hasta 5,000).", examples=[200]),
+    ] = 200,
 ):
     """Consulta las transacciones de pago y liquidación tarifaria de viajes."""
     filters: list[tuple[str, str, Any]] = []
@@ -754,6 +804,7 @@ def get_trip_payments(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=5000,
     )
 
 
@@ -789,8 +840,8 @@ def get_trip_ratings(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
-    ] = 50,
+        Query(ge=1, le=5000, description="Cantidad máxima de registros por página (hasta 5,000).", examples=[200]),
+    ] = 200,
 ):
     """Consulta las calificaciones post-viaje de pasajeros y conductores."""
     filters: list[tuple[str, str, Any]] = []
@@ -807,6 +858,7 @@ def get_trip_ratings(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=5000,
     )
 
 
@@ -850,8 +902,8 @@ def get_trip_cancellations(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
-    ] = 50,
+        Query(ge=1, le=5000, description="Cantidad máxima de registros por página (hasta 5,000).", examples=[200]),
+    ] = 200,
 ):
     """Consulta los eventos de cancelación y métricas de fricción de despacho."""
     filters: list[tuple[str, str, Any]] = []
@@ -877,6 +929,7 @@ def get_trip_cancellations(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=5000,
     )
 
 
@@ -935,8 +988,8 @@ def get_telemetry(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
-    ] = 50,
+        Query(ge=1, le=10000, description="Cantidad máxima de registros por página (hasta 10,000 para streaming y análisis continuo).", examples=[1000]),
+    ] = 1000,
 ):
     """Datos telemétricos de conducción (velocidad, coordenadas, cuadrante, estado de disponibilidad)."""
     movigo_clock.validate_time_bounds(start_time, end_time)
@@ -964,6 +1017,7 @@ def get_telemetry(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=10000,
     )
 
 
@@ -1011,8 +1065,8 @@ def get_vehicle_maintenance(
     ] = 0,
     limit: Annotated[
         int,
-        Query(ge=1, le=200, description="Cantidad máxima de registros por página.", examples=[50]),
-    ] = 50,
+        Query(ge=1, le=1000, description="Cantidad máxima de registros por página.", examples=[100]),
+    ] = 100,
 ):
     """Historial de mantenimiento preventivo y correctivo de la flota automotriz MoviGo."""
     if start_date or end_date:
@@ -1040,4 +1094,5 @@ def get_vehicle_maintenance(
         sort=sort,
         offset=offset,
         limit=limit,
+        max_limit=1000,
     )

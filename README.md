@@ -153,11 +153,15 @@ El repositorio incluye un servicio web REST en FastAPI (`src/api`) conectado dir
 
 * **Documentación Interactiva:** Swagger UI en [`http://localhost:8000/docs`](http://localhost:8000/docs) y ReDoc en [`http://localhost:8000/redoc`](http://localhost:8000/redoc).
 * **Seguridad y Acceso:** Acceso público sin autenticación, con CORS completamente abierto (`*`) para consumo directo desde navegadores, Jupyter Notebooks, Google Colab o scripts en Python/R.
-* **Paginación Estándar:** Formato envelope `{"items": [...], "count": N, "total": M, "offset": X, "limit": Y}` con parámetros `?limit=50&offset=0` y ordenamiento `?sort=campo` o `?sort=-campo`.
+* **Paginación y Límites Diferenciados:** Formato envelope `{"items": [...], "count": N, "total": M, "offset": X, "limit": Y}` con ordenamiento `?sort=campo` o `?sort=-campo`. Los límites de descarga (`limit`) están optimizados para pipelines de ingestión:
+  * **Series temporales masivas (hasta 10,000 registros/lote):** `/movigo/weather`, `/movigo/telemetry`.
+  * **Tablas transaccionales (hasta 5,000 registros/lote):** `/movigo/trips`, `/movigo/payments`, `/movigo/ratings`, `/movigo/cancellations`, `/antojitos/ordenes`, `/antojitos/detalles`, `/volcan/lotes`, `/volcan/procesamiento`.
+  * **Catálogos y dimensiones (hasta 1,000 - 2,000 registros/lote):** `/movigo/users`, `/movigo/drivers`, `/movigo/vehicles`, `/movigo/zones`, `/movigo/quadrants`, `/antojitos/repartidores`, `/volcan/fincas`, etc.
+* **Métricas Climáticas con Granularidad:** El endpoint `/movigo/weather` admite `?granularity=hour|day|week|month` y `?by_quadrant=true|false` para solicitar métricas pre-agregadas en base de datos (medias de temperatura, acumulado de precipitación, escorrentía máxima, moda de condición de cielo, horas de inundación), reduciendo la transferencia de red hasta 2,200x.
 * **Rutas por Caso:**
   * **Caso 1 (Antojitos Express):** `/antojitos/zonas`, `/antojitos/repartidores`, `/antojitos/categorias`, `/antojitos/platillos`, `/antojitos/promociones`, `/antojitos/clima`, `/antojitos/ordenes`, `/antojitos/ordenes/{id_orden}`, `/antojitos/detalles`.
   * **Caso 2 (Cooperativa El Volcán):** `/volcan/fincas`, `/volcan/variedades`, `/volcan/beneficios`, `/volcan/cuadrillas`, `/volcan/clima`, `/volcan/lotes`, `/volcan/lotes/{id_lote}`, `/volcan/procesamiento`, `/volcan/subastas`, `/volcan/embarques`.
-  * **Caso 3 (MoviGo):** `/movigo/zonas`, `/movigo/usuarios`, `/movigo/conductores`, `/movigo/campanas`, `/movigo/clima`, `/movigo/viajes`, `/movigo/viajes/{id_viaje}`, `/movigo/telemetria`.
+  * **Caso 3 (MoviGo):** `/movigo/quadrants`, `/movigo/zones`, `/movigo/users`, `/movigo/drivers`, `/movigo/vehicles`, `/movigo/campaigns`, `/movigo/weather`, `/movigo/trips`, `/movigo/trips/{trip_id}`, `/movigo/payments`, `/movigo/ratings`, `/movigo/cancellations`, `/movigo/telemetry`, `/movigo/maintenance`, `/movigo/simulation/status`.
 
 ```bash
 # Iniciar servicios completos en Podman Compose (Postgres + FastAPI):
