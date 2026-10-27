@@ -73,6 +73,11 @@ seed-movigo:
 maps-movigo:
     {{ PYTHON }} scripts/generate_movigo_maps.py
 
+# Audit MoviGo simulation data in PostgreSQL using DuckDB extension
+audit-movigo:
+    {{ PYTHON }} scripts/audit_movigo_duckdb.py
+
+
 # Generate dimensional catalog seeds with Gemini API for all 3 cases
 seed-all:
     {{ PYTHON }} scripts/generate_all_seeds.py
