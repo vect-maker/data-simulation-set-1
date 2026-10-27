@@ -235,14 +235,33 @@ def render_map_2_streets(
         "Red Vial Mapeada del Municipio de Managua (OpenStreetMap)",
     )
 
+    nodes = net.get("nodes", [])
+    seen_lines = set()
     lines_residential = []
     for qid, segs in net.get("quadrant_streets", {}).items():
         for s in segs:
-            lines_residential.append([(s[1], s[0]), (s[3], s[2])])
+            line_key = (round(min(s[0], s[2]), 5), round(min(s[1], s[3]), 5), round(max(s[0], s[2]), 5), round(max(s[1], s[3]), 5))
+            if line_key not in seen_lines:
+                seen_lines.add(line_key)
+                lines_residential.append([(s[1], s[0]), (s[3], s[2])])
 
     lines_arterial = []
     for a in net.get("arterials", []):
+        line_key = (round(min(a[0], a[2]), 5), round(min(a[1], a[3]), 5), round(max(a[0], a[2]), 5), round(max(a[1], a[3]), 5))
+        seen_lines.add(line_key)
         lines_arterial.append([(a[1], a[0]), (a[3], a[2])])
+
+    # Also render any direct graph edges between nodes to ensure 100% comprehensive street coverage
+    edges = net.get("edges", [])
+    for e in edges:
+        iu, iv = int(e[0]), int(e[1])
+        if iu < len(nodes) and iv < len(nodes):
+            lat1, lon1 = nodes[iu][0], nodes[iu][1]
+            lat2, lon2 = nodes[iv][0], nodes[iv][1]
+            line_key = (round(min(lat1, lat2), 5), round(min(lon1, lon2), 5), round(max(lat1, lat2), 5), round(max(lon1, lon2), 5))
+            if line_key not in seen_lines:
+                seen_lines.add(line_key)
+                lines_residential.append([(lon1, lat1), (lon2, lat2)])
 
     lc_res = LineCollection(lines_residential, colors="#377eb8", linewidths=0.6, alpha=0.55, label="Calles y Vías Locales")
     lc_art = LineCollection(lines_arterial, colors="#e41a1c", linewidths=1.3, alpha=0.85, label="Arterias Metropolitanas")

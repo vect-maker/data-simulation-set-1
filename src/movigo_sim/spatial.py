@@ -428,6 +428,10 @@ DRIVABLE_HIGHWAY_TYPES = {
     "tertiary",
     "residential",
     "unclassified",
+    "living_street",
+    "service",
+    "track",
+    "road",
     "motorway_link",
     "trunk_link",
     "primary_link",
@@ -448,6 +452,10 @@ HIGHWAY_BASE_SPEEDS: dict[str, float] = {
     "tertiary_link": 25.0,
     "residential": 22.0,
     "unclassified": 24.0,
+    "living_street": 18.0,
+    "service": 16.0,
+    "track": 15.0,
+    "road": 22.0,
 }
 
 HIGHWAY_CLASSES = sorted(list(DRIVABLE_HIGHWAY_TYPES))
@@ -1034,8 +1042,8 @@ def build_deterministic_quadrants_and_dense_osm_graph(
                             1 if (is_fl or q["flood_risk"] == "critico") else 0
                         )
 
-        quadrant_streets[str(qid)] = cell_segs[:120]
-        quadrant_flood_flags[str(qid)] = cell_flags[:120]
+        quadrant_streets[str(qid)] = cell_segs
+        quadrant_flood_flags[str(qid)] = cell_flags
 
     # 7. Select 1 representative hub intersection node per quadrant for fast corridor routing
     quad_hubs: dict[str, int] = {}
