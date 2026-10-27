@@ -47,6 +47,7 @@ from movigo_sim.analytics import (
     compute_movigo_metodos_numericos,
     compute_movigo_optimizacion,
     compute_movigo_spatial_gis,
+    compute_multinomial_mode_choice_metrics,
 )
 
 logger = logging.getLogger(__name__)
@@ -312,16 +313,26 @@ CREATE OR REPLACE FUNCTION fn_calculate_trip_fare(
     p_flag_drop_fare DECIMAL(8,2),
     p_distance_km DECIMAL(6,2),
     p_duration_min DECIMAL(6,2),
-    p_surge_multiplier DECIMAL(4,2)
+    p_surge_multiplier DECIMAL(4,2),
+    p_service_type VARCHAR(25) DEFAULT 'movigo_estandar'
 )
 RETURNS DECIMAL(8,2) AS $$
 DECLARE
     v_cost_per_km DECIMAL(8,2) := 18.00;
     v_cost_per_min DECIMAL(8,2) := 4.50;
+    v_service_multiplier DECIMAL(4,2) := 1.00;
     v_subtotal DECIMAL(8,2);
     v_total DECIMAL(8,2);
 BEGIN
-    v_subtotal := p_flag_drop_fare + (p_distance_km * v_cost_per_km) + (p_duration_min * v_cost_per_min);
+    IF p_service_type = 'movigo_moto' THEN
+        v_service_multiplier := 0.65;
+    ELSIF p_service_type = 'movigo_comfort' THEN
+        v_service_multiplier := 1.40;
+    ELSE
+        v_service_multiplier := 1.00;
+    END IF;
+
+    v_subtotal := (p_flag_drop_fare + (p_distance_km * v_cost_per_km) + (p_duration_min * v_cost_per_min)) * v_service_multiplier;
     v_total := ROUND(v_subtotal * p_surge_multiplier, 2);
     RETURN v_total;
 END;
@@ -578,6 +589,7 @@ def compute_movigo_simulation_summary(
     cancellations: list[TripCancellation] | None = None,
     maintenance: list[Any] | None = None,
     drainage_channels: list[DrainageChannel] | None = None,
+    vehicles: list[Vehicle] | None = None,
     seed: int = SIMULATION_SEED,
     summary_path: Path | None = None,
 ) -> dict[str, Any]:
@@ -591,6 +603,10 @@ def compute_movigo_simulation_summary(
     if drainage_channels is None:
         drainage_channels = load_movigo_drainage_channels()
     df_drainage = pd.DataFrame([c.model_dump() for c in drainage_channels])
+    if vehicles is None:
+        from .engine.simulator import load_movigo_vehicles
+        vehicles = load_movigo_vehicles()
+    df_vehicles = pd.DataFrame([v.model_dump() for v in vehicles])
 
     if isinstance(weather, pd.DataFrame):
         df_weather = weather
@@ -657,6 +673,9 @@ def compute_movigo_simulation_summary(
     spatial_results = compute_movigo_spatial_gis(
         df_trips, df_quadrants, df_zones, df_drainage, df_payments=df_payments
     )
+    mode_choice_results = compute_multinomial_mode_choice_metrics(
+        df_trips, df_payments, df_vehicles, df_weather=df_weather
+    )
 
     # Export GeoJSON layers
     try:
@@ -705,6 +724,7 @@ def compute_movigo_simulation_summary(
         "metodos_numericos": num_results,
         "optimizacion": opt_results,
         "analitica_espacial_gis": spatial_results,
+        "eleccion_modal_multinomial_logit": mode_choice_results,
     }
 
     target_summary_path = summary_path if summary_path is not None else (ARTIFACTS_DIR / "simulation_summary.json")

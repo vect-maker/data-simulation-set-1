@@ -117,6 +117,26 @@ def display_movigo_rich_summary(summary: dict):
         ]
         render_operational_table("Ciencia de Datos Espacial & GIS (Managua 2024)", spatial_rows, border_style="green")
 
+    # 5. Elección Modal & Demanda Multimodal (Multinomial Logit)
+    if "eleccion_modal_multinomial_logit" in summary:
+        ml = summary["eleccion_modal_multinomial_logit"]
+        cg = ml.get("cuota_modal_global", {})
+        cs = ml.get("cuota_modal_clima_seco_pct", {})
+        cl = ml.get("cuota_modal_lluvia_severa_pct", {})
+
+        moto_g = cg.get("movigo_moto", {})
+        std_g = cg.get("movigo_estandar", {})
+        comf_g = cg.get("movigo_comfort", {})
+
+        modal_rows = [
+            ("Cuota Global por Categoría", f"Estándar: {std_g.get('porcentaje')}% ({std_g.get('viajes')} v.) | Comfort: {comf_g.get('porcentaje')}% ({comf_g.get('viajes')} v.) | Moto: {moto_g.get('porcentaje')}% ({moto_g.get('viajes')} v.)"),
+            ("Tarifas Promedio por Categoría", f"Estándar: C$ {std_g.get('tarifa_promedio_nio')} | Comfort: C$ {comf_g.get('tarifa_promedio_nio')} | Moto: C$ {moto_g.get('tarifa_promedio_nio')}"),
+            ("Cuota en Clima Seco (< 0.5 mm)", f"Estándar: {cs.get('movigo_estandar', 0.0)}% | Comfort: {cs.get('movigo_comfort', 0.0)}% | Moto: {cs.get('movigo_moto', 0.0)}%"),
+            ("Cuota en Lluvia Severa (≥ 3.0 mm)", f"Estándar: {cl.get('movigo_estandar', 0.0)}% | Comfort: {cl.get('movigo_comfort', 0.0)}% | Moto: {cl.get('movigo_moto', 0.0)}%"),
+            ("Sensibilidad y Elasticidad Cruzada", f"Ratio Desplome Moto: {ml.get('ratio_sensibilidad_climatica_moto')}x | Elasticidad Cruzada (Estándar/Moto): {ml.get('elasticidad_precio_cruzada_estandar_moto')}"),
+        ]
+        render_operational_table("Elección Modal & Demanda Multimodal (Multinomial Logit)", modal_rows, border_style="magenta")
+
 
 def run_generation(
     days=None,
@@ -178,6 +198,7 @@ def run_generation(
         campaigns=engine.campaigns,
         cancellations=cancellations,
         maintenance=maintenance,
+        vehicles=engine.vehicles,
         seed=seed,
         summary_path=summary_path,
     )

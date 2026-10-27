@@ -29,8 +29,10 @@ START_DATE = "2024-01-01"
 END_DATE = "2024-12-31"
 TIMEZONE = "America/Managua"
 
-# Global Reproducibility Seed
-SIMULATION_SEED = int(os.getenv("MOVIGO_SIMULATION_SEED", "42"))
+from data_sim.core.config import GLOBAL_SIMULATION_SEED
+
+# Global Reproducibility Seed (inherits hierarchical GLOBAL_SIMULATION_SEED, overridable by MOVIGO_SIMULATION_SEED)
+SIMULATION_SEED = int(os.getenv("MOVIGO_SIMULATION_SEED", str(GLOBAL_SIMULATION_SEED)))
 
 # Weather API (Open-Meteo Managua)
 OPEN_METEO_ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
@@ -41,6 +43,14 @@ OPEN_METEO_LONGITUDE = -86.2514
 BASE_FLAG_DROP_NIO = 45.00
 BASE_PER_KM_NIO = 18.00
 BASE_PER_MINUTE_NIO = 4.50
+
+SERVICE_CATEGORIES = ["movigo_moto", "movigo_estandar", "movigo_comfort"]
+
+SERVICE_FARE_FACTORS: dict[str, float] = {
+    "movigo_moto": 0.65,
+    "movigo_estandar": 1.00,
+    "movigo_comfort": 1.40,
+}
 
 # Surge pricing sensitivity to rain and peak traffic:
 # Multiplier = 1.0 + 0.032 * Pt + Rush_Hour_Boost + eps

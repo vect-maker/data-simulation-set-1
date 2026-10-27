@@ -20,10 +20,37 @@ from movigo_sim.config import (
     BASE_PER_MINUTE_NIO,
     SURGE_MAX,
     OUTLIER_MOBILITY_SHOCK_PROB,
+    SERVICE_CATEGORIES,
+    SERVICE_FARE_FACTORS,
 )
 from movigo_sim.models import UrbanZone, IncentiveCampaign
 from movigo_sim.engine.entities import DriverAgent
 from movigo_sim.engine.world import WorldEnvironment, get_gravity_regime_name, haversine_km
+
+# Multinomial Logit Alternative-Specific Constants (reference: movigo_estandar = 0.0)
+MODE_CHOICE_ASC: dict[str, float] = {
+    "movigo_moto": 0.45,       # Baseline appeal in dry weather (quick, cheap)
+    "movigo_estandar": 0.00,   # Reference base alternative
+    "movigo_comfort": -0.65,   # Premium baseline barrier
+}
+
+# Price sensitivity beta by stratum for Multinomial Logit
+STRATUM_COST_BETA: dict[str, float] = {
+    "popular":   -0.038,  # Highly sensitive to price
+    "medio":     -0.024,
+    "comercial": -0.018,
+    "alto":      -0.009,  # Low sensitivity to price
+}
+
+# Weather (Rain mm) sensitivity beta by service modality
+MODE_WEATHER_BETA: dict[str, float] = {
+    "movigo_moto":    -0.95,  # Extreme penalty for rain on motorbikes (soaked/slip hazards)
+    "movigo_estandar": 0.12,  # Positive preference for enclosed cabin
+    "movigo_comfort":  0.32,  # High preference for safe, elevated SUVs during storms
+}
+
+# Wait time (ETA) sensitivity beta
+WAIT_TIME_BETA: float = -0.06
 
 # Chi-Square Conditional Probability Matrix: P(Payment Method | Socioeconomic Stratum)
 STRATUM_PAYMENT_PROBABILITIES: dict[str, list[float]] = {
@@ -163,6 +190,111 @@ class MoviGoPlatform:
 
         return d_t, s_t, round(multiplier, 2)
 
+    def simulate_category_surge_multipliers(
+        self,
+        origin_zone: UrbanZone,
+        hourly_precip_mm: float,
+        runoff_mm: float,
+        flooded_roads: bool,
+        hour: int,
+        dow: int,
+        world: WorldEnvironment,
+        rng: np.random.Generator,
+        curr_date: date | None = None,
+    ) -> dict[str, tuple[int, int, float]]:
+        """Simulate demand (Dt), supply (St), and equilibrium surge (m*) independently for each vehicle category."""
+        base_d, base_s, base_m = self.simulate_supply_demand_and_surge(
+            origin_zone, hourly_precip_mm, runoff_mm, flooded_roads, hour, dow, world, rng, curr_date
+        )
+
+        effective_water = max(hourly_precip_mm, runoff_mm)
+        category_results: dict[str, tuple[int, int, float]] = {}
+
+        for st in SERVICE_CATEGORIES:
+            if st == "movigo_moto":
+                # Rain destroys moto demand and causes moto drivers to log off or refuse service
+                if effective_water >= 5.0 or flooded_roads:
+                    d_cat = max(1, int(round(base_d * 0.02)))
+                    s_cat = max(1, int(round(base_s * 0.18 * 0.20)))
+                    m_cat = 1.00
+                elif effective_water >= 1.0:
+                    d_cat = max(1, int(round(base_d * 0.12)))
+                    s_cat = max(1, int(round(base_s * 0.18 * 0.50)))
+                    m_cat = round(float(np.clip(1.00 + rng.normal(0.0, 0.02), 1.00, 1.15)), 2)
+                else:
+                    # Dry weather: popular sectors have very high moto preference
+                    pop_boost = 1.35 if origin_zone.socioeconomic_stratum == "popular" else 1.00
+                    d_cat = max(1, int(round(base_d * 0.32 * pop_boost)))
+                    s_cat = max(1, int(round(base_s * 0.18)))
+                    m_cat = round(float(np.clip((d_cat / max(1.0, float(s_cat))) ** 0.55, 1.00, 2.20)), 2)
+
+            elif st == "movigo_comfort":
+                # High-income / commercial zones have baseline comfort demand; rain triggers severe surge
+                stratum_factor = 1.65 if origin_zone.socioeconomic_stratum == "alto" else (
+                    1.20 if origin_zone.socioeconomic_stratum == "comercial" else 0.60
+                )
+                if effective_water >= 5.0 or flooded_roads:
+                    # In downpours, affluent riders seek safe elevated SUVs
+                    d_cat = max(1, int(round(base_d * 0.32 * stratum_factor * 1.50)))
+                    s_cat = max(1, int(round(base_s * 0.24)))
+                    m_cat = round(float(np.clip(base_m * 1.25 + rng.normal(0.05, 0.03), 1.20, SURGE_MAX)), 2)
+                else:
+                    d_cat = max(1, int(round(base_d * 0.18 * stratum_factor)))
+                    s_cat = max(1, int(round(base_s * 0.24)))
+                    m_cat = round(float(np.clip(base_m * 0.95 + rng.normal(0.0, 0.02), 1.00, SURGE_MAX)), 2)
+
+            else:  # movigo_estandar
+                # Standard car captures bulk of displacement from moto during rain
+                if effective_water >= 5.0 or flooded_roads:
+                    d_cat = max(1, int(round(base_d * 0.66 * 1.30)))
+                    s_cat = max(1, int(round(base_s * 0.58)))
+                    m_cat = round(float(np.clip(base_m * 1.12, 1.10, SURGE_MAX)), 2)
+                else:
+                    d_cat = max(1, int(round(base_d * 0.50)))
+                    s_cat = max(1, int(round(base_s * 0.58)))
+                    m_cat = round(float(np.clip(base_m, 1.00, SURGE_MAX)), 2)
+
+            category_results[st] = (d_cat, s_cat, m_cat)
+
+        return category_results
+
+    def sample_mode_choice(
+        self,
+        stratum: str,
+        effective_water_mm: float,
+        category_fares: dict[str, float],
+        category_etas: dict[str, float],
+        rng: np.random.Generator,
+    ) -> tuple[str, dict[str, float]]:
+        """Multinomial Logit discrete vehicle category choice model for passenger agents.
+
+        Returns:
+            chosen_category: one of 'movigo_moto', 'movigo_estandar', 'movigo_comfort'
+            choice_probabilities: dict mapping each category to its selection probability
+        """
+        beta_cost = STRATUM_COST_BETA.get(stratum, -0.024)
+
+        v_utilities: dict[str, float] = {}
+        for cat in SERVICE_CATEGORIES:
+            asc = MODE_CHOICE_ASC[cat]
+            fare = category_fares.get(cat, 100.0)
+            eta = category_etas.get(cat, 5.0)
+            w_beta = MODE_WEATHER_BETA[cat]
+
+            # Systematic utility: V_ij = ASC_j + beta_cost * Fare_j + beta_time * ETA_j + beta_rain * Rain_mm
+            v = asc + (beta_cost * fare) + (WAIT_TIME_BETA * eta) + (w_beta * effective_water_mm)
+            v_utilities[cat] = v
+
+        # Softmax with numerical stability
+        max_v = max(v_utilities.values())
+        exp_v = {cat: math.exp(v - max_v) for cat, v in v_utilities.items()}
+        sum_exp = sum(exp_v.values())
+        probs = {cat: exp_v[cat] / sum_exp for cat in SERVICE_CATEGORIES}
+
+        prob_list = [probs[cat] for cat in SERVICE_CATEGORIES]
+        chosen_cat = str(rng.choice(SERVICE_CATEGORIES, p=prob_list))
+        return chosen_cat, probs
+
     def sample_payment_method_for_stratum(
         self,
         stratum: str,
@@ -190,11 +322,14 @@ class MoviGoPlatform:
         distance_km: float,
         duration_min: float,
         surge_multiplier: float,
+        service_type: str = "movigo_estandar",
     ) -> tuple[float, float]:
-        """Compute base fare and final fare."""
+        """Compute base fare and final fare incorporating service category factor."""
+        factor = SERVICE_FARE_FACTORS.get(service_type, 1.00)
         distance_charge = round(distance_km * BASE_PER_KM_NIO, 2)
         time_charge = round(duration_min * BASE_PER_MINUTE_NIO, 2)
-        base_fare = round(flag_drop_fare + distance_charge + time_charge, 2)
+        raw_base = flag_drop_fare + distance_charge + time_charge
+        base_fare = round(raw_base * factor, 2)
         final_fare = round(base_fare * surge_multiplier, 2)
         return base_fare, final_fare
 
@@ -207,14 +342,23 @@ class MoviGoPlatform:
         req_time: datetime,
         world: WorldEnvironment,
         rng: np.random.Generator,
+        service_type: str = "movigo_estandar",
     ) -> tuple[DriverAgent, float]:
-        """Match request with on-duty company driver via greedy proximity dispatch or earliest queue."""
-        # Only dispatch drivers who are currently on-duty
-        dispatchable_free = [d for d in free_drivers if d.is_dispatchable(req_time)]
+        """Match request with on-duty company driver prioritizing the requested vehicle category."""
+        # 1. Filter dispatchable free drivers operating the requested category
+        matching_free = [
+            d for d in free_drivers
+            if d.is_dispatchable(req_time) and d.vehicle_model.service_type == service_type
+        ]
 
-        if dispatchable_free:
+        # 2. If no free driver of that category is available, fall back to any dispatchable free driver
+        if not matching_free:
+            matching_free = [d for d in free_drivers if d.is_dispatchable(req_time)]
+
+        # 3. If free drivers exist, dispatch closest via proximity
+        if matching_free:
             proximity_w = []
-            for d in dispatchable_free:
+            for d in matching_free:
                 d_pos = world.node_coords[d.current_node]
                 d_hav = haversine_km(d_pos[0], d_pos[1], lat_o, lon_o)
                 # Proximity score with central corporate dispatch compliance (96% company policy compliance)
@@ -223,11 +367,11 @@ class MoviGoPlatform:
                 proximity_w.append(score * compliance)
             proximity_w_arr = np.array(proximity_w, dtype=float)
             proximity_w_arr /= proximity_w_arr.sum()
-            chosen_local_idx = int(rng.choice(len(dispatchable_free), p=proximity_w_arr))
-            driver = dispatchable_free[chosen_local_idx]
+            chosen_local_idx = int(rng.choice(len(matching_free), p=proximity_w_arr))
+            driver = matching_free[chosen_local_idx]
             extra_wait = 0.0
         else:
-            # If no driver is currently free, queue with the earliest finishing on-duty driver
+            # 4. If no free driver is available, queue with earliest finishing on-duty driver
             on_duty_drivers = [d for d in all_operational_drivers if d.is_on_duty(req_time)]
             pool = on_duty_drivers if on_duty_drivers else all_operational_drivers
             driver = min(pool, key=lambda d: d.available_at)

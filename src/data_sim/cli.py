@@ -12,6 +12,7 @@ import sys
 import logging
 from pathlib import Path
 from rich.console import Console
+from data_sim.core.config import GLOBAL_SIMULATION_SEED
 
 console = Console()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -109,7 +110,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_gen = subparsers.add_parser("generate", help="Run simulation and generate artifacts")
     p_gen.add_argument("--case", choices=["all", "antojitos", "volcan", "movigo"], default="all")
     p_gen.add_argument("--days", type=int, default=None, help="Number of days to simulate (default: full year)")
-    p_gen.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
+    p_gen.add_argument("--seed", type=int, default=GLOBAL_SIMULATION_SEED, help="Random seed for reproducibility")
     p_gen.set_defaults(func=cmd_generate)
 
     # 2. inspect

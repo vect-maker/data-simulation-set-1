@@ -97,6 +97,7 @@ class TestRelationalIntegrity(unittest.TestCase):
         valid_zones = {z.zone_id: z for z in engine.zones}
         valid_users = {u.user_id: u for u in engine.users}
         valid_drivers = {c.driver_id: c for c in engine.drivers}
+        valid_vehicles = {veh.driver_id: veh for veh in engine.vehicles}
         valid_trips = {v.trip_id: v for v in trips}
 
         # Verify expanded deterministic catalog cardinalities (800 users, 150 drivers, 150 vehicles)
@@ -184,8 +185,11 @@ class TestRelationalIntegrity(unittest.TestCase):
             if p.payment_method == u_obj.preferred_payment_method:
                 concordant_payments += 1
             zo = valid_zones[valid_quadrants[t_obj.origin_quadrant_id].zone_id]
-            derived_base_fare = round(zo.base_flag_drop_fare + round(t_obj.distance_km * 18.0, 2) + round(t_obj.duration_minutes * 4.5, 2), 2)
-            self.assertAlmostEqual(p.base_fare, derived_base_fare, delta=0.02)
+            veh = valid_vehicles[t_obj.driver_id]
+            service_mult = {"movigo_moto": 0.65, "movigo_estandar": 1.00, "movigo_comfort": 1.40}[veh.service_type]
+            raw_base = zo.base_flag_drop_fare + round(t_obj.distance_km * 18.0, 2) + round(t_obj.duration_minutes * 4.5, 2)
+            derived_base_fare = round(raw_base * service_mult, 2)
+            self.assertAlmostEqual(p.base_fare, derived_base_fare, delta=0.03)
             self.assertGreaterEqual(p.surge_multiplier, 1.0)
             self.assertAlmostEqual(
                 p.final_fare,

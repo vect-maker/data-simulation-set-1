@@ -392,6 +392,7 @@ class MoviGoSimulationEngine:
         flood_affected_route: bool = False,
         raw_route_km: float | None = None,
         is_suboptimal: bool = False,
+        is_cauce_overflow: bool = False,
     ) -> tuple[float, float, bool]:
         """Calculate road distance and duration from real OpenStreetMap route trajectory with flood/traffic physics."""
         return self.world.estimate_distance_and_duration(
@@ -405,6 +406,7 @@ class MoviGoSimulationEngine:
             flood_affected_route=flood_affected_route,
             raw_route_km=raw_route_km,
             is_suboptimal=is_suboptimal,
+            is_cauce_overflow=is_cauce_overflow,
         )
 
     def evaluate_cancellation(
@@ -574,9 +576,18 @@ class MoviGoSimulationEngine:
 
                     effective_congestion = round(0.60 * h_cong_o + 0.40 * h_cong_d, 2)
                     effective_water_mm = max(h_precip_o, h_esc_o, 0.80 * h_esc_d)
+
+                    overflow_quads: set[int] = set()
+                    if "cauce_overflow_quads" in hourly_matrices:
+                        overflow_quads = set(np.where(hourly_matrices["cauce_overflow_quads"][t_idx])[0] + 1)
+
+                    is_cauce_overflow = bool(
+                        (q_o in overflow_quads) or (q_d in overflow_quads)
+                    )
                     flood_affected = bool(
                         h_aneg_o
                         or h_aneg_d
+                        or is_cauce_overflow
                         or ((flood_street_o or flood_street_d) and effective_water_mm >= 3.0)
                     )
                 else:
@@ -584,13 +595,41 @@ class MoviGoSimulationEngine:
                     h_esc_o = h_precip_o
                     effective_congestion = daily_cong_idx
                     effective_water_mm = h_precip_o
+                    overflow_quads = set()
+                    is_cauce_overflow = False
                     flood_affected = bool((flood_street_o or flood_street_d) and daily_precip_mm > 15.0)
                     h_aneg_o = flood_affected
 
-                # Supply & Demand state at request time and equilibrium surge multiplier
-                d_t, s_t, surge = self.simulate_supply_demand_and_surge(
-                    origin_zone, h_precip_o, h_esc_o, h_aneg_o, hour, dow, curr_date=curr_date
+                # 1. Independent supply, demand and dynamic surge multipliers across the 3 categories
+                cat_surge_dict = self.platform.simulate_category_surge_multipliers(
+                    origin_zone, h_precip_o, h_esc_o, h_aneg_o, hour, dow, self.world, self.rng, curr_date=curr_date
                 )
+
+                # Precompute baseline fare quotes and expected wait times for mode choice
+                flag_drop_fare = round(float(origin_zone.base_flag_drop_fare), 2)
+                hav_approx = haversine_km(lat_o, lon_o, lat_d, lon_d)
+                est_km = max(0.65, hav_approx * 1.25)
+                est_min = max(3.0, (est_km / 26.0) * 60.0)
+
+                cat_fares: dict[str, float] = {}
+                cat_etas: dict[str, float] = {}
+                for cat in ["movigo_moto", "movigo_estandar", "movigo_comfort"]:
+                    m_cat = cat_surge_dict[cat][2]
+                    _, f_cat = self.platform.compute_fare(flag_drop_fare, est_km, est_min, m_cat, service_type=cat)
+                    cat_fares[cat] = f_cat
+                    s_cat = cat_surge_dict[cat][1]
+                    cat_etas[cat] = max(2.5, min(18.0, 35.0 / max(1.0, float(s_cat))))
+
+                # 2. Rider Multinomial Logit Discrete Mode Choice
+                chosen_service, choice_probs = self.platform.sample_mode_choice(
+                    stratum=origin_zone.socioeconomic_stratum,
+                    effective_water_mm=effective_water_mm,
+                    category_fares=cat_fares,
+                    category_etas=cat_etas,
+                    rng=self.rng,
+                )
+
+                d_t, s_t, surge = cat_surge_dict[chosen_service]
 
                 payment_method = self.sample_payment_method_for_stratum(
                     origin_zone.socioeconomic_stratum,
@@ -598,28 +637,34 @@ class MoviGoSimulationEngine:
                 )
 
                 # Route selection on dense OSM graph (45% habitual, 35% perturbed detour, 20% weather-aware)
+                # When cauce overflow occurs, 75% of drivers switch to flood-aware detour routing
                 beh_roll = float(self.rng.random())
-                if beh_roll < 0.45:
-                    is_fl_aware = False
-                    is_pert = False
-                elif beh_roll < 0.80:
-                    is_fl_aware = False
-                    is_pert = True
+                if is_cauce_overflow or flood_affected:
+                    is_fl_aware = (beh_roll < 0.75)
+                    is_pert = (0.75 <= beh_roll < 0.90)
                 else:
-                    is_fl_aware = bool(flood_affected)
-                    is_pert = False
+                    if beh_roll < 0.45:
+                        is_fl_aware = False
+                        is_pert = False
+                    elif beh_roll < 0.80:
+                        is_fl_aware = False
+                        is_pert = True
+                    else:
+                        is_fl_aware = bool(flood_affected)
+                        is_pert = False
 
                 ride_nodes, raw_road_km = self.get_osm_route(
                     node_o, node_d, q_o, q_d, is_flood_aware=is_fl_aware, is_perturbed=is_pert
                 )
 
+                # Check if the chosen path crosses an overflowing cauce quadrant
+                if not is_cauce_overflow and overflow_quads:
+                    is_cauce_overflow = self.world.is_route_affected_by_overflow(ride_nodes, overflow_quads)
+
                 dist_km, dur_min, is_suboptimal = self.estimate_distance_and_duration(
                     lat_o, lon_o, lat_d, lon_d, effective_congestion, effective_water_mm, flood_affected,
-                    raw_route_km=raw_road_km, is_suboptimal=is_pert
+                    raw_route_km=raw_road_km, is_suboptimal=is_pert, is_cauce_overflow=is_cauce_overflow
                 )
-
-                flag_drop_fare = round(float(origin_zone.base_flag_drop_fare), 2)
-                base_fare, final_fare = self.platform.compute_fare(flag_drop_fare, dist_km, dur_min, surge)
 
                 # Stateful on-duty free drivers & greedy proximity dispatch
                 free_agents = [
@@ -659,15 +704,26 @@ class MoviGoSimulationEngine:
                     req_time=req_time,
                     world=self.world,
                     rng=self.rng,
+                    service_type=chosen_service,
+                )
+
+                # Compute fare based on actual dispatched vehicle category
+                base_fare, final_fare = self.platform.compute_fare(
+                    flag_drop_fare, dist_km, dur_min, surge, service_type=driver_agent.vehicle_model.service_type
                 )
 
                 # Pickup leg traversal on OSM graph
                 drv_n = driver_agent.current_node
                 drv_q = int(self.world.node_quadrants[drv_n]) if len(self.world.node_quadrants) > drv_n else q_o
-                pickup_nodes, pickup_km = self.get_osm_route(drv_n, node_o, drv_q, q_o)
-                pickup_spd = max(10.0, 30.0 / effective_congestion)
-                base_wait = (pickup_km / pickup_spd) * 60.0 + float(self.rng.uniform(0.5, 2.0))
-                wait_min = round(float(np.clip(base_wait + extra_wait, 1.5, 25.0)), 2)
+                pickup_nodes, pickup_km = self.get_osm_route(drv_n, node_o, drv_q, q_o, is_flood_aware=is_fl_aware)
+                pickup_overflow = bool(self.world.is_route_affected_by_overflow(pickup_nodes, overflow_quads) if overflow_quads else False)
+                if pickup_overflow:
+                    pickup_spd = max(5.5, 16.0 / effective_congestion)
+                    base_wait = (pickup_km / pickup_spd) * 60.0 + float(self.rng.uniform(2.0, 5.0))
+                else:
+                    pickup_spd = max(10.0, 30.0 / effective_congestion)
+                    base_wait = (pickup_km / pickup_spd) * 60.0 + float(self.rng.uniform(0.5, 2.0))
+                wait_min = round(float(np.clip(base_wait + extra_wait, 1.5, 28.0)), 2)
 
                 is_canceled, cancel_state, reason = self.evaluate_cancellation(
                     stratum=origin_zone.socioeconomic_stratum,
@@ -722,8 +778,8 @@ class MoviGoSimulationEngine:
                     start_time = req_time + timedelta(minutes=wait_min)
                     end_time = start_time + timedelta(minutes=dur_min)
                     driver_agent.assign_trip(node_d, end_time)
-                    trip_fuel = driver_agent.compute_trip_fuel_liters(dist_km, dur_min, effective_congestion, flood_affected)
-                    driver_agent.accumulate_distance_and_fuel(dist_km, trip_fuel, flood_affected)
+                    trip_fuel = driver_agent.compute_trip_fuel_liters(dist_km, dur_min, effective_congestion, is_cauce_overflow or flood_affected)
+                    driver_agent.accumulate_distance_and_fuel(dist_km, trip_fuel, is_cauce_overflow or flood_affected)
 
                     # Scheduled preventive maintenance check (every 5,000 km)
                     if driver_agent.km_since_service >= 5000.0:
@@ -744,8 +800,8 @@ class MoviGoSimulationEngine:
                             workshop_name=w_name,
                         )
                         driver_agent.send_to_maintenance(end_time + timedelta(hours=down_hrs))
-                    elif flood_affected and self.rng.random() < 0.035:
-                        # Corrective maintenance triggered by flooded cauce transit
+                    elif (is_cauce_overflow or flood_affected) and (self.rng.random() < (0.075 if is_cauce_overflow else 0.035)):
+                        # Corrective maintenance triggered by flooded cauce transit or overflowed crossing
                         maint_cost = round(float(self.rng.uniform(6500.0, 15500.0)), 2)
                         down_hrs = round(float(self.rng.uniform(8.0, 24.0)), 1)
                         w_names = ["Taller Central MoviGo Bolonia", "AutoServicio Masaya MoviGo", "Centro Automotriz Carretera Norte"]
@@ -755,7 +811,7 @@ class MoviGoSimulationEngine:
                             service_date=curr_date,
                             maintenance_type="correctivo",
                             odometer_km=driver_agent.odometer_km,
-                            description="Mantenimiento correctivo: reparación de suspensión y secado de sistema de frenos por anegamiento en cauce pluvial",
+                            description="Mantenimiento correctivo: reparación de suspensión y secado de sistema de frenos por desborde en cauce pluvial",
                             cost_nio=maint_cost,
                             downtime_hours=down_hrs,
                             workshop_name=w_name,
@@ -763,6 +819,10 @@ class MoviGoSimulationEngine:
                         driver_agent.send_to_maintenance(end_time + timedelta(hours=down_hrs))
 
                     rating_usr, rating_drv = self.platform.sample_ratings(self.rng)
+                    if driver_agent.vehicle_model.service_type == "movigo_moto" and effective_water_mm > 0.5:
+                        rating_usr = max(1.0, round(float(rating_usr - self.rng.uniform(0.3, 0.7)), 1))
+                    elif driver_agent.vehicle_model.service_type == "movigo_comfort":
+                        rating_usr = min(5.0, round(float(rating_usr + self.rng.uniform(0.1, 0.3)), 1))
                     tip_amount = self.platform.sample_tip(self.rng)
                     payment_status = "pagado"
 
@@ -800,7 +860,10 @@ class MoviGoSimulationEngine:
 
                 # Generate real street-snapped telemetry checkpoints along actual traversed OSM nodes
                 if not is_canceled and self.rng.random() < 0.14:
-                    avg_speed_kmh = max(9.0, min(75.0, (dist_km / max(0.05, dur_min / 60.0))))
+                    if is_cauce_overflow:
+                        avg_speed_kmh = max(5.0, min(18.0, (dist_km / max(0.05, dur_min / 60.0))))
+                    else:
+                        avg_speed_kmh = max(9.0, min(75.0, (dist_km / max(0.05, dur_min / 60.0))))
 
                     if len(pickup_nodes) > 1:
                         mid_p_idx = pickup_nodes[len(pickup_nodes) // 2]

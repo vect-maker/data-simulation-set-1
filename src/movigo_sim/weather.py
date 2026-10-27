@@ -28,7 +28,7 @@ from movigo_sim.config import (
     RAW_DATA_DIR,
     DETERMINISTIC_SEEDS_DIR,
 )
-from movigo_sim.models import Quadrant, QuadrantWeather
+from movigo_sim.models import Quadrant, QuadrantWeather, DrainageChannel
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +91,103 @@ def load_quadrants_catalog() -> list[Quadrant]:
     path = DETERMINISTIC_SEEDS_DIR / "quadrants.json"
     with open(path, encoding="utf-8") as f:
         return [Quadrant(**c) for c in json.load(f)]
+
+
+def load_drainage_channels_catalog() -> list[DrainageChannel]:
+    """Load the 14 Managua drainage channels (cauces) from deterministic seeds or spatial module."""
+    path = DETERMINISTIC_SEEDS_DIR / "drainage_channels.json"
+    if path.exists():
+        with open(path, encoding="utf-8") as f:
+            return [DrainageChannel(**c) for c in json.load(f)]
+    from movigo_sim.spatial import build_deterministic_drainage_channels
+    return [DrainageChannel(**c) for c in build_deterministic_drainage_channels()]
+
+
+CAUCE_OVERFLOW_THRESHOLDS: dict[str, float] = {
+    "critico": 7.0,
+    "alto": 10.5,
+    "medio": 15.0,
+    "bajo": 22.0,
+}
+
+
+def compute_cauce_hydraulic_propagation(
+    rain_q: np.ndarray,
+    quadrants: list[Quadrant],
+    channels: list[DrainageChannel] | None = None,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Compute hydraulic water volume and overflow states along Managua's 14 OSM cauces.
+
+    Models the physical downhill flow from high southern quadrants (~500 msnm) down to Lake Xolotlán (~50 msnm):
+    - Upstream retention and delayed channel flow into lower reaches (wave lag ~ 1 hr).
+    - Threshold-based cauce overflow detection per channel and hour.
+
+    Returns:
+    - cauce_discharge: np.ndarray of shape (num_hours, num_channels)
+    - cauce_overflow: np.ndarray of shape (num_hours, num_channels) boolean
+    - cauce_overflow_quads: np.ndarray of shape (num_hours, num_quads) boolean
+    """
+    if channels is None:
+        channels = load_drainage_channels_catalog()
+
+    num_hours, n_quads = rain_q.shape
+    num_channels = len(channels)
+
+    clats = np.array([0.5 * (q.lat_min + q.lat_max) for q in quadrants], dtype=float)
+    clons = np.array([0.5 * (q.lon_min + q.lon_max) for q in quadrants], dtype=float)
+    alts = np.array([float(q.mean_altitude_masl) for q in quadrants], dtype=float)
+
+    cauce_discharge = np.zeros((num_hours, num_channels), dtype=np.float32)
+    cauce_overflow = np.zeros((num_hours, num_channels), dtype=bool)
+    cauce_overflow_quads = np.zeros((num_hours, n_quads), dtype=bool)
+
+    # Precompute channel catchment quadrant masks
+    channel_masks: list[tuple[np.ndarray, np.ndarray, np.ndarray, float]] = []
+    for c in channels:
+        thresh = CAUCE_OVERFLOW_THRESHOLDS.get(c.vulnerability_level, 12.0)
+        d_lon = np.abs(clons - c.longitude)
+        in_corridor = d_lon <= 0.016
+
+        # Upstream (highlands, south of channel centroid or alt >= 130m)
+        up_mask = in_corridor & (alts >= 130.0)
+        if not np.any(up_mask):
+            up_mask = in_corridor & (clats <= c.latitude)
+
+        # Downstream (lowlands, north of channel centroid or alt < 130m)
+        down_mask = in_corridor & (alts < 130.0)
+        if not np.any(down_mask):
+            down_mask = in_corridor
+
+        # Full channel corridor
+        full_mask = in_corridor
+        channel_masks.append((up_mask, down_mask, full_mask, thresh))
+
+    # Hydraulic stepping across hours
+    prev_discharge = np.zeros(num_channels, dtype=np.float32)
+    prev_up_rain = np.zeros(num_channels, dtype=np.float32)
+
+    for t in range(num_hours):
+        rain_t = rain_q[t]
+        for c_idx, (up_mask, down_mask, full_mask, thresh) in enumerate(channel_masks):
+            up_r = float(np.mean(rain_t[up_mask])) if np.any(up_mask) else float(np.mean(rain_t))
+            down_r = float(np.mean(rain_t[down_mask])) if np.any(down_mask) else up_r
+
+            # Hydraulic flow: local rain + upstream surge + lagged wave arrival from previous hour
+            q_flow = (
+                0.40 * down_r
+                + 0.35 * up_r
+                + 0.40 * prev_up_rain[c_idx]
+                + 0.15 * prev_discharge[c_idx]
+            )
+            cauce_discharge[t, c_idx] = round(float(q_flow), 2)
+            prev_discharge[c_idx] = q_flow
+            prev_up_rain[c_idx] = up_r
+
+            if q_flow >= thresh:
+                cauce_overflow[t, c_idx] = True
+                cauce_overflow_quads[t, full_mask] = True
+
+    return cauce_discharge, cauce_overflow, cauce_overflow_quads
 
 
 def map_sky_condition(precip_mm: float, weather_code: int) -> str:
@@ -288,14 +385,19 @@ def build_hourly_quadrant_climate(
         rain_q[t_idx] = np.round(np.maximum(0.0, h_precip[t_idx] * storm_profiles[pat] * jitter), 2)
 
     # Compute hydrological cauce runoff matrix: local rain + upstream lagged drainage from southern hills
+    cauce_discharge, cauce_overflow, cauce_overflow_quads = compute_cauce_hydraulic_propagation(
+        rain_q, quadrants
+    )
+
     lagged_rain = 0.65 * rain_q + 0.35 * np.roll(rain_q, 1, axis=0)
     lagged_rain[0] = rain_q[0]
     upstream_contrib = lagged_rain @ drain_matrix
     local_retention = np.where(alts > 150.0, 0.85, 1.00).astype(np.float32)
-    runoff_q = np.round(rain_q * local_retention + upstream_contrib, 2).astype(np.float32)
+    cauce_spill = np.where(cauce_overflow_quads, 4.2, 0.0).astype(np.float32)
+    runoff_q = np.round(rain_q * local_retention + upstream_contrib + cauce_spill, 2).astype(np.float32)
 
-    # Flooded streets flag when runoff exceeds square drainage capacity
-    flooded_q = runoff_q >= flood_thresholds[None, :]
+    # Flooded streets flag when runoff exceeds square drainage capacity OR cauce is actively overflowed
+    flooded_q = (runoff_q >= flood_thresholds[None, :]) | cauce_overflow_quads
 
     # Parse timestamps once across the 8,784 hours
     dt_objs = [datetime.strptime(ts, "%Y-%m-%dT%H:%M") for ts in h_times]
@@ -370,6 +472,9 @@ def build_hourly_quadrant_climate(
         "runoff": runoff_q,
         "congestion": cong_q,
         "flooded": flooded_q,
+        "cauce_discharge": cauce_discharge,
+        "cauce_overflow": cauce_overflow,
+        "cauce_overflow_quads": cauce_overflow_quads,
     }
 
     return VectorizedWeatherRecords(df_weather), hourly_matrices

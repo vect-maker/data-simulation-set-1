@@ -487,3 +487,96 @@ def compute_movigo_spatial_gis(
             "total_cuadrantes_evaluados": cauce_res["total_quadrants"],
         },
     }
+
+
+def compute_multinomial_mode_choice_metrics(
+    df_trips: pd.DataFrame,
+    df_payments: pd.DataFrame,
+    df_vehicles: pd.DataFrame,
+    df_weather: pd.DataFrame | None = None,
+) -> dict[str, Any]:
+    """Compute Multinomial Logit mode choice distribution, weather cross-elasticities and pricing KPIs."""
+    if df_trips.empty or df_vehicles.empty:
+        return {}
+
+    # Merge trips with vehicles on driver_id to resolve service_type
+    veh_map = df_vehicles.set_index("driver_id")["service_type"].to_dict()
+    df_t = df_trips.copy()
+    df_t["service_type"] = df_t["driver_id"].map(veh_map).fillna("movigo_estandar")
+
+    # Merge with payments for fare & surge analysis
+    if not df_payments.empty:
+        pay_map = df_payments.set_index("trip_id")[["final_fare", "surge_multiplier"]].to_dict(orient="index")
+        df_t["final_fare"] = df_t["trip_id"].map(lambda tid: pay_map.get(tid, {}).get("final_fare", 0.0))
+        df_t["surge_multiplier"] = df_t["trip_id"].map(lambda tid: pay_map.get(tid, {}).get("surge_multiplier", 1.0))
+    else:
+        df_t["final_fare"] = 0.0
+        df_t["surge_multiplier"] = 1.0
+
+    total_trips = len(df_t)
+    counts = df_t["service_type"].value_counts().to_dict()
+
+    cuota_global = {
+        st: {
+            "viajes": int(counts.get(st, 0)),
+            "porcentaje": round((counts.get(st, 0) / total_trips) * 100.0, 2) if total_trips > 0 else 0.0,
+            "tarifa_promedio_nio": round(float(df_t[df_t["service_type"] == st]["final_fare"].mean()), 2) if counts.get(st, 0) > 0 else 0.0,
+            "surge_promedio": round(float(df_t[df_t["service_type"] == st]["surge_multiplier"].mean()), 2) if counts.get(st, 0) > 0 else 1.0,
+        }
+        for st in ["movigo_moto", "movigo_estandar", "movigo_comfort"]
+    }
+
+    # Match with weather if available
+    cuota_seco = {}
+    cuota_lluvia = {}
+    ratio_desplome_moto = 1.0
+
+    if df_weather is not None and not df_weather.empty:
+        w_df = df_weather.copy()
+        if "recorded_at" in w_df.columns and "hour" in w_df.columns:
+            w_df["date_str"] = pd.to_datetime(w_df["recorded_at"]).dt.strftime("%Y-%m-%d")
+            w_lookup = w_df.set_index(["quadrant_id", "date_str", "hour"])["precipitation_mm"].to_dict()
+
+            t_req = pd.to_datetime(df_t["requested_at"])
+            df_t["req_date"] = t_req.dt.strftime("%Y-%m-%d")
+            df_t["req_hour"] = t_req.dt.hour
+            df_t["precip_mm"] = df_t.apply(
+                lambda r: w_lookup.get((r["origin_quadrant_id"], r["req_date"], r["req_hour"]), 0.0),
+                axis=1
+            )
+
+            df_dry = df_t[df_t["precip_mm"] < 0.5]
+            df_rain = df_t[df_t["precip_mm"] >= 3.0]
+
+            n_dry = len(df_dry)
+            n_rain = len(df_rain)
+
+            dry_counts = df_dry["service_type"].value_counts().to_dict()
+            rain_counts = df_rain["service_type"].value_counts().to_dict()
+
+            cuota_seco = {
+                st: round((dry_counts.get(st, 0) / max(1, n_dry)) * 100.0, 2)
+                for st in ["movigo_moto", "movigo_estandar", "movigo_comfort"]
+            }
+            cuota_lluvia = {
+                st: round((rain_counts.get(st, 0) / max(1, n_rain)) * 100.0, 2)
+                for st in ["movigo_moto", "movigo_estandar", "movigo_comfort"]
+            }
+
+            p_moto_dry = cuota_seco.get("movigo_moto", 0.0)
+            p_moto_rain = cuota_lluvia.get("movigo_moto", 0.0)
+            ratio_desplome_moto = round(p_moto_rain / max(0.1, p_moto_dry), 3) if p_moto_dry > 0 else 0.0
+
+    # Cross-price elasticity of standard with respect to moto fare
+    # eta_std_moto = -beta_cost * Fare_moto * P_moto
+    avg_fare_moto = cuota_global["movigo_moto"]["tarifa_promedio_nio"]
+    p_moto = cuota_global["movigo_moto"]["porcentaje"] / 100.0
+    cross_elasticity_std_moto = round(-(-0.024) * avg_fare_moto * p_moto, 4)
+
+    return {
+        "cuota_modal_global": cuota_global,
+        "cuota_modal_clima_seco_pct": cuota_seco,
+        "cuota_modal_lluvia_severa_pct": cuota_lluvia,
+        "elasticidad_precio_cruzada_estandar_moto": cross_elasticity_std_moto,
+        "ratio_sensibilidad_climatica_moto": ratio_desplome_moto,
+    }

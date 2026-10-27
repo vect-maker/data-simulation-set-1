@@ -212,13 +212,15 @@ class WorldEnvironment:
             v_idx = edge_arr[:, 1].astype(int)
             lengths = edge_arr[:, 2]
             flood_flags = edge_arr[:, 5].astype(int)
+            self.edge_quadrants = edge_arr[:, 4].astype(int)
+            self.edge_flood_flags = flood_flags
 
             rows = np.concatenate([u_idx, v_idx])
             cols = np.concatenate([v_idx, u_idx])
             dists = np.concatenate([lengths, lengths])
             dists_flood = np.concatenate([
-                lengths * np.where(flood_flags == 1, 4.5, 1.0),
-                lengths * np.where(flood_flags == 1, 4.5, 1.0),
+                lengths * np.where(flood_flags == 1, 15.0, 1.0),
+                lengths * np.where(flood_flags == 1, 15.0, 1.0),
             ])
 
             self.csr_dist_normal = csr_matrix((dists, (rows, cols)), shape=(self.num_nodes, self.num_nodes))
@@ -437,6 +439,17 @@ class WorldEnvironment:
         route_km = round(max(0.65, max(raw_km * circuity, hav * 1.15)), 2)
         return path_nodes, route_km
 
+    def is_route_affected_by_overflow(
+        self,
+        path_nodes: list[int],
+        overflow_quads: set[int] | None = None,
+    ) -> bool:
+        """Check if any node or segment in path_nodes is inside an overflowing cauce quadrant."""
+        if not overflow_quads or not path_nodes or len(self.node_quadrants) == 0:
+            return False
+        path_q = self.node_quadrants[path_nodes]
+        return bool(np.any(np.isin(path_q, list(overflow_quads))))
+
     def estimate_distance_and_duration(
         self,
         lat_o: float,
@@ -449,6 +462,7 @@ class WorldEnvironment:
         flood_affected_route: bool = False,
         raw_route_km: float | None = None,
         is_suboptimal: bool = False,
+        is_cauce_overflow: bool = False,
     ) -> tuple[float, float, bool]:
         """Calculate road distance and duration from real OpenStreetMap route trajectory with flood/traffic physics."""
         hav_km = haversine_km(lat_o, lon_o, lat_d, lon_d)
@@ -458,8 +472,11 @@ class WorldEnvironment:
         else:
             base_km = max(0.65, hav_km * 1.25)
 
-        subopt = bool(is_suboptimal or flood_affected_route or (rng.random() < 0.16))
-        if flood_affected_route:
+        subopt = bool(is_suboptimal or flood_affected_route or is_cauce_overflow or (rng.random() < 0.16))
+        if is_cauce_overflow:
+            # Severe detour around overflowing cauce corridor / impassable vados
+            detour_factor = float(rng.uniform(1.25, 1.58))
+        elif flood_affected_route:
             detour_factor = float(rng.uniform(1.15, 1.45))
         elif subopt:
             detour_factor = float(rng.uniform(1.10, 1.28))
@@ -468,14 +485,18 @@ class WorldEnvironment:
 
         dist_km = round(max(0.65, max(base_km * detour_factor, hav_km * 1.15)), 2)
 
-        if flood_affected_route:
-            effective_speed_kmh = float(rng.uniform(5.5, 12.0))
+        if is_cauce_overflow:
+            # Crawling speed through floodwaters or detoured chokepoints
+            effective_speed_kmh = float(rng.uniform(4.5, 9.0))
+        elif flood_affected_route:
+            effective_speed_kmh = float(rng.uniform(6.5, 13.0))
         else:
             rain_speed_penalty = 1.0 + 0.022 * effective_water_mm
             effective_speed_kmh = max(8.5, 32.0 / (congestion_idx * rain_speed_penalty))
 
+        base_delay = 3.0 if is_cauce_overflow else 1.0
         duration_min = round(
-            max(2.5, (dist_km / effective_speed_kmh) * 60.0 + float(rng.uniform(1.0, 3.0))),
+            max(2.5, (dist_km / effective_speed_kmh) * 60.0 + float(rng.uniform(base_delay, base_delay + 3.0))),
             2,
         )
         return dist_km, duration_min, subopt
