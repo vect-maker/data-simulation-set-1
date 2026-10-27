@@ -240,9 +240,13 @@ load-volcan:
         {{ VOLCAN }} load; \
     fi
 
-# Load MoviGo Parquet data into PostgreSQL (schema raw_staging_movigo)
-load-movigo:
-    {{ PYTHON }} scripts/load_movigo_parquet_to_postgres.py
+# Load MoviGo Parquet data into PostgreSQL (schema raw_staging_movigo) in streaming batches
+load-movigo batch_size="":
+    @if [ -n "{{ batch_size }}" ]; then \
+        {{ PYTHON }} scripts/load_movigo_parquet_to_postgres.py --batch-size {{ batch_size }}; \
+    else \
+        {{ PYTHON }} scripts/load_movigo_parquet_to_postgres.py; \
+    fi
 
 # Load all 3 cases into PostgreSQL
 load-all:

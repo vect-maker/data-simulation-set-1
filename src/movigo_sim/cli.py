@@ -390,7 +390,11 @@ def cmd_load(args):
     p_dir = Path(getattr(args, "parquet_dir", str(PARQUET_ARTIFACTS_DIR))).resolve()
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
     from scripts.load_movigo_parquet_to_postgres import load_all_movigo_parquet
-    load_all_movigo_parquet(parquet_dir=p_dir, schema=args.schema)
+    load_all_movigo_parquet(
+        parquet_dir=p_dir,
+        schema=args.schema,
+        batch_size=getattr(args, "batch_size", 10000),
+    )
 
 
 def cmd_inspect(args):
@@ -442,6 +446,7 @@ def main():
     load_parser = subparsers.add_parser("load", help="Load MoviGo Parquet datasets into PostgreSQL")
     load_parser.add_argument("--parquet-dir", type=str, default=str(PARQUET_ARTIFACTS_DIR), help="Path to Parquet artifacts directory")
     load_parser.add_argument("--schema", type=str, default=POSTGRES_SCHEMA, help="Target PostgreSQL schema")
+    load_parser.add_argument("--batch-size", type=int, default=10000, help="Batch size for streaming ingestion (default: 10000)")
     load_parser.add_argument("--seed", type=int, default=SIMULATION_SEED, help="Random seed for reproducibility")
     load_parser.set_defaults(func=cmd_load)
 

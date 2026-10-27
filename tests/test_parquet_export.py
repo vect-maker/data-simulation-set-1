@@ -29,7 +29,13 @@ from movigo_sim.models import (
     DrainageChannel,
     QuadrantWeather,
 )
-from scripts.load_movigo_parquet_to_postgres import clean_record_value, TABLE_LOAD_ORDER
+from scripts.load_movigo_parquet_to_postgres import (
+    clean_record_value,
+    TABLE_LOAD_ORDER,
+    load_parquet_table,
+    TableLoadResult,
+)
+from unittest.mock import MagicMock, patch
 
 
 class SampleModel(BaseModel):
@@ -279,6 +285,74 @@ class TestParquetExportAndLoader(unittest.TestCase):
                 self.assertEqual(p_file.suffix, ".parquet")
                 df = pd.read_parquet(p_file)
                 self.assertGreater(len(df), 0, f"Table {tbl} should have records")
+
+    @patch("scripts.load_movigo_parquet_to_postgres.execute_values")
+    def test_load_parquet_table_in_batches(self, mock_execute_values: MagicMock) -> None:
+        """Verify load_parquet_table splits large datasets into configurable streaming batches."""
+        records = [
+            SampleModel(
+                id=i,
+                name=f"Ruta {i}",
+                amount=float(i * 10),
+                is_active=(i % 2 == 0),
+                created_at=datetime(2024, 1, 1, 8, 0),
+            )
+            for i in range(1, 26)  # 25 records
+        ]
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            out_dir = Path(tmp_dir)
+            files = export_models_to_parquet({"sample_table": records}, out_dir)
+            p_file = files["sample_table"]
+
+            mock_cur = MagicMock()
+            mock_conn = MagicMock()
+
+            # Load with batch_size=10 -> should execute in 3 batches (10, 10, 5)
+            result = load_parquet_table(
+                cursor=mock_cur,
+                parquet_path=p_file,
+                table_name="sample_table",
+                schema="public",
+                batch_size=10,
+                conn=mock_conn,
+                table_idx=1,
+                total_tables=1,
+            )
+
+            self.assertIsInstance(result, TableLoadResult)
+            self.assertEqual(result.row_count, 25)
+            self.assertEqual(result.batch_count, 3)
+            self.assertGreater(result.elapsed_seconds, 0.0)
+            self.assertEqual(mock_conn.commit.call_count, 3)
+            self.assertEqual(mock_execute_values.call_count, 3)
+
+            # Check batch sizes passed to execute_values: 10, 10, 5
+            batch_lengths = [len(call[0][2]) for call in mock_execute_values.call_args_list]
+            self.assertEqual(batch_lengths, [10, 10, 5])
+
+    def test_load_parquet_table_empty_file(self) -> None:
+        """Verify load_parquet_table handles 0-row parquet files gracefully."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            p_file = Path(tmp_dir) / "empty.parquet"
+            pd.DataFrame({"id": pd.Series(dtype="int64"), "name": pd.Series(dtype="str")}).to_parquet(p_file)
+
+            mock_cur = MagicMock()
+            mock_cur.connection.encoding = "UTF8"
+            mock_conn = MagicMock()
+
+            result = load_parquet_table(
+                cursor=mock_cur,
+                parquet_path=p_file,
+                table_name="empty_table",
+                schema="public",
+                batch_size=100,
+                conn=mock_conn,
+            )
+
+            self.assertEqual(result.row_count, 0)
+            self.assertEqual(result.batch_count, 0)
+            self.assertEqual(mock_conn.commit.call_count, 0)
 
 
 if __name__ == "__main__":
