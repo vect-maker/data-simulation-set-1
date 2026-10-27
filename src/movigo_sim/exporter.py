@@ -1,6 +1,6 @@
 """Exporter module for MoviGo (Urban Mobility in Managua - 3NF Transactional OLTP Schema).
 
-Generates CSV files, SQL dump with academic database objects (Functions, Triggers, MVs, Roles),
+Generates Apache Parquet files, SQL dump with academic database objects (Functions, Triggers, MVs, Roles),
 and statistical/numerical summary reports using standardized English 3NF table and column names.
 """
 
@@ -10,11 +10,15 @@ from pathlib import Path
 from typing import Any
 import pandas as pd
 
-from data_sim.core.exporter import export_models_to_csv, write_json_summary, build_sql_dump
+from data_sim.core.exporter import (
+    export_models_to_parquet,
+    write_json_summary,
+    build_sql_dump,
+)
 from data_sim.core.stats import compute_contingency_chi2
 
 from movigo_sim.config import (
-    CSV_ARTIFACTS_DIR,
+    PARQUET_ARTIFACTS_DIR,
     SQL_ARTIFACTS_DIR,
     ARTIFACTS_DIR,
     SIMULATION_YEAR,
@@ -57,7 +61,7 @@ from movigo_sim.analytics import (
 logger = logging.getLogger(__name__)
 
 
-def export_movigo_to_csv(
+def export_movigo_to_parquet(
     zones: list[UrbanZone],
     users: list[User],
     drivers: list[Driver],
@@ -71,10 +75,11 @@ def export_movigo_to_csv(
     telemetry: list[DriverTelemetry],
     maintenance: list[Any] | None = None,
     drainage_channels: list[DrainageChannel] | None = None,
-    output_dir: Path = CSV_ARTIFACTS_DIR,
+    output_dir: Path = PARQUET_ARTIFACTS_DIR,
     quadrants: list[Quadrant] | None = None,
+    compression: str = "snappy",
 ) -> dict[str, Path]:
-    """Export all relational 3NF OLTP tables to CSV format with standardized English table names."""
+    """Export all relational 3NF OLTP tables to Apache Parquet format with standardized English table names."""
     if quadrants is None:
         quadrants = load_movigo_quadrants()
     if drainage_channels is None:
@@ -96,7 +101,7 @@ def export_movigo_to_csv(
     }
     if maintenance is not None:
         tables["vehicle_maintenance"] = maintenance
-    return export_models_to_csv(tables, output_dir)
+    return export_models_to_parquet(tables, output_dir, compression=compression)
 
 
 def generate_movigo_postgresql_ddl() -> str:
@@ -438,10 +443,10 @@ GRANT SELECT ON mv_hourly_mobility_kpis TO rol_analista_datos;
 
 
 def export_movigo_to_sql_dump(
-    csv_paths: dict[str, Path],
+    parquet_paths: dict[str, Path],
     output_file: Path = SQL_ARTIFACTS_DIR / "schema_and_data.sql",
 ) -> Path:
-    """Generate consolidated SQL file with DDL and COPY commands for all 12 normalized tables."""
+    """Generate consolidated SQL file with DDL and load instructions for all 14 normalized tables."""
     copy_order = [
         "urban_zones",
         "quadrants",
@@ -463,7 +468,7 @@ def export_movigo_to_sql_dump(
         schema_name="raw_staging_movigo",
         ddl_content=generate_movigo_postgresql_ddl(),
         copy_order=copy_order,
-        csv_paths=csv_paths,
+        table_paths=parquet_paths,
         post_load_ddl=generate_movigo_post_load_ddl(),
     )
 

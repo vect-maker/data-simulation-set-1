@@ -202,13 +202,9 @@ load-volcan:
         {{ VOLCAN }} load; \
     fi
 
-# Load MoviGo data into PostgreSQL (schema raw_staging_movigo)
+# Load MoviGo Parquet data into PostgreSQL (schema raw_staging_movigo)
 load-movigo:
-    @if [ -f artifacts/movigo/sql/schema_and_data.sql ]; then \
-        {{ COMPOSE }} exec -w /workspace/artifacts/movigo/csv -T postgres psql -U postgres -d integrador_db -f ../sql/schema_and_data.sql; \
-    else \
-        {{ MOVIGO }} load; \
-    fi
+    {{ PYTHON }} scripts/load_movigo_parquet_to_postgres.py
 
 # Load all 3 cases into PostgreSQL
 load-all:

@@ -15,7 +15,7 @@ LLM_SEEDS_DIR = SEEDS_DIR / "llm"
 DATA_DIR = BASE_DIR / "data"
 RAW_DATA_DIR = DATA_DIR / "raw" / "movigo"
 ARTIFACTS_DIR = BASE_DIR / "artifacts" / "movigo"
-CSV_ARTIFACTS_DIR = ARTIFACTS_DIR / "csv"
+PARQUET_ARTIFACTS_DIR = ARTIFACTS_DIR / "parquet"
 SQL_ARTIFACTS_DIR = ARTIFACTS_DIR / "sql"
 
 # Geographic anchors: Managua, Nicaragua

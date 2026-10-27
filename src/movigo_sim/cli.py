@@ -14,7 +14,7 @@ from data_sim.core.reporting import (
     render_math_optimization_table,
 )
 from movigo_sim.config import (
-    CSV_ARTIFACTS_DIR,
+    PARQUET_ARTIFACTS_DIR,
     SQL_ARTIFACTS_DIR,
     ARTIFACTS_DIR,
     RAW_DATA_DIR,
@@ -28,7 +28,7 @@ from movigo_sim.weather import (
 from movigo_sim.generator import MoviGoSimulationEngine
 from movigo_sim.enrichment import MoviGoSemanticEnricher
 from movigo_sim.exporter import (
-    export_movigo_to_csv,
+    export_movigo_to_parquet,
     export_movigo_to_sql_dump,
     compute_movigo_simulation_summary,
 )
@@ -259,12 +259,12 @@ def run_generation(
     )
     cancellations = enricher.enrich_cancellations(cancellations)
 
-    csv_dir = Path(output_dir).resolve() if output_dir else CSV_ARTIFACTS_DIR.resolve()
-    is_custom_dir = csv_dir != CSV_ARTIFACTS_DIR.resolve()
-    sql_path = (csv_dir.parent / "sql" / "schema_and_data.sql") if is_custom_dir else (SQL_ARTIFACTS_DIR / "schema_and_data.sql")
-    summary_path = (csv_dir.parent / "simulation_summary.json") if is_custom_dir else (ARTIFACTS_DIR / "simulation_summary.json")
+    target_dir = Path(output_dir).resolve() if output_dir else PARQUET_ARTIFACTS_DIR.resolve()
+    is_custom_dir = target_dir != PARQUET_ARTIFACTS_DIR.resolve()
+    sql_path = (target_dir.parent / "sql" / "schema_and_data.sql") if is_custom_dir else (SQL_ARTIFACTS_DIR / "schema_and_data.sql")
+    summary_path = (target_dir.parent / "simulation_summary.json") if is_custom_dir else (ARTIFACTS_DIR / "simulation_summary.json")
 
-    csv_files = export_movigo_to_csv(
+    parquet_files = export_movigo_to_parquet(
         zones=engine.zones,
         users=engine.users,
         drivers=engine.drivers,
@@ -277,14 +277,14 @@ def run_generation(
         cancellations=cancellations,
         telemetry=telemetry,
         maintenance=maintenance,
-        output_dir=csv_dir,
+        output_dir=target_dir,
         quadrants=engine.quadrants,
     )
-    export_movigo_to_sql_dump(csv_files, output_file=sql_path)
+    export_movigo_to_sql_dump(parquet_files, output_file=sql_path)
 
     from movigo_sim.generator import load_movigo_drainage_channels
     from movigo_sim.exporter import export_movigo_spatial_layers
-    spatial_dir = csv_dir.parent / "spatial"
+    spatial_dir = target_dir.parent / "spatial"
     export_movigo_spatial_layers(
         output_dir=spatial_dir,
         quadrants=engine.quadrants,
@@ -387,8 +387,10 @@ def cmd_generate(args):
 
 def cmd_load(args):
     """CLI handler for load."""
-    run_loading(schema=args.schema, seed=getattr(args, "seed", SIMULATION_SEED))
-    console.print(f"[bold green]Data loaded into PostgreSQL schema '{args.schema}'.[/bold green]")
+    p_dir = Path(getattr(args, "parquet_dir", str(PARQUET_ARTIFACTS_DIR))).resolve()
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+    from scripts.load_movigo_parquet_to_postgres import load_all_movigo_parquet
+    load_all_movigo_parquet(parquet_dir=p_dir, schema=args.schema)
 
 
 def cmd_inspect(args):
@@ -422,14 +424,14 @@ def main():
     subparsers = parser.add_subparsers(dest="subcommand", required=True)
 
     # generate
-    gen_parser = subparsers.add_parser("generate", help="Generate 2024 urban rides & telemetry facts")
+    gen_parser = subparsers.add_parser("generate", help="Generate 2024 urban rides & telemetry facts in Apache Parquet")
     gen_parser.add_argument("--seed", type=int, default=SIMULATION_SEED, help="Random seed for reproducibility")
     gen_parser.add_argument("--days", type=int, default=None, help="Number of days to simulate")
     gen_parser.add_argument("--refresh-weather", action="store_true", help="Force refresh weather from Open-Meteo")
     gen_parser.add_argument("--live-llm", action="store_true", help="Use live Gemini LLM for trip reviews")
     gen_parser.add_argument("--load-db", action="store_true", help="Load into PostgreSQL via dlt immediately")
     gen_parser.add_argument("--schema", type=str, default=POSTGRES_SCHEMA, help="Target PostgreSQL staging schema")
-    gen_parser.add_argument("--output-dir", type=str, default=str(CSV_ARTIFACTS_DIR), help="Output directory for CSVs")
+    gen_parser.add_argument("--output-dir", type=str, default=str(PARQUET_ARTIFACTS_DIR), help="Output directory for Parquet files")
     gen_parser.set_defaults(func=cmd_generate)
 
     # fetch-weather
@@ -437,7 +439,8 @@ def main():
     weather_parser.set_defaults(func=cmd_fetch_weather)
 
     # load
-    load_parser = subparsers.add_parser("load", help="Load data into PostgreSQL via dlt")
+    load_parser = subparsers.add_parser("load", help="Load MoviGo Parquet datasets into PostgreSQL")
+    load_parser.add_argument("--parquet-dir", type=str, default=str(PARQUET_ARTIFACTS_DIR), help="Path to Parquet artifacts directory")
     load_parser.add_argument("--schema", type=str, default=POSTGRES_SCHEMA, help="Target PostgreSQL schema")
     load_parser.add_argument("--seed", type=int, default=SIMULATION_SEED, help="Random seed for reproducibility")
     load_parser.set_defaults(func=cmd_load)

@@ -41,7 +41,7 @@ RISK_FLOOD_THRESHOLD_MM: dict[str, float] = {
 
 
 class VectorizedWeatherRecords:
-    """List-compatible sequence of QuadrantWeather backed by a vectorized DataFrame for instant CSV export."""
+    """List-compatible sequence of QuadrantWeather backed by a vectorized DataFrame for instant export."""
 
     def __init__(self, df: pd.DataFrame):
         self._df = df
