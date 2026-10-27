@@ -11,11 +11,46 @@ Models autonomous participants:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 from typing import Any
 import numpy as np
 
 from movigo_sim.models import Driver, Vehicle, User
+
+
+@dataclass
+class FuelTank:
+    """Object-oriented fuel tank entity modeling vehicle capacity, burning, and refueling mechanics."""
+
+    capacity_liters: float
+    current_liters: float
+    low_fuel_threshold_pct: float = 0.15
+    refueling_count: int = 0
+    total_liters_refilled: float = 0.0
+
+    @property
+    def level_pct(self) -> float:
+        """Current fuel percentage in range [0.0, 100.0]."""
+        return max(0.0, min(100.0, (self.current_liters / max(0.1, self.capacity_liters)) * 100.0))
+
+    @property
+    def needs_refueling(self) -> bool:
+        """True if current fuel is strictly below the reserve threshold (15%)."""
+        return (self.current_liters / max(0.1, self.capacity_liters)) < self.low_fuel_threshold_pct
+
+    def burn(self, liters: float) -> float:
+        """Burn fuel during transit/idle; returns actual liters consumed."""
+        actual_burn = min(self.current_liters, max(0.0, liters))
+        self.current_liters = round(max(0.0, self.current_liters - actual_burn), 3)
+        return actual_burn
+
+    def refill(self) -> float:
+        """Refuel the tank back to full capacity; returns volume of liters pumped."""
+        liters_pumped = round(max(0.0, self.capacity_liters - self.current_liters), 2)
+        self.current_liters = self.capacity_liters
+        self.refueling_count += 1
+        self.total_liters_refilled = round(self.total_liters_refilled + liters_pumped, 2)
+        return liters_pumped
 
 
 @dataclass
@@ -49,16 +84,27 @@ class DriverAgent:
     total_offers: int = 0
     total_rejections: int = 0
     current_shift_date: date | None = None
+    fuel_tank: FuelTank | None = None
+    maintenance_queue_wait_minutes: float = 0.0
 
     def __post_init__(self) -> None:
+        st = self.vehicle_model.service_type
         if self.risk_aversion == 0.50:
-            st = self.vehicle_model.service_type
             if st == "movigo_moto":
                 self.risk_aversion = 0.85
             elif st == "movigo_comfort":
                 self.risk_aversion = 0.25
             else:
                 self.risk_aversion = 0.65
+
+        if self.fuel_tank is None:
+            if st == "movigo_moto":
+                cap = 12.0
+            elif st == "movigo_comfort":
+                cap = 60.0
+            else:
+                cap = 45.0
+            self.fuel_tank = FuelTank(capacity_liters=cap, current_liters=round(cap * 0.85, 2))
 
     @property
     def is_operational(self) -> bool:
@@ -144,6 +190,8 @@ class DriverAgent:
         self.odometer_km = round(self.odometer_km + distance_km, 2)
         self.km_since_service = round(self.km_since_service + distance_km, 2)
         self.cumulative_fuel_liters = round(self.cumulative_fuel_liters + fuel_liters, 2)
+        if self.fuel_tank:
+            self.fuel_tank.burn(fuel_liters)
         self.shift_trips_completed += 1
         self.shift_minutes_worked += duration_min
         self.traffic_stress_accumulated += max(0.0, congestion_idx - 1.0) * (duration_min / 30.0)
@@ -251,11 +299,26 @@ class DriverAgent:
 
         return True, None
 
-    def send_to_maintenance(self, completion_time: datetime) -> None:
-        """Reset service interval counter and hold vehicle in workshop bay until completion_time."""
+    def send_to_maintenance(
+        self, completion_time: datetime, queue_wait_min: float = 0.0
+    ) -> None:
+        """Reset service interval counter, record queue wait, and hold vehicle in workshop bay until completion_time."""
         self.km_since_service = 0.0
         self.maintenance_until = completion_time
         self.available_at = max(self.available_at, completion_time)
+        self.maintenance_queue_wait_minutes += queue_wait_min
+
+    def refuel_pitstop(self, dt: datetime, pitstop_minutes: float = 15.0) -> float:
+        """Driver pulls out of active dispatch to refuel at a nearby gas station.
+
+        Returns:
+            Volume of liters pumped to restore tank to 100%.
+        """
+        if self.fuel_tank is None:
+            return 0.0
+        liters = self.fuel_tank.refill()
+        self.available_at = max(self.available_at, dt + timedelta(minutes=pitstop_minutes))
+        return liters
 
     def idle_minutes(self, req_time: datetime) -> float:
         """Number of minutes this driver has been waiting since previous availability."""

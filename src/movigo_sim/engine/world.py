@@ -10,6 +10,8 @@ Manages the Managua urban environment:
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from typing import Any
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -149,6 +151,64 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return 2.0 * r_earth * math.asin(min(1.0, math.sqrt(a)))
 
 
+@dataclass
+class MaintenanceWorkshop:
+    """Operations Research multi-server M/M/c maintenance facility entity."""
+
+    workshop_id: int
+    name: str
+    zone_id: int
+    quadrant_id: int
+    node_id: int
+    latitude: float
+    longitude: float
+    capacity_bays: int
+    active_bays_busy_until: list[datetime] = field(default_factory=list)
+    total_vehicles_serviced: int = 0
+    total_queue_wait_minutes: float = 0.0
+    total_service_hours: float = 0.0
+
+    def admit_vehicle(
+        self,
+        vehicle_id: int,
+        arrival_time: datetime,
+        service_duration_hours: float,
+    ) -> tuple[datetime, datetime, float]:
+        """Admit vehicle into M/M/c multi-server service queue.
+
+        Returns:
+            start_service_time: datetime when vehicle enters a mechanical bay
+            completion_time: datetime when repair finishes
+            wait_minutes: minutes spent in FIFO queue before entering bay
+        """
+        if len(self.active_bays_busy_until) < self.capacity_bays:
+            # An unused bay is immediately available
+            start_time = arrival_time
+            wait_min = 0.0
+            completion_time = start_time + timedelta(hours=service_duration_hours)
+            self.active_bays_busy_until.append(completion_time)
+        else:
+            # All bays have had at least one vehicle; find earliest finishing bay
+            earliest_free = min(self.active_bays_busy_until)
+            if earliest_free <= arrival_time:
+                # Bay is already freed up upon vehicle arrival
+                start_time = arrival_time
+                wait_min = 0.0
+            else:
+                # All bays occupied; vehicle waits in queue until earliest bay frees
+                start_time = earliest_free
+                wait_min = (start_time - arrival_time).total_seconds() / 60.0
+
+            completion_time = start_time + timedelta(hours=service_duration_hours)
+            idx = self.active_bays_busy_until.index(earliest_free)
+            self.active_bays_busy_until[idx] = completion_time
+
+        self.total_vehicles_serviced += 1
+        self.total_queue_wait_minutes += wait_min
+        self.total_service_hours += service_duration_hours
+        return start_time, completion_time, round(wait_min, 2)
+
+
 class WorldEnvironment:
     """Encapsulates spatial layout, street network graph, and traffic physics of Managua."""
 
@@ -282,6 +342,38 @@ class WorldEnvironment:
             self.regime_origin_push_factor[regime_name] = {
                 zid: round(v[0] / mean_push, 3) for zid, v in w_map.items()
             }
+
+        # Operations Research: Official physical maintenance workshops distributed across Managua
+        self.workshops: list[MaintenanceWorkshop] = []
+        raw_workshops = [
+            (1, "Centro Automotriz Carretera Norte", 8, 62, 12.152, -86.218, 4),
+            (2, "Taller Central MoviGo Bolonia", 6, 49, 12.132, -86.282, 4),
+            (3, "AutoServicio Masaya MoviGo", 1, 18, 12.102, -86.242, 3),
+        ]
+        for wid, wname, zid, qid, wlat, wlon, bays in raw_workshops:
+            wnode = 0
+            if len(self.node_coords) > 0:
+                dists_sq = (self.node_coords[:, 0] - wlat) ** 2 + (self.node_coords[:, 1] - wlon) ** 2
+                wnode = int(np.argmin(dists_sq))
+            self.workshops.append(
+                MaintenanceWorkshop(
+                    workshop_id=wid,
+                    name=wname,
+                    zone_id=zid,
+                    quadrant_id=qid,
+                    node_id=wnode,
+                    latitude=wlat,
+                    longitude=wlon,
+                    capacity_bays=bays,
+                )
+            )
+
+    def find_closest_workshop(self, lat: float, lon: float) -> MaintenanceWorkshop:
+        """Find the spatially closest official maintenance workshop."""
+        return min(
+            self.workshops,
+            key=lambda w: haversine_km(lat, lon, w.latitude, w.longitude),
+        )
 
     def sample_origin_destination_zones(
         self, hour: int, dow: int, rng: np.random.Generator

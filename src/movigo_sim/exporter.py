@@ -49,6 +49,7 @@ from movigo_sim.analytics import (
     compute_movigo_spatial_gis,
     compute_multinomial_mode_choice_metrics,
     compute_driver_heterogeneity_and_churn_metrics,
+    compute_operations_research_maintenance_and_queue_metrics,
 )
 
 logger = logging.getLogger(__name__)
@@ -592,6 +593,7 @@ def compute_movigo_simulation_summary(
     drainage_channels: list[DrainageChannel] | None = None,
     vehicles: list[Vehicle] | None = None,
     drivers: list[Driver] | None = None,
+    workshops: list[Any] | None = None,
     seed: int = SIMULATION_SEED,
     summary_path: Path | None = None,
 ) -> dict[str, Any]:
@@ -688,6 +690,9 @@ def compute_movigo_simulation_summary(
     driver_behavior_results = compute_driver_heterogeneity_and_churn_metrics(
         df_trips, df_cancellations, df_drivers, df_vehicles
     )
+    or_maint_results = compute_operations_research_maintenance_and_queue_metrics(
+        df_maintenance, df_vehicles, workshops=workshops
+    )
 
     # Export GeoJSON layers
     try:
@@ -738,6 +743,7 @@ def compute_movigo_simulation_summary(
         "analitica_espacial_gis": spatial_results,
         "eleccion_modal_multinomial_logit": mode_choice_results,
         "heterogeneidad_fatiga_conductores": driver_behavior_results,
+        "investigacion_operaciones_talleres_y_colas": or_maint_results,
     }
 
     target_summary_path = summary_path if summary_path is not None else (ARTIFACTS_DIR / "simulation_summary.json")

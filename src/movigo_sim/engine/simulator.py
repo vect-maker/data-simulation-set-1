@@ -172,7 +172,10 @@ class MoviGoSimulationEngine:
 
             weekly_rest = d.driver_id % 7
             base_odo = round(18000.0 + (2024 - v_model.vehicle_year) * 8500.0 + ((d.driver_id * 137) % 3000), 2)
-            init_service_km = round(float((d.driver_id * 739) % 4600), 2)
+            if d.driver_id % 20 == 0:
+                init_service_km = round(4975.0 + float(d.driver_id % 15), 2)
+            else:
+                init_service_km = round(float(1000.0 + ((d.driver_id * 739) % 3600)), 2)
 
             self.driver_agents.append(
                 DriverAgent(
@@ -467,7 +470,14 @@ class MoviGoSimulationEngine:
             agent.current_node = initial_node
             agent.available_at = datetime.min
             agent.maintenance_until = datetime.min
-            agent.km_since_service = round(float((agent.driver_id * 739) % 4600), 2)
+            if agent.driver_id % 20 == 0:
+                agent.km_since_service = round(4975.0 + float(agent.driver_id % 15), 2)
+            else:
+                agent.km_since_service = round(float(1000.0 + ((agent.driver_id * 739) % 3600)), 2)
+            agent.fuel_tank.current_liters = round(agent.fuel_tank.capacity_liters * 0.85, 2)
+            agent.shift_trips_completed = 0
+            agent.shift_minutes_worked = 0.0
+            agent.traffic_stress_accumulated = 0.0
             agent.odometer_km = round(18000.0 + (2024 - agent.vehicle_model.vehicle_year) * 8500.0 + ((agent.driver_id * 137) % 3000), 2)
             agent.cumulative_fuel_liters = 0.0
             agent.flood_exposure_count = 0
@@ -831,6 +841,8 @@ class MoviGoSimulationEngine:
                         origin_active_requests=d_t,
                         origin_available_drivers=s_t,
                     )
+                    if driver_agent.fuel_tank and driver_agent.fuel_tank.needs_refueling:
+                        driver_agent.refuel_pitstop(req_time + timedelta(minutes=wait_min), pitstop_minutes=15.0)
                 else:
                     trip_status = "completado"
                     start_time = req_time + timedelta(minutes=wait_min)
@@ -844,37 +856,62 @@ class MoviGoSimulationEngine:
                         service_odo = driver_agent.odometer_km
                         maint_cost = round(float(self.rng.uniform(2400.0, 4800.0)), 2)
                         down_hrs = round(float(self.rng.uniform(3.0, 6.5)), 1)
-                        w_names = ["Taller Central MoviGo Bolonia", "AutoServicio Masaya MoviGo", "Centro Automotriz Carretera Norte"]
-                        w_name = w_names[driver_agent.driver_id % len(w_names)]
+                        target_workshop = self.world.find_closest_workshop(lat_d, lon_d)
+                        transit_km = max(0.5, haversine_km(lat_d, lon_d, target_workshop.latitude, target_workshop.longitude))
+                        transit_min = (transit_km / 28.0) * 60.0
+                        transit_fuel = driver_agent.compute_trip_fuel_liters(transit_km, transit_min, effective_congestion, False)
+                        driver_agent.accumulate_distance_and_fuel(transit_km, transit_fuel, False, duration_min=transit_min, congestion_idx=effective_congestion)
+                        arrival_at_workshop = end_time + timedelta(minutes=transit_min)
+
+                        start_svc, finish_svc, wait_queue_min = target_workshop.admit_vehicle(
+                            driver_agent.vehicle_model.vehicle_id, arrival_at_workshop, service_duration_hours=down_hrs
+                        )
+                        total_downtime_hours = max(1.0, round((finish_svc - end_time).total_seconds() / 3600.0, 1))
                         milestone = int(round(service_odo / 5000.0) * 5000)
                         recorder.record_maintenance(
                             vehicle_id=driver_agent.vehicle_model.vehicle_id,
                             service_date=curr_date,
                             maintenance_type="preventivo",
                             odometer_km=service_odo,
-                            description=f"Mantenimiento preventivo {milestone} km: cambio de aceite sintético, filtro y revisión de frenos",
+                            description=f"Mantenimiento preventivo {milestone} km: cambio de aceite, filtro y revisión en bahía (espera cola: {round(wait_queue_min, 1)} min en {target_workshop.name})",
                             cost_nio=maint_cost,
-                            downtime_hours=down_hrs,
-                            workshop_name=w_name,
+                            downtime_hours=total_downtime_hours,
+                            workshop_name=target_workshop.name,
                         )
-                        driver_agent.send_to_maintenance(end_time + timedelta(hours=down_hrs))
+                        driver_agent.send_to_maintenance(finish_svc, queue_wait_min=wait_queue_min)
+                        driver_agent.current_node = target_workshop.node_id
+
                     elif (is_cauce_overflow or flood_affected) and (self.rng.random() < (0.075 if is_cauce_overflow else 0.035)):
                         # Corrective maintenance triggered by flooded cauce transit or overflowed crossing
                         maint_cost = round(float(self.rng.uniform(6500.0, 15500.0)), 2)
                         down_hrs = round(float(self.rng.uniform(8.0, 24.0)), 1)
-                        w_names = ["Taller Central MoviGo Bolonia", "AutoServicio Masaya MoviGo", "Centro Automotriz Carretera Norte"]
-                        w_name = w_names[driver_agent.driver_id % len(w_names)]
+                        target_workshop = self.world.find_closest_workshop(lat_d, lon_d)
+                        transit_km = max(0.5, haversine_km(lat_d, lon_d, target_workshop.latitude, target_workshop.longitude))
+                        transit_min = (transit_km / 28.0) * 60.0
+                        transit_fuel = driver_agent.compute_trip_fuel_liters(transit_km, transit_min, effective_congestion, False)
+                        driver_agent.accumulate_distance_and_fuel(transit_km, transit_fuel, False, duration_min=transit_min, congestion_idx=effective_congestion)
+                        arrival_at_workshop = end_time + timedelta(minutes=transit_min)
+
+                        start_svc, finish_svc, wait_queue_min = target_workshop.admit_vehicle(
+                            driver_agent.vehicle_model.vehicle_id, arrival_at_workshop, service_duration_hours=down_hrs
+                        )
+                        total_downtime_hours = max(1.0, round((finish_svc - end_time).total_seconds() / 3600.0, 1))
                         recorder.record_maintenance(
                             vehicle_id=driver_agent.vehicle_model.vehicle_id,
                             service_date=curr_date,
                             maintenance_type="correctivo",
                             odometer_km=driver_agent.odometer_km,
-                            description="Mantenimiento correctivo: reparación de suspensión y secado de sistema de frenos por desborde en cauce pluvial",
+                            description=f"Mantenimiento correctivo: reparación suspensión y secado frenos (espera cola: {round(wait_queue_min, 1)} min en {target_workshop.name})",
                             cost_nio=maint_cost,
-                            downtime_hours=down_hrs,
-                            workshop_name=w_name,
+                            downtime_hours=total_downtime_hours,
+                            workshop_name=target_workshop.name,
                         )
-                        driver_agent.send_to_maintenance(end_time + timedelta(hours=down_hrs))
+                        driver_agent.send_to_maintenance(finish_svc, queue_wait_min=wait_queue_min)
+                        driver_agent.current_node = target_workshop.node_id
+
+                    # Fuel tank check: autonomous pitstop if reserve drops below 15%
+                    if driver_agent.fuel_tank and driver_agent.fuel_tank.needs_refueling:
+                        driver_agent.refuel_pitstop(end_time, pitstop_minutes=15.0)
 
                     rating_usr, rating_drv = self.platform.sample_ratings(self.rng)
                     if driver_agent.vehicle_model.service_type == "movigo_moto" and effective_water_mm > 0.5:

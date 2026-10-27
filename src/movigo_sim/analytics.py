@@ -658,3 +658,63 @@ def compute_driver_heterogeneity_and_churn_metrics(
         "tasa_retencion_proyectada_flota_pct": fleet_retention_pct,
         "correlacion_aceptacion_calificacion": corr_acceptance_rating,
     }
+
+
+def compute_operations_research_maintenance_and_queue_metrics(
+    df_maintenance: pd.DataFrame,
+    df_vehicles: pd.DataFrame,
+    workshops: list[Any] | None = None,
+    total_simulated_days: int = 3,
+) -> dict[str, Any]:
+    """Compute Operations Research multi-server M/M/c queuing metrics, bay utilization, and workshop assignment."""
+    total_sim_hours = max(24.0, total_simulated_days * 24.0)
+
+    workshops_dict = {}
+    if workshops:
+        for w in workshops:
+            w_name = getattr(w, "name", "Taller")
+            cap = getattr(w, "capacity_bays", 3)
+            serviced = getattr(w, "total_vehicles_serviced", 0)
+            wait_min = getattr(w, "total_queue_wait_minutes", 0.0)
+            svc_hrs = getattr(w, "total_service_hours", 0.0)
+
+            # Server utilization rho = (total service hours) / (c * total simulation hours)
+            rho = round(float(svc_hrs / (cap * total_sim_hours)), 4) if total_sim_hours > 0 else 0.0
+            avg_wait = round(float(wait_min / max(1, serviced)), 2)
+
+            workshops_dict[w_name] = {
+                "taller_id": getattr(w, "workshop_id", 0),
+                "capacidad_bahias_c": cap,
+                "vehiculos_atendidos": serviced,
+                "tiempo_total_espera_cola_min": round(wait_min, 2),
+                "tiempo_medio_espera_cola_min": avg_wait,
+                "horas_totales_servicio": round(svc_hrs, 2),
+                "factor_utilizacion_bahias_rho": min(1.0, rho),
+            }
+
+    # Summary by workshop name from maintenance table
+    maint_summary = {}
+    total_cost = 0.0
+    total_downtime = 0.0
+
+    if not df_maintenance.empty:
+        total_cost = round(float(df_maintenance["cost_nio"].sum()), 2)
+        total_downtime = round(float(df_maintenance["downtime_hours"].sum()), 2)
+
+        for w_name, grp in df_maintenance.groupby("workshop_name"):
+            n_prev = int((grp["maintenance_type"] == "preventivo").sum())
+            n_corr = int((grp["maintenance_type"] == "correctivo").sum())
+            maint_summary[w_name] = {
+                "total_servicios": len(grp),
+                "preventivos": n_prev,
+                "correctivos": n_corr,
+                "costo_total_nio": round(float(grp["cost_nio"].sum()), 2),
+                "downtime_promedio_horas": round(float(grp["downtime_hours"].mean()), 2),
+            }
+
+    return {
+        "colas_multicanal_mmc_talleres": workshops_dict,
+        "resumen_servicios_taller": maint_summary,
+        "costo_total_mantenimiento_flota_nio": total_cost,
+        "horas_totales_inactividad_flota": total_downtime,
+    }

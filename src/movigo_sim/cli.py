@@ -154,6 +154,23 @@ def display_movigo_rich_summary(summary: dict):
         ]
         render_operational_table("Heterogeneidad, Fatiga & Rechazo de Conductores (Machine Learning)", driver_rows, border_style="yellow")
 
+    # 7. Investigación de Operaciones: Talleres, Colas M/M/c & Repostaje
+    if "investigacion_operaciones_talleres_y_colas" in summary:
+        ioc = summary["investigacion_operaciones_talleres_y_colas"]
+        mmc = ioc.get("colas_multicanal_mmc_talleres", {})
+
+        or_rows = []
+        for w_name, info in mmc.items():
+            or_rows.append((
+                f"Taller: {w_name}",
+                f"Capacidad: {info.get('capacidad_bahias_c')} bahías | Atendidos: {info.get('vehiculos_atendidos')} | Espera Media Cola: {info.get('tiempo_medio_espera_cola_min')} min | Utilización ρ: {round(info.get('factor_utilizacion_bahias_rho', 0.0) * 100, 1)}%",
+            ))
+        or_rows.append((
+            "Costo & Inactividad Flota",
+            f"Costo Total: C$ {ioc.get('costo_total_mantenimiento_flota_nio', 0.0):,.2f} NIO | Downtime Acumulado: {ioc.get('horas_totales_inactividad_flota', 0.0)} hrs",
+        ))
+        render_operational_table("Investigación de Operaciones: Talleres, Colas M/M/c & Desgaste", or_rows, border_style="blue")
+
 
 def run_generation(
     days=None,
@@ -217,6 +234,7 @@ def run_generation(
         maintenance=maintenance,
         vehicles=engine.vehicles,
         drivers=engine.drivers,
+        workshops=engine.world.workshops,
         seed=seed,
         summary_path=summary_path,
     )
