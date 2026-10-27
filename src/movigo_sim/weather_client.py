@@ -5,6 +5,7 @@ import json
 import logging
 import math
 from pathlib import Path
+import time
 from typing import Any
 import urllib.request
 import urllib.error
@@ -154,16 +155,94 @@ class MoviGoWeatherClient:
             "wind_speed_kmh": round(10.0 + (day_seed % 18) * 0.8, 1),
         }
 
+    def prefetch_climate_range(
+        self,
+        start_date: date,
+        end_date: date,
+        chunk_days: int = 180,
+    ) -> int:
+        """Prefetch climate data in large batch chunks (90-180 days) to prevent API spamming.
+
+        Returns:
+            int: Number of new hours cached.
+        """
+        if start_date > end_date:
+            return 0
+
+        # Scan for missing hours in range
+        curr = datetime.combine(start_date, datetime.min.time())
+        end_dt = datetime.combine(end_date, datetime.min.time()) + timedelta(hours=23)
+        missing_dates: set[date] = set()
+
+        while curr <= end_dt:
+            key = curr.strftime("%Y-%m-%dT%H")
+            if key not in self.hourly_index:
+                missing_dates.add(curr.date())
+            curr += timedelta(hours=1)
+
+        if not missing_dates:
+            logger.debug("All dates in range %s to %s are already cached in climate index.", start_date, end_date)
+            return 0
+
+        min_missing = min(missing_dates)
+        max_missing = max(missing_dates)
+        today = date.today()
+        max_missing = min(today, max_missing)
+
+        logger.info(
+            "Prefetching climate data in large batches for missing span: %s to %s (chunk_days=%d)...",
+            min_missing,
+            max_missing,
+            chunk_days,
+        )
+
+        chunk_start = min_missing
+        new_hours = 0
+        while chunk_start <= max_missing:
+            chunk_end = min(max_missing, chunk_start + timedelta(days=chunk_days - 1))
+            fetched = self._fetch_open_meteo_for_date_range(chunk_start, chunk_end)
+            if not fetched:
+                logger.info(
+                    "Synthesizing seasonal weather for chunk %s to %s...", chunk_start, chunk_end
+                )
+                c_cur = datetime.combine(chunk_start, datetime.min.time())
+                c_end = datetime.combine(chunk_end, datetime.min.time()) + timedelta(hours=23)
+                while c_cur <= c_end:
+                    k = c_cur.strftime("%Y-%m-%dT%H")
+                    if k not in self.hourly_index:
+                        self.hourly_index[k] = self._synthesize_seasonal_weather(c_cur)
+                        new_hours += 1
+                    c_cur += timedelta(hours=1)
+                self._save_live_cache()
+
+            chunk_start = chunk_end + timedelta(days=1)
+            # Brief pause between chunks to respect API politeness
+            if chunk_start <= max_missing:
+                time.sleep(0.5)
+
+        logger.info("Climate prefetch complete for range %s to %s.", min_missing, max_missing)
+        return new_hours
+
+    def get_daily_weather(self, target_date: date) -> list[dict[str, Any]]:
+        """Retrieve 24 hourly weather dictionaries for a target date (hours 0..23)."""
+        sample_key = f"{target_date.isoformat()}T12"
+        if sample_key not in self.hourly_index:
+            self.prefetch_climate_range(target_date, target_date + timedelta(days=90))
+
+        hours_weather: list[dict[str, Any]] = []
+        for h in range(24):
+            dt = datetime.combine(target_date, datetime.min.time()) + timedelta(hours=h)
+            hours_weather.append(self.get_hourly_weather(dt))
+        return hours_weather
+
     def get_hourly_weather(self, dt: datetime) -> dict[str, Any]:
-        """Retrieve weather dictionary for a specific hour, fetching or synthesizing if not present."""
+        """Retrieve weather dictionary for a specific hour, fetching or synthesizing in batch if not present."""
         key = dt.strftime("%Y-%m-%dT%H")
         if key not in self.hourly_index:
-            # Attempt to fetch the whole month or 7-day window to minimize API roundtrips
-            start_d = dt.date()
-            end_d = min(date.today(), start_d + timedelta(days=6))
-            fetched = self._fetch_open_meteo_for_date_range(start_d, end_d)
-            if not fetched or key not in self.hourly_index:
-                # Synthesize and store
+            # Prefetch in a large batch window to minimize API roundtrips
+            self.prefetch_climate_range(dt.date(), dt.date() + timedelta(days=90))
+            if key not in self.hourly_index:
+                # Synthesize and store fallback
                 self.hourly_index[key] = self._synthesize_seasonal_weather(dt)
                 self._save_live_cache()
 

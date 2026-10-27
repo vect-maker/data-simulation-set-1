@@ -1260,3 +1260,122 @@ class MoviGoSimulationEngine:
 
         trips, payments, ratings, cancellations, telemetry, maintenance = recorder.get_results()
         return trips, payments, ratings, cancellations, telemetry, maintenance, weather_records
+
+    def simulate_daily_slice(
+        self,
+        target_date: date,
+        hourly_weather_list: list[dict[str, Any]],
+        starting_ids: dict[str, int] | None = None,
+    ) -> tuple[
+        list[Trip],
+        list[TripPayment],
+        list[TripRating],
+        list[TripCancellation],
+        list[DriverTelemetry],
+        list[VehicleMaintenance],
+        list[QuadrantWeather],
+    ]:
+        """Simulate a full 24-hour day slice of MoviGo urban mobility preserving driver physical agent state."""
+        dow = target_date.weekday()
+        from movigo_sim.engine.platform import HOURLY_TRIP_WEIGHTS
+
+        recorder = SimulationRecorder()
+        if starting_ids:
+            recorder.set_counters(
+                trip_id=starting_ids.get("trip_id", 1),
+                payment_id=starting_ids.get("payment_id", 1),
+                rating_id=starting_ids.get("rating_id", 1),
+                cancellation_id=starting_ids.get("cancellation_id", 1),
+                telemetry_id=starting_ids.get("telemetry_id", 1),
+                maintenance_id=starting_ids.get("maintenance_id", 1),
+            )
+
+        # Filter eligible users registered on or before target_date
+        eligible_mask = self.user_reg_dates <= target_date
+        eligible_users = [u for u, m in zip(self.users, eligible_mask) if m]
+        if not eligible_users:
+            eligible_users = self.users
+
+        eligible_stratum_probs: dict[str, np.ndarray] = {}
+        for stratum, w_arr in self.user_stratum_weights.items():
+            ew = w_arr[eligible_mask] if len(w_arr) == len(eligible_mask) else w_arr.copy()
+            if ew.sum() > 0:
+                ew /= ew.sum()
+            else:
+                ew = np.ones(len(eligible_users)) / len(eligible_users)
+            eligible_stratum_probs[stratum] = ew
+
+        # Generate requests distributed across all 24 hours
+        all_req_times: list[tuple[datetime, int, float, float]] = []
+        for hour in range(24):
+            w_h = hourly_weather_list[hour] if hour < len(hourly_weather_list) else {}
+            h_precip = float(w_h.get("precipitation_mm", 0.0))
+            h_cong = float(w_h.get("congestion_index", 1.0))
+
+            hourly_base_lam = 175.0 * HOURLY_TRIP_WEIGHTS[hour]
+            rain_mult = 1.0 + 0.15 * min(3.0, h_precip / 5.0)
+            n_trips = max(0, int(round(float(self.rng.poisson(lam=max(0.15, hourly_base_lam * rain_mult))))))
+            if n_trips == 0 and 7 <= hour <= 21:
+                n_trips = 1
+
+            h_dt = datetime.combine(target_date, datetime.min.time()) + timedelta(hours=hour)
+            for _ in range(n_trips):
+                req_t = h_dt.replace(minute=int(self.rng.integers(0, 60)), second=int(self.rng.integers(0, 60)))
+                all_req_times.append((req_t, hour, h_precip, h_cong))
+
+        # Sort all 24-hour requests chronologically
+        all_req_times.sort(key=lambda x: x[0])
+
+        driver_meal_logged: set[int] = set()
+        for req_time, hour, h_precip, h_cong in all_req_times:
+            self._dispatch_trip_request(
+                req_time=req_time,
+                recorder=recorder,
+                driver_meal_logged=driver_meal_logged,
+                daily_precip_mm=h_precip,
+                daily_cong_idx=h_cong,
+                hourly_matrices=None,
+                date_hour_to_idx=None,
+                eligible_users=eligible_users,
+                eligible_stratum_probs=eligible_stratum_probs,
+            )
+
+        # Build QuadrantWeather records across all 24 hours and all quadrants
+        w_start_id = starting_ids.get("weather_id", 1) if starting_ids else 1
+        weather_records: list[QuadrantWeather] = []
+        curr_w_id = w_start_id
+
+        quads_list = list(self.world.quadrants_map.values())
+        for hour in range(24):
+            w_h = hourly_weather_list[hour] if hour < len(hourly_weather_list) else {}
+            h_dt = datetime.combine(target_date, datetime.min.time()) + timedelta(hours=hour)
+            h_precip = float(w_h.get("precipitation_mm", 0.0))
+            h_temp = float(w_h.get("temperature_c", 28.0))
+            h_cong = float(w_h.get("congestion_index", 1.0))
+            h_rain = float(w_h.get("rain_mm", 0.0))
+
+            for q in quads_list:
+                elev_factor = 1.25 if q.flood_risk in ("alto", "critico") else 0.90
+                q_precip = round(h_precip * elev_factor, 2)
+                q_runoff = round(q_precip * (0.85 if q.flood_risk == "critico" else 0.35), 2)
+                is_flooded = q_precip >= 8.0 or (q_precip >= 3.0 and q.flood_risk == "critico")
+                sky = "tormenta" if q_precip >= 15.0 else ("lluvia_ligera" if q_precip > 0.5 else ("nublado" if h_rain > 0 else "despejado"))
+                weather_records.append(
+                    QuadrantWeather(
+                        weather_id=curr_w_id,
+                        quadrant_id=q.quadrant_id,
+                        recorded_at=h_dt,
+                        date=target_date,
+                        hour=hour,
+                        precipitation_mm=q_precip,
+                        channel_runoff_mm=q_runoff,
+                        temperature_c=h_temp,
+                        congestion_index=h_cong,
+                        flooded_roads=is_flooded,
+                        sky_condition=sky,
+                    )
+                )
+                curr_w_id += 1
+
+        trips, payments, ratings, cancellations, telemetry, maintenance = recorder.get_results()
+        return trips, payments, ratings, cancellations, telemetry, maintenance, weather_records

@@ -1,7 +1,7 @@
 """MoviGo simulation clock, background catch-up worker, and temporal validation manager."""
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 import logging
 import threading
 from typing import Any
@@ -211,7 +211,7 @@ class MoviGoClockManager:
             "is_leader": is_lead,
         }
 
-    def _persist_hourly_batch(
+    def _persist_batch(
         self,
         target_dt: datetime,
         trips: list[Any],
@@ -221,8 +221,9 @@ class MoviGoClockManager:
         telemetry: list[Any],
         maintenance: list[Any],
         weather: list[Any],
+        hours_advanced: int = 1,
     ) -> None:
-        """Atomically persist an hourly simulation batch and advance latest_datetime in PostgreSQL."""
+        """Atomically persist a simulation batch (hourly or daily) and advance latest_datetime in PostgreSQL."""
         with get_db_connection() as conn:
             conn.autocommit = False
             try:
@@ -247,6 +248,7 @@ class MoviGoClockManager:
                             ) VALUES %s ON CONFLICT (trip_id) DO NOTHING;
                             """,
                             trip_rows,
+                            page_size=2000,
                         )
 
                     # 2. Insert payments
@@ -266,6 +268,7 @@ class MoviGoClockManager:
                             ) VALUES %s ON CONFLICT (payment_id) DO NOTHING;
                             """,
                             pay_rows,
+                            page_size=2000,
                         )
 
                     # 3. Insert ratings
@@ -279,6 +282,7 @@ class MoviGoClockManager:
                             ) VALUES %s ON CONFLICT (rating_id) DO NOTHING;
                             """,
                             rat_rows,
+                            page_size=2000,
                         )
 
                     # 4. Insert cancellations
@@ -299,6 +303,7 @@ class MoviGoClockManager:
                             ) VALUES %s ON CONFLICT (cancellation_id) DO NOTHING;
                             """,
                             canc_rows,
+                            page_size=2000,
                         )
 
                     # 5. Insert telemetry
@@ -318,6 +323,7 @@ class MoviGoClockManager:
                             ) VALUES %s ON CONFLICT (telemetry_id) DO NOTHING;
                             """,
                             tel_rows,
+                            page_size=2000,
                         )
 
                     # 6. Insert maintenance
@@ -338,6 +344,7 @@ class MoviGoClockManager:
                             ) VALUES %s ON CONFLICT (maintenance_id) DO NOTHING;
                             """,
                             maint_rows,
+                            page_size=2000,
                         )
 
                     # 7. Insert quadrant weather
@@ -360,6 +367,7 @@ class MoviGoClockManager:
                             ) VALUES %s ON CONFLICT (weather_id) DO NOTHING;
                             """,
                             w_rows,
+                            page_size=2000,
                         )
 
                     # 8. Advance simulation_clock atomically
@@ -368,25 +376,49 @@ class MoviGoClockManager:
                         UPDATE {SCHEMA}.simulation_clock
                         SET latest_datetime = %s,
                             current_status = %s,
-                            total_hours_simulated = total_hours_simulated + 1,
+                            total_hours_simulated = total_hours_simulated + %s,
                             total_trips_simulated = total_trips_simulated + %s,
                             updated_at = NOW()
                         WHERE clock_id = 1;
                         """,
-                        (target_dt, self.current_status, len(trips)),
+                        (target_dt, self.current_status, hours_advanced, len(trips)),
                     )
 
                 conn.commit()
                 with self._lock:
                     self.latest_datetime = target_dt
-                    self.total_hours_simulated += 1
+                    self.total_hours_simulated += hours_advanced
                     self.total_trips_simulated += len(trips)
             except Exception as exc:
                 conn.rollback()
-                logger.error("Failed persisting hourly simulation batch for %s: %s", target_dt, exc)
+                logger.error("Failed persisting simulation batch for %s: %s", target_dt, exc)
                 raise
             finally:
                 conn.autocommit = True
+
+    def _persist_hourly_batch(
+        self,
+        target_dt: datetime,
+        trips: list[Any],
+        payments: list[Any],
+        ratings: list[Any],
+        cancellations: list[Any],
+        telemetry: list[Any],
+        maintenance: list[Any],
+        weather: list[Any],
+    ) -> None:
+        """Backward-compatible wrapper for persisting an hourly simulation batch."""
+        self._persist_batch(
+            target_dt=target_dt,
+            trips=trips,
+            payments=payments,
+            ratings=ratings,
+            cancellations=cancellations,
+            telemetry=telemetry,
+            maintenance=maintenance,
+            weather=weather,
+            hours_advanced=1,
+        )
 
     def _simulate_and_persist_hour(
         self,
@@ -418,7 +450,7 @@ class MoviGoClockManager:
             if weather_records:
                 self._max_ids["weather_id"] = weather_records[-1].weather_id
 
-        self._persist_hourly_batch(
+        self._persist_batch(
             target_dt=target_dt,
             trips=trips,
             payments=payments,
@@ -427,10 +459,63 @@ class MoviGoClockManager:
             telemetry=telemetry,
             maintenance=maintenance,
             weather=weather_records,
+            hours_advanced=1,
         )
         logger.info(
             "[MoviGo Clock] Hourly slice %s completed | Trips: %d, Canc: %d, Telemetry: %d, Weather: %d",
             target_dt.strftime("%Y-%m-%d %H:00"),
+            len(trips),
+            len(cancellations),
+            len(telemetry),
+            len(weather_records),
+        )
+        return len(trips), len(weather_records)
+
+    def _simulate_and_persist_day(
+        self,
+        target_date: date,
+        hourly_weather: list[dict[str, Any]],
+        starting_ids: dict[str, int],
+    ) -> tuple[int, int]:
+        """Synchronously simulate a full 24-hour day slice and persist to DB in worker thread pool."""
+        if self._engine is None:
+            raise RuntimeError("MoviGo simulation engine is not initialized.")
+
+        trips, payments, ratings, cancellations, telemetry, maintenance, weather_records = (
+            self._engine.simulate_daily_slice(target_date, hourly_weather, starting_ids=starting_ids)
+        )
+
+        with self._lock:
+            if trips:
+                self._max_ids["trip_id"] = trips[-1].trip_id
+            if payments:
+                self._max_ids["payment_id"] = payments[-1].payment_id
+            if ratings:
+                self._max_ids["rating_id"] = ratings[-1].rating_id
+            if cancellations:
+                self._max_ids["cancellation_id"] = cancellations[-1].cancellation_id
+            if telemetry:
+                self._max_ids["telemetry_id"] = telemetry[-1].telemetry_id
+            if maintenance:
+                self._max_ids["maintenance_id"] = maintenance[-1].maintenance_id
+            if weather_records:
+                self._max_ids["weather_id"] = weather_records[-1].weather_id
+
+        target_dt = datetime.combine(target_date, datetime.min.time()) + timedelta(hours=23)
+        self._persist_batch(
+            target_dt=target_dt,
+            trips=trips,
+            payments=payments,
+            ratings=ratings,
+            cancellations=cancellations,
+            telemetry=telemetry,
+            maintenance=maintenance,
+            weather=weather_records,
+            hours_advanced=24,
+        )
+        logger.info(
+            "[MoviGo Clock] Daily slice %s completed | Trips: %d, Canc: %d, Telemetry: %d, Weather: %d",
+            target_date.isoformat(),
             len(trips),
             len(cancellations),
             len(telemetry),
@@ -496,29 +581,73 @@ class MoviGoClockManager:
                 with self._lock:
                     latest = self.latest_datetime
 
+                # If no clock boundary yet, initialize to default start
+                if latest is None:
+                    latest = datetime(2024, 1, 1, 0, 0, 0)
+                    with self._lock:
+                        self.latest_datetime = latest
+
                 # Check if we need to catch up
-                if latest is None or latest < target_hour:
+                if latest < target_hour:
                     with self._lock:
                         self.current_status = "catching_up"
-                        next_dt = (
-                            (latest + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
-                            if latest
-                            else target_hour
-                        )
-                        starting_ids = {k: v + 1 for k, v in self._max_ids.items()}
 
-                    logger.info("Catch-up: Simulating hour %s in background worker thread...", next_dt)
-                    w = await asyncio.to_thread(weather_client.get_hourly_weather, next_dt)
-
+                    # Batch pre-fetch climate data upfront to avoid Open-Meteo API spam
                     await asyncio.to_thread(
-                        self._simulate_and_persist_hour,
-                        next_dt,
-                        w,
-                        starting_ids,
+                        weather_client.prefetch_climate_range,
+                        latest.date(),
+                        target_hour.date(),
+                        180,
                     )
+
+                    # TIER 1: Behind by past calendar days
+                    if latest.date() < target_hour.date():
+                        if latest.hour < 23:
+                            # Complete partial day to 23:00 hour by hour
+                            next_dt = (latest + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+                            with self._lock:
+                                starting_ids = {k: v + 1 for k, v in self._max_ids.items()}
+
+                            logger.info("Catch-up (completing partial day): Simulating hour %s...", next_dt)
+                            w = await asyncio.to_thread(weather_client.get_hourly_weather, next_dt)
+                            await asyncio.to_thread(self._simulate_and_persist_hour, next_dt, w, starting_ids)
+                        else:
+                            # Full day catch-up!
+                            next_date = latest.date() + timedelta(days=1)
+                            if next_date < target_hour.date():
+                                with self._lock:
+                                    starting_ids = {k: v + 1 for k, v in self._max_ids.items()}
+
+                                logger.info(
+                                    "Catch-up (day granularity): Simulating full 24h day %s in background worker thread...",
+                                    next_date.isoformat(),
+                                )
+                                daily_w = await asyncio.to_thread(weather_client.get_daily_weather, next_date)
+                                await asyncio.to_thread(self._simulate_and_persist_day, next_date, daily_w, starting_ids)
+                            else:
+                                # next_date is today! Switch to hourly simulation starting at 00:00 of today
+                                next_dt = datetime.combine(next_date, datetime.min.time())
+                                with self._lock:
+                                    starting_ids = {k: v + 1 for k, v in self._max_ids.items()}
+
+                                logger.info("Catch-up (current day boundary): Simulating hour %s...", next_dt)
+                                w = await asyncio.to_thread(weather_client.get_hourly_weather, next_dt)
+                                await asyncio.to_thread(self._simulate_and_persist_hour, next_dt, w, starting_ids)
+
+                    # TIER 2: On the same day as target_hour (today!), but behind in hours
+                    else:
+                        next_dt = (latest + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+                        with self._lock:
+                            starting_ids = {k: v + 1 for k, v in self._max_ids.items()}
+
+                        logger.info("Catch-up (intraday): Simulating hour %s...", next_dt)
+                        w = await asyncio.to_thread(weather_client.get_hourly_weather, next_dt)
+                        await asyncio.to_thread(self._simulate_and_persist_hour, next_dt, w, starting_ids)
 
                     # Cooperative yield so the asyncio loop continues serving requests with zero latency
                     await asyncio.sleep(0.01)
+
+                # TIER 3: Up to date!
                 else:
                     with self._lock:
                         self.current_status = "ready"

@@ -1,6 +1,6 @@
 """Unit and integration tests for MoviGo continuous simulation clock, hourly slicing, and time-bound queries."""
 
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import unittest
 from unittest.mock import patch
 
@@ -146,6 +146,59 @@ class TestMoviGoAPIClock(unittest.TestCase):
         for t in trips:
             self.assertEqual(t.requested_at.hour, 15)
             self.assertEqual(t.requested_at.date(), date(2024, 1, 1))
+
+    def test_simulate_daily_slice_execution(self):
+        """Verify simulate_daily_slice runs a complete 24-hour day slice generating all entities."""
+        engine = MoviGoSimulationEngine(random_seed=42)
+        target_date = date(2024, 1, 1)
+        daily_weather = weather_client.get_daily_weather(target_date)
+        self.assertEqual(len(daily_weather), 24)
+
+        trips, payments, ratings, cancellations, telemetry, maintenance, weather_records = (
+            engine.simulate_daily_slice(target_date, daily_weather)
+        )
+        self.assertGreaterEqual(len(trips), 20)
+        self.assertEqual(len(payments), len(trips))
+        self.assertGreaterEqual(len(ratings), 10)
+        # All quadrants across all 24 hours of that day
+        self.assertEqual(len(weather_records), len(engine.quadrants) * 24)
+        for t in trips:
+            self.assertEqual(t.requested_at.date(), target_date)
+
+    def test_climate_prefetch_large_batching(self):
+        """Verify prefetch_climate_range batches date ranges into large chunks without spamming API."""
+        from movigo_sim.weather_client import MoviGoWeatherClient
+        import tempfile
+        from pathlib import Path
+        from unittest.mock import MagicMock
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            client = MoviGoWeatherClient(
+                historic_path=Path(tmp_dir) / "empty_hist.json",
+                live_cache_path=Path(tmp_dir) / "test_live_cache.json",
+            )
+            client._fetch_open_meteo_for_date_range = MagicMock(return_value=True)
+
+            # Request 360 days: should split into 2 chunks of 180 days, NOT 50+ 7-day calls
+            start_d = date(2025, 1, 1)
+            end_d = date(2025, 12, 26)
+            client.prefetch_climate_range(start_d, end_d, chunk_days=180)
+
+            # Verified call count is 2 (2 large chunks of 180 days)
+            self.assertEqual(client._fetch_open_meteo_for_date_range.call_count, 2)
+            first_call_args = client._fetch_open_meteo_for_date_range.call_args_list[0][0]
+            self.assertEqual(first_call_args[0], start_d)
+            self.assertEqual(first_call_args[1], start_d + timedelta(days=179))
+
+    def test_get_daily_weather_returns_24_hours(self):
+        """Verify get_daily_weather provides exactly 24 chronological hours for target date."""
+        target_d = date(2024, 1, 15)
+        w_list = weather_client.get_daily_weather(target_d)
+        self.assertEqual(len(w_list), 24)
+        for h, w in enumerate(w_list):
+            self.assertIn("temperature_c", w)
+            self.assertIn("precipitation_mm", w)
+            self.assertIn("congestion_index", w)
 
     def test_api_serves_requests_while_catching_up(self):
         """Verify API serves endpoints immediately with HTTP 200 while status is catching_up."""
