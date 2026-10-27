@@ -4,6 +4,7 @@ Generates CSV files, SQL dump with academic database objects (Functions, Trigger
 and statistical/numerical summary reports using standardized English 3NF table and column names.
 """
 
+import json
 import logging
 from pathlib import Path
 from typing import Any
@@ -622,6 +623,22 @@ def export_movigo_spatial_layers(
     return results
 
 
+def export_movigo_audit_logs(
+    audit_logs: list[dict[str, Any]],
+    log_path: Path | None = None,
+) -> Path:
+    """Export generation audit entries to a structured JSON Lines (.jsonl) file."""
+    if log_path is None:
+        log_path = ARTIFACTS_DIR / "logs" / "generation_audit.jsonl"
+
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(log_path, "w", encoding="utf-8") as f:
+        for entry in audit_logs:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    logger.info("Exported %d generation audit records to %s", len(audit_logs), log_path)
+    return log_path
+
+
 def compute_movigo_simulation_summary(
     zones: list[UrbanZone],
     quadrants: list[Quadrant],
@@ -638,6 +655,7 @@ def compute_movigo_simulation_summary(
     workshops: list[Any] | None = None,
     seed: int = SIMULATION_SEED,
     summary_path: Path | None = None,
+    audit_logs: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Compute mathematical, inferential, and optimization properties of MoviGo 3NF dataset."""
     df_trips = pd.DataFrame([v.model_dump() for v in trips])
@@ -750,6 +768,31 @@ def compute_movigo_simulation_summary(
     except Exception as exc:
         logger.warning("Could not export spatial GeoJSON layers: %s", exc)
 
+    target_summary_path = summary_path if summary_path is not None else (ARTIFACTS_DIR / "simulation_summary.json")
+    target_log_path = (target_summary_path.parent / "logs" / "generation_audit.jsonl")
+
+    audit_summary: dict[str, Any] = {}
+    if audit_logs:
+        export_movigo_audit_logs(audit_logs, log_path=target_log_path)
+        total_days = len(audit_logs)
+        total_gen_time = sum(entry.get("step_duration_seconds", 0.0) for entry in audit_logs)
+        total_dispatched = sum(entry.get("trips_dispatched", 0) for entry in audit_logs)
+        total_completed = sum(entry.get("trips_completed", 0) for entry in audit_logs)
+        total_canceled = sum(entry.get("trips_canceled", 0) for entry in audit_logs)
+        avg_seconds_per_day = total_gen_time / max(1, total_days)
+        trips_per_second = total_completed / max(0.001, total_gen_time)
+        audit_summary = {
+            "total_dias_simulados": total_days,
+            "tiempo_total_generacion_segundos": round(total_gen_time, 3),
+            "tiempo_promedio_por_dia_segundos": round(avg_seconds_per_day, 4),
+            "velocidad_generacion_viajes_por_segundo": round(trips_per_second, 2),
+            "total_solicitudes_evaluadas": total_dispatched,
+            "total_viajes_completados": total_completed,
+            "total_viajes_cancelados": total_canceled,
+            "tasa_cancelacion_auditoria_pct": round(total_canceled / max(1, total_dispatched) * 100, 2),
+            "archivo_log_auditoria": str(target_log_path),
+        }
+
     summary = {
         "case_name": "MoviGo (Transporte por Aplicación)",
         "city": CITY_NAME,
@@ -791,8 +834,8 @@ def compute_movigo_simulation_summary(
         "heterogeneidad_fatiga_conductores": driver_behavior_results,
         "investigacion_operaciones_talleres_y_colas": or_maint_results,
         "indicadores_trafico_y_enrutamiento_dinamico": traffic_routing_results,
+        "registro_auditoria_generacion": audit_summary,
     }
 
-    target_summary_path = summary_path if summary_path is not None else (ARTIFACTS_DIR / "simulation_summary.json")
     write_json_summary(summary, target_summary_path)
     return summary

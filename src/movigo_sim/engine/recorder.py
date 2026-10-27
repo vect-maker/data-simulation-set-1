@@ -8,7 +8,7 @@ Captures all lifecycle events from the simulation engine, guaranteeing:
 
 from __future__ import annotations
 
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from typing import Any
 import pandas as pd
 
@@ -39,6 +39,7 @@ class SimulationRecorder:
         self.cancellations: list[TripCancellation] = []
         self.telemetry: list[DriverTelemetry] = []
         self.maintenance: list[VehicleMaintenance] = []
+        self.audit_logs: list[dict[str, Any]] = []
 
     def set_counters(
         self,
@@ -226,6 +227,48 @@ class SimulationRecorder:
             )
         )
         return m_id
+
+    def record_audit_entry(
+        self,
+        simulation_date: str,
+        day_name: str,
+        is_weekend: bool,
+        weather_precip_mm: float,
+        congestion_index: float,
+        daily_demand_target: int,
+        trips_dispatched: int,
+        trips_completed: int,
+        trips_canceled: int,
+        telemetry_records: int,
+        step_duration_seconds: float,
+        real_timestamp: str | None = None,
+    ) -> dict[str, Any]:
+        """Record a structured audit log entry for a simulated period."""
+        if real_timestamp is None:
+            real_timestamp = datetime.now(timezone.utc).isoformat()
+
+        entry = {
+            "real_timestamp": real_timestamp,
+            "simulation_date": str(simulation_date),
+            "day_name": day_name,
+            "is_weekend": is_weekend,
+            "weather_precip_mm": round(float(weather_precip_mm), 2),
+            "congestion_index": round(float(congestion_index), 4),
+            "daily_demand_target": int(daily_demand_target),
+            "trips_dispatched": int(trips_dispatched),
+            "trips_completed": int(trips_completed),
+            "trips_canceled": int(trips_canceled),
+            "telemetry_records": int(telemetry_records),
+            "step_duration_seconds": round(float(step_duration_seconds), 4),
+            "cumulative_trips": len(self.trips),
+            "cumulative_telemetry": len(self.telemetry),
+        }
+        self.audit_logs.append(entry)
+        return entry
+
+    def get_audit_logs(self) -> list[dict[str, Any]]:
+        """Return the sequence of structured generation audit records."""
+        return list(self.audit_logs)
 
     def get_results(
         self,

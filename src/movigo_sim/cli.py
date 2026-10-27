@@ -203,6 +203,32 @@ def display_movigo_rich_summary(summary: dict):
             border_style="bright_cyan",
         )
 
+    # 9. Auditoría de Generación y Rendimiento del Simulador
+    if "registro_auditoria_generacion" in summary and summary["registro_auditoria_generacion"]:
+        aud = summary["registro_auditoria_generacion"]
+        aud_rows = [
+            ("Días Simulados", f"{aud.get('total_dias_simulados', 0):,} días"),
+            (
+                "Tiempo Total de Generación",
+                f"{aud.get('tiempo_total_generacion_segundos', 0.0):.2f} s ({aud.get('tiempo_promedio_por_dia_segundos', 0.0):.3f} s/día)",
+            ),
+            (
+                "Velocidad de Generación",
+                f"{aud.get('velocidad_generacion_viajes_por_segundo', 0.0):.1f} viajes/segundo",
+            ),
+            ("Solicitudes Evaluadas", f"{aud.get('total_solicitudes_evaluadas', 0):,}"),
+            (
+                "Viajes Completados / Cancelados",
+                f"{aud.get('total_viajes_completados', 0):,} completados | {aud.get('total_viajes_cancelados', 0):,} cancelados ({aud.get('tasa_cancelacion_auditoria_pct', 0.0)}%)",
+            ),
+            ("Archivo de Auditoría (JSONL)", f"{aud.get('archivo_log_auditoria', '')}"),
+        ]
+        render_operational_table(
+            "Auditoría de Generación y Rendimiento del Simulador",
+            aud_rows,
+            border_style="bright_green",
+        )
+
 
 def run_generation(
     days=None,
@@ -280,6 +306,7 @@ def run_generation(
         workshops=engine.world.workshops,
         seed=seed,
         summary_path=summary_path,
+        audit_logs=engine.audit_logs,
     )
 
     if load_db:

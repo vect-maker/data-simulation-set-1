@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import logging
 from datetime import datetime, date, timedelta, time
+from time import perf_counter
 from typing import Any
 import numpy as np
 import pandas as pd
@@ -300,6 +301,8 @@ class MoviGoSimulationEngine:
             probs_arr = np.array(probs, dtype=float)
             self.user_stratum_weights[stratum] = self.user_base_weights * probs_arr[user_method_indices]
 
+        self.audit_logs: list[dict[str, Any]] = []
+
     def sample_origin_destination_zones(self, hour: int, dow: int) -> tuple[UrbanZone, UrbanZone]:
         """Sample (origin_zone, destination_zone) from WorldEnvironment."""
         return self.world.sample_origin_destination_zones(hour, dow, self.rng)
@@ -444,12 +447,15 @@ class MoviGoSimulationEngine:
     def run_simulation(
         self,
         weather_df: pd.DataFrame,
+        recorder: SimulationRecorder | None = None,
+        progress_callback: Any = None,
     ) -> tuple[
         list[Trip],
         list[TripPayment],
         list[TripRating],
         list[TripCancellation],
         list[DriverTelemetry],
+        list[VehicleMaintenance],
     ]:
         """Run full year MoviGo simulation emitting 3NF OLTP transactional tables with Gravity OD & non-overlapping dispatch."""
         self.rng = np.random.default_rng(self.random_seed)
@@ -460,7 +466,8 @@ class MoviGoSimulationEngine:
             hourly_matrices["date_hour_to_idx"] if hourly_matrices else {}
         )
 
-        recorder = SimulationRecorder()
+        if recorder is None:
+            recorder = SimulationRecorder()
 
         # Reset driver agent state for fresh simulation
         for agent in self.driver_agents:
@@ -492,7 +499,13 @@ class MoviGoSimulationEngine:
             ws.total_queue_wait_minutes = 0.0
             ws.total_service_hours = 0.0
 
+        sim_total_days = len(weather_df)
         for day_idx, (_, row) in enumerate(weather_df.iterrows()):
+            day_t0 = perf_counter()
+            trips_before = len(recorder.trips)
+            cancels_before = len(recorder.cancellations)
+            telemetry_before = len(recorder.telemetry)
+
             curr_date: date = row["date"]
             daily_precip_mm: float = float(row["precipitation_mm"])
             daily_cong_idx: float = float(row["congestion_index"])
@@ -526,15 +539,45 @@ class MoviGoSimulationEngine:
                     eligible_stratum_probs=eligible_stratum_probs,
                 )
 
-            if (day_idx + 1) % 60 == 0 or (day_idx + 1) == len(weather_df):
-                logger.info(f"Simulated {day_idx + 1}/{len(weather_df)} days... ({len(recorder.trips)} rides generated)")
+            day_duration = perf_counter() - day_t0
+            trips_day = len(recorder.trips) - trips_before
+            cancels_day = len(recorder.cancellations) - cancels_before
+            telemetry_day = len(recorder.telemetry) - telemetry_before
+            day_name = curr_date.strftime("%A")
 
+            audit_entry = recorder.record_audit_entry(
+                simulation_date=str(curr_date),
+                day_name=day_name,
+                is_weekend=(dow >= 5),
+                weather_precip_mm=daily_precip_mm,
+                congestion_index=daily_cong_idx,
+                daily_demand_target=daily_target,
+                trips_dispatched=len(req_times),
+                trips_completed=trips_day,
+                trips_canceled=cancels_day,
+                telemetry_records=telemetry_day,
+                step_duration_seconds=day_duration,
+            )
+
+            logger.info(
+                f"[MoviGo Sim] Día {day_idx + 1:3d}/{sim_total_days} | {curr_date} ({day_name:9s}) | "
+                f"Lluvia: {daily_precip_mm:5.1f}mm | Congestión: {daily_cong_idx:.2f} | "
+                f"Viajes: {trips_day:3d} ok, {cancels_day:2d} canc | Acumulado: {len(recorder.trips):6d} | {day_duration:5.2f}s"
+            )
+
+            if progress_callback:
+                try:
+                    progress_callback(audit_entry, day_idx + 1, sim_total_days)
+                except Exception as cb_err:
+                    logger.debug("Progress callback exception: %s", cb_err)
+
+        self.audit_logs = recorder.get_audit_logs()
         trips, payments, ratings, cancellations, telemetry, maintenance = recorder.get_results()
         self.maintenance_records = maintenance
         logger.info(
             f"MoviGo simulation completed! Produced {len(trips)} trips, {len(payments)} payments, "
             f"{len(ratings)} ratings, {len(cancellations)} cancellations, {len(telemetry)} telemetry pings, "
-            f"and {len(maintenance)} maintenance services."
+            f"and {len(maintenance)} maintenance services across {len(self.audit_logs)} simulated days."
         )
         return trips, payments, ratings, cancellations, telemetry, maintenance
 

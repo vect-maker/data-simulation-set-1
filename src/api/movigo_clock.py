@@ -428,6 +428,14 @@ class MoviGoClockManager:
             maintenance=maintenance,
             weather=weather_records,
         )
+        logger.info(
+            "[MoviGo Clock] Hourly slice %s completed | Trips: %d, Canc: %d, Telemetry: %d, Weather: %d",
+            target_dt.strftime("%Y-%m-%d %H:00"),
+            len(trips),
+            len(cancellations),
+            len(telemetry),
+            len(weather_records),
+        )
         return len(trips), len(weather_records)
 
     def _acquire_advisory_lock(self) -> bool:
