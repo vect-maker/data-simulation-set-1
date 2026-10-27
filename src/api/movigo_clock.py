@@ -3,6 +3,7 @@
 import asyncio
 from datetime import datetime, timedelta
 import logging
+import threading
 from typing import Any
 
 from fastapi import HTTPException
@@ -23,6 +24,7 @@ class MoviGoClockManager:
     """Manages the persistent simulation clock in PostgreSQL, background hourly simulation, and time-bound query validation."""
 
     def __init__(self) -> None:
+        self._lock: threading.RLock = threading.RLock()
         self.earliest_datetime: datetime = datetime(2024, 1, 1, 0, 0, 0)
         self.latest_datetime: datetime = datetime(2024, 1, 1, 0, 0, 0)
         self.current_status: str = "ready"
@@ -31,6 +33,7 @@ class MoviGoClockManager:
         self.is_leader: bool = False
         self._engine: MoviGoSimulationEngine | None = None
         self._running: bool = False
+        self._leader_conn: Any = None
         self._max_ids: dict[str, int] = {
             "trip_id": 0,
             "payment_id": 0,
@@ -66,106 +69,111 @@ class MoviGoClockManager:
                         WHERE clock_id = 1;
                     """)
                     row = cur.fetchone()
-                    if row:
-                        self.earliest_datetime = row[0]
-                        self.latest_datetime = row[1]
-                        self.current_status = row[2]
-                        self.total_hours_simulated = int(row[3])
-                        self.total_trips_simulated = int(row[4])
-                        logger.info(
-                            "Loaded simulation_clock from DB: earliest=%s, latest=%s, status=%s, trips=%d",
-                            self.earliest_datetime, self.latest_datetime, self.current_status, self.total_trips_simulated,
-                        )
-                    else:
-                        # Inspect trips table for initial boundaries
+                    with self._lock:
+                        if row:
+                            self.earliest_datetime = row[0]
+                            self.latest_datetime = row[1]
+                            self.current_status = row[2]
+                            self.total_hours_simulated = int(row[3])
+                            self.total_trips_simulated = int(row[4])
+                            logger.info(
+                                "Loaded simulation_clock from DB: earliest=%s, latest=%s, status=%s, trips=%d",
+                                self.earliest_datetime, self.latest_datetime, self.current_status, self.total_trips_simulated,
+                            )
+                        else:
+                            # Inspect trips table for initial boundaries
+                            cur.execute(f"""
+                                SELECT 
+                                    COALESCE(MIN(requested_at), '2024-01-01 00:00:00'::timestamp),
+                                    COALESCE(MAX(requested_at), '2024-01-01 00:00:00'::timestamp),
+                                    COUNT(DISTINCT DATE_TRUNC('hour', requested_at)),
+                                    COUNT(*)
+                                FROM {SCHEMA}.trips;
+                            """)
+                            t_min, t_max, h_count, t_count = cur.fetchone()
+                            self.earliest_datetime = t_min
+                            self.latest_datetime = t_max
+                            self.total_hours_simulated = int(h_count or 0)
+                            self.total_trips_simulated = int(t_count or 0)
+                            self.current_status = "ready"
+
+                            cur.execute(f"""
+                                INSERT INTO {SCHEMA}.simulation_clock 
+                                (clock_id, earliest_datetime, latest_datetime, current_status, total_hours_simulated, total_trips_simulated, updated_at)
+                                VALUES (1, %s, %s, %s, %s, %s, NOW())
+                                ON CONFLICT (clock_id) DO UPDATE SET
+                                    earliest_datetime = EXCLUDED.earliest_datetime,
+                                    latest_datetime = EXCLUDED.latest_datetime,
+                                    current_status = EXCLUDED.current_status,
+                                    total_hours_simulated = EXCLUDED.total_hours_simulated,
+                                    total_trips_simulated = EXCLUDED.total_trips_simulated,
+                                    updated_at = NOW();
+                            """, (self.earliest_datetime, self.latest_datetime, self.current_status, self.total_hours_simulated, self.total_trips_simulated))
+                            logger.info(
+                                "Bootstrapped simulation_clock in DB: earliest=%s, latest=%s",
+                                self.earliest_datetime, self.latest_datetime,
+                            )
+
+                        # Retrieve maximum allocated IDs to guarantee monotonic sequence continuity
                         cur.execute(f"""
                             SELECT 
-                                COALESCE(MIN(requested_at), '2024-01-01 00:00:00'::timestamp),
-                                COALESCE(MAX(requested_at), '2024-01-01 00:00:00'::timestamp),
-                                COUNT(DISTINCT DATE_TRUNC('hour', requested_at)),
-                                COUNT(*)
-                            FROM {SCHEMA}.trips;
+                                (SELECT COALESCE(MAX(trip_id), 0) FROM {SCHEMA}.trips),
+                                (SELECT COALESCE(MAX(payment_id), 0) FROM {SCHEMA}.trip_payments),
+                                (SELECT COALESCE(MAX(rating_id), 0) FROM {SCHEMA}.trip_ratings),
+                                (SELECT COALESCE(MAX(cancellation_id), 0) FROM {SCHEMA}.trip_cancellations),
+                                (SELECT COALESCE(MAX(telemetry_id), 0) FROM {SCHEMA}.driver_telemetry),
+                                (SELECT COALESCE(MAX(maintenance_id), 0) FROM {SCHEMA}.vehicle_maintenance),
+                                (SELECT COALESCE(MAX(weather_id), 0) FROM {SCHEMA}.quadrant_weather);
                         """)
-                        t_min, t_max, h_count, t_count = cur.fetchone()
-                        self.earliest_datetime = t_min
-                        self.latest_datetime = t_max
-                        self.total_hours_simulated = int(h_count or 0)
-                        self.total_trips_simulated = int(t_count or 0)
-                        self.current_status = "ready"
-
-                        cur.execute(f"""
-                            INSERT INTO {SCHEMA}.simulation_clock 
-                            (clock_id, earliest_datetime, latest_datetime, current_status, total_hours_simulated, total_trips_simulated, updated_at)
-                            VALUES (1, %s, %s, %s, %s, %s, NOW())
-                            ON CONFLICT (clock_id) DO UPDATE SET
-                                earliest_datetime = EXCLUDED.earliest_datetime,
-                                latest_datetime = EXCLUDED.latest_datetime,
-                                current_status = EXCLUDED.current_status,
-                                total_hours_simulated = EXCLUDED.total_hours_simulated,
-                                total_trips_simulated = EXCLUDED.total_trips_simulated,
-                                updated_at = NOW();
-                        """, (self.earliest_datetime, self.latest_datetime, self.current_status, self.total_hours_simulated, self.total_trips_simulated))
-                        logger.info(
-                            "Bootstrapped simulation_clock in DB: earliest=%s, latest=%s",
-                            self.earliest_datetime, self.latest_datetime,
-                        )
-
-                    # Retrieve maximum allocated IDs to guarantee monotonic sequence continuity
-                    cur.execute(f"""
-                        SELECT 
-                            (SELECT COALESCE(MAX(trip_id), 0) FROM {SCHEMA}.trips),
-                            (SELECT COALESCE(MAX(payment_id), 0) FROM {SCHEMA}.trip_payments),
-                            (SELECT COALESCE(MAX(rating_id), 0) FROM {SCHEMA}.trip_ratings),
-                            (SELECT COALESCE(MAX(cancellation_id), 0) FROM {SCHEMA}.trip_cancellations),
-                            (SELECT COALESCE(MAX(telemetry_id), 0) FROM {SCHEMA}.driver_telemetry),
-                            (SELECT COALESCE(MAX(maintenance_id), 0) FROM {SCHEMA}.vehicle_maintenance),
-                            (SELECT COALESCE(MAX(weather_id), 0) FROM {SCHEMA}.quadrant_weather);
-                    """)
-                    id_row = cur.fetchone()
-                    if id_row:
-                        self._max_ids = {
-                            "trip_id": int(id_row[0]),
-                            "payment_id": int(id_row[1]),
-                            "rating_id": int(id_row[2]),
-                            "cancellation_id": int(id_row[3]),
-                            "telemetry_id": int(id_row[4]),
-                            "maintenance_id": int(id_row[5]),
-                            "weather_id": int(id_row[6]),
-                        }
-                        logger.info("Allocated maximum entity IDs: %s", self._max_ids)
+                        id_row = cur.fetchone()
+                        if id_row:
+                            self._max_ids = {
+                                "trip_id": int(id_row[0]),
+                                "payment_id": int(id_row[1]),
+                                "rating_id": int(id_row[2]),
+                                "cancellation_id": int(id_row[3]),
+                                "telemetry_id": int(id_row[4]),
+                                "maintenance_id": int(id_row[5]),
+                                "weather_id": int(id_row[6]),
+                            }
+                            logger.info("Allocated maximum entity IDs: %s", self._max_ids)
         except Exception as exc:
             logger.warning("Could not initialize simulation_clock from DB (will use defaults): %s", exc)
 
     def validate_time_bounds(self, start_time: datetime | None = None, end_time: datetime | None = None) -> None:
         """Validate requested time window against currently available simulation bounds."""
+        with self._lock:
+            earliest = self.earliest_datetime
+            latest = self.latest_datetime
+
         if start_time is not None:
             # Handle naive vs aware
             st = start_time.replace(tzinfo=None) if start_time.tzinfo else start_time
-            if st < self.earliest_datetime:
+            if earliest is not None and st < earliest:
                 raise HTTPException(
                     status_code=400,
                     detail=(
                         f"Parámetro 'start_time' ({st.isoformat()}) es anterior al límite inicial de datos "
-                        f"disponibles ({self.earliest_datetime.isoformat()})."
+                        f"disponibles ({earliest.isoformat()})."
                     ),
                 )
-            if st > self.latest_datetime:
+            if latest is not None and st > latest:
                 raise HTTPException(
                     status_code=400,
                     detail=(
                         f"Parámetro 'start_time' ({st.isoformat()}) aún no ha sido generado en la simulación. "
-                        f"Límite máximo generado actual: {self.latest_datetime.isoformat()}."
+                        f"Límite máximo generado actual: {latest.isoformat()}."
                     ),
                 )
 
         if end_time is not None:
             et = end_time.replace(tzinfo=None) if end_time.tzinfo else end_time
-            if et > self.latest_datetime:
+            if latest is not None and et > latest:
                 raise HTTPException(
                     status_code=400,
                     detail=(
                         f"Parámetro 'end_time' ({et.isoformat()}) supera la última hora generada por la plataforma. "
-                        f"Límite máximo generado actual: {self.latest_datetime.isoformat()}."
+                        f"Límite máximo generado actual: {latest.isoformat()}."
                     ),
                 )
             if start_time is not None:
@@ -182,17 +190,25 @@ class MoviGoClockManager:
         """Return current simulation clock metadata."""
         now = datetime.now()
         target = now.replace(minute=0, second=0, microsecond=0)
-        remaining_hours = max(0, int((target - self.latest_datetime).total_seconds() // 3600)) if self.latest_datetime else 0
+        with self._lock:
+            latest = self.latest_datetime
+            earliest = self.earliest_datetime
+            curr_status = self.current_status
+            total_hours = self.total_hours_simulated
+            total_trips = self.total_trips_simulated
+            is_lead = self.is_leader
+
+        remaining_hours = max(0, int((target - latest).total_seconds() // 3600)) if latest else 0
         return {
             "case_name": "Caso 3: MoviGo (Transporte Urbano en Managua)",
-            "current_status": self.current_status,
-            "earliest_datetime": self.earliest_datetime.isoformat() if self.earliest_datetime else None,
-            "latest_datetime": self.latest_datetime.isoformat() if self.latest_datetime else None,
+            "current_status": curr_status,
+            "earliest_datetime": earliest.isoformat() if earliest else None,
+            "latest_datetime": latest.isoformat() if latest else None,
             "target_datetime": target.isoformat(),
             "hours_remaining_catch_up": remaining_hours,
-            "total_hours_simulated": self.total_hours_simulated,
-            "total_trips_simulated": self.total_trips_simulated,
-            "is_leader": self.is_leader,
+            "total_hours_simulated": total_hours,
+            "total_trips_simulated": total_trips,
+            "is_leader": is_lead,
         }
 
     def _persist_hourly_batch(
@@ -361,9 +377,10 @@ class MoviGoClockManager:
                     )
 
                 conn.commit()
-                self.latest_datetime = target_dt
-                self.total_hours_simulated += 1
-                self.total_trips_simulated += len(trips)
+                with self._lock:
+                    self.latest_datetime = target_dt
+                    self.total_hours_simulated += 1
+                    self.total_trips_simulated += len(trips)
             except Exception as exc:
                 conn.rollback()
                 logger.error("Failed persisting hourly simulation batch for %s: %s", target_dt, exc)
@@ -371,91 +388,132 @@ class MoviGoClockManager:
             finally:
                 conn.autocommit = True
 
-    async def run(self) -> None:
-        """Main background loop: acquires advisory lock and runs catch-up / real-time hourly simulation."""
-        self._running = True
-        logger.info("MoviGoClockManager background worker started.")
+    def _simulate_and_persist_hour(
+        self,
+        target_dt: datetime,
+        weather: dict[str, Any],
+        starting_ids: dict[str, int],
+    ) -> tuple[int, int]:
+        """Synchronously simulate one hour slice and persist to DB in worker thread pool."""
+        if self._engine is None:
+            raise RuntimeError("MoviGo simulation engine is not initialized.")
 
-        # Give DB connection pool a brief moment to stabilize
-        await asyncio.sleep(1.0)
-        self.initialize_from_db()
+        trips, payments, ratings, cancellations, telemetry, maintenance, weather_records = (
+            self._engine.simulate_hourly_slice(target_dt, weather, starting_ids=starting_ids)
+        )
 
-        # Attempt to acquire advisory lock for leadership
-        leader_conn = None
+        with self._lock:
+            if trips:
+                self._max_ids["trip_id"] = trips[-1].trip_id
+            if payments:
+                self._max_ids["payment_id"] = payments[-1].payment_id
+            if ratings:
+                self._max_ids["rating_id"] = ratings[-1].rating_id
+            if cancellations:
+                self._max_ids["cancellation_id"] = cancellations[-1].cancellation_id
+            if telemetry:
+                self._max_ids["telemetry_id"] = telemetry[-1].telemetry_id
+            if maintenance:
+                self._max_ids["maintenance_id"] = maintenance[-1].maintenance_id
+            if weather_records:
+                self._max_ids["weather_id"] = weather_records[-1].weather_id
+
+        self._persist_hourly_batch(
+            target_dt=target_dt,
+            trips=trips,
+            payments=payments,
+            ratings=ratings,
+            cancellations=cancellations,
+            telemetry=telemetry,
+            maintenance=maintenance,
+            weather=weather_records,
+        )
+        return len(trips), len(weather_records)
+
+    def _acquire_advisory_lock(self) -> bool:
+        """Attempt to acquire PostgreSQL advisory lock synchronously in worker thread."""
         try:
             pool = get_pool()
-            leader_conn = pool.getconn()
-            leader_conn.autocommit = True
-            with leader_conn.cursor() as cur:
+            self._leader_conn = pool.getconn()
+            self._leader_conn.autocommit = True
+            with self._leader_conn.cursor() as cur:
                 cur.execute(f"SELECT pg_try_advisory_lock({ADVISORY_LOCK_ID});")
                 locked = cur.fetchone()[0]
                 if not locked:
                     logger.info("Another process holds the MoviGo simulation advisory lock. Running as replica.")
-                    self.is_leader = False
-                    return
-                self.is_leader = True
+                    return False
                 logger.info("Acquired PostgreSQL advisory lock (%d). Operating as simulation leader.", ADVISORY_LOCK_ID)
+                return True
         except Exception as exc:
             logger.warning("Could not acquire advisory lock (standalone/test mode): %s", exc)
-            self.is_leader = True
+            return True
 
-        # Initialize simulation engine
-        self._engine = MoviGoSimulationEngine(random_seed=42)
+    def _release_advisory_lock(self) -> None:
+        """Release PostgreSQL advisory lock synchronously."""
+        if self._leader_conn:
+            try:
+                with self._leader_conn.cursor() as cur:
+                    cur.execute(f"SELECT pg_advisory_unlock({ADVISORY_LOCK_ID});")
+                pool = get_pool()
+                pool.putconn(self._leader_conn)
+                self._leader_conn = None
+                logger.info("Released PostgreSQL advisory lock.")
+            except Exception:
+                pass
+
+    async def run(self) -> None:
+        """Main background loop: acquires advisory lock and runs non-blocking catch-up / real-time hourly simulation."""
+        self._running = True
+        logger.info("MoviGoClockManager background worker started.")
+
+        # Give DB connection pool a brief moment to stabilize
+        await asyncio.sleep(0.5)
+        await asyncio.to_thread(self.initialize_from_db)
+
+        # Attempt to acquire advisory lock for leadership in thread
+        self.is_leader = await asyncio.to_thread(self._acquire_advisory_lock)
+        if not self.is_leader:
+            return
+
+        # Initialize simulation engine in thread pool to avoid blocking the event loop on startup
+        logger.info("Initializing MoviGoSimulationEngine in worker thread pool...")
+        self._engine = await asyncio.to_thread(MoviGoSimulationEngine, random_seed=42)
+        logger.info("MoviGoSimulationEngine initialized successfully.")
 
         try:
             while self._running:
                 now = datetime.now()
                 target_hour = now.replace(minute=0, second=0, microsecond=0)
 
+                with self._lock:
+                    latest = self.latest_datetime
+
                 # Check if we need to catch up
-                if self.latest_datetime is None or self.latest_datetime < target_hour:
-                    self.current_status = "catching_up"
-                    next_dt = (
-                        (self.latest_datetime + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
-                        if self.latest_datetime
-                        else target_hour
+                if latest is None or latest < target_hour:
+                    with self._lock:
+                        self.current_status = "catching_up"
+                        next_dt = (
+                            (latest + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+                            if latest
+                            else target_hour
+                        )
+                        starting_ids = {k: v + 1 for k, v in self._max_ids.items()}
+
+                    logger.info("Catch-up: Simulating hour %s in background worker thread...", next_dt)
+                    w = await asyncio.to_thread(weather_client.get_hourly_weather, next_dt)
+
+                    await asyncio.to_thread(
+                        self._simulate_and_persist_hour,
+                        next_dt,
+                        w,
+                        starting_ids,
                     )
 
-                    logger.info("Catch-up: Simulating hour %s...", next_dt)
-                    w = weather_client.get_hourly_weather(next_dt)
-
-                    starting_ids = {k: v + 1 for k, v in self._max_ids.items()}
-                    trips, payments, ratings, cancellations, telemetry, maintenance, weather_records = (
-                        self._engine.simulate_hourly_slice(next_dt, w, starting_ids=starting_ids)
-                    )
-
-                    # Update internal tracking max IDs
-                    if trips:
-                        self._max_ids["trip_id"] = trips[-1].trip_id
-                    if payments:
-                        self._max_ids["payment_id"] = payments[-1].payment_id
-                    if ratings:
-                        self._max_ids["rating_id"] = ratings[-1].rating_id
-                    if cancellations:
-                        self._max_ids["cancellation_id"] = cancellations[-1].cancellation_id
-                    if telemetry:
-                        self._max_ids["telemetry_id"] = telemetry[-1].telemetry_id
-                    if maintenance:
-                        self._max_ids["maintenance_id"] = maintenance[-1].maintenance_id
-                    if weather_records:
-                        self._max_ids["weather_id"] = weather_records[-1].weather_id
-
-                    # Persist batch to DB
-                    self._persist_hourly_batch(
-                        target_dt=next_dt,
-                        trips=trips,
-                        payments=payments,
-                        ratings=ratings,
-                        cancellations=cancellations,
-                        telemetry=telemetry,
-                        maintenance=maintenance,
-                        weather=weather_records,
-                    )
-
-                    # Yield execution briefly for responsive event loop (accelerated catch-up)
-                    await asyncio.sleep(0.05)
+                    # Cooperative yield so the asyncio loop continues serving requests with zero latency
+                    await asyncio.sleep(0.01)
                 else:
-                    self.current_status = "ready"
+                    with self._lock:
+                        self.current_status = "ready"
                     # Calculate wait time until the next clock hour arrives
                     next_clock_hour = (now + timedelta(hours=1)).replace(minute=0, second=5, microsecond=0)
                     sleep_secs = max(5.0, min(300.0, (next_clock_hour - now).total_seconds()))
@@ -466,14 +524,7 @@ class MoviGoClockManager:
         except Exception as exc:
             logger.error("Unhandled error in MoviGoClockManager worker loop: %s", exc, exc_info=True)
         finally:
-            if leader_conn:
-                try:
-                    with leader_conn.cursor() as cur:
-                        cur.execute(f"SELECT pg_advisory_unlock({ADVISORY_LOCK_ID});")
-                    pool.putconn(leader_conn)
-                    logger.info("Released PostgreSQL advisory lock.")
-                except Exception:
-                    pass
+            await asyncio.to_thread(self._release_advisory_lock)
 
     def stop(self) -> None:
         """Stop background worker loop."""

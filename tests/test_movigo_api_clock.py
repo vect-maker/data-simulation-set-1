@@ -23,6 +23,13 @@ class TestMoviGoAPIClock(unittest.TestCase):
         movigo_clock.latest_datetime = datetime(2024, 1, 3, 23, 59, 59)
         movigo_clock.current_status = "ready"
 
+    def tearDown(self):
+        # Reset clock state after each test
+        with movigo_clock._lock:
+            movigo_clock.earliest_datetime = datetime(2024, 1, 1, 0, 0, 0)
+            movigo_clock.latest_datetime = datetime(2024, 1, 3, 23, 59, 59)
+            movigo_clock.current_status = "ready"
+
     def test_simulation_status_endpoint(self):
         """GET /movigo/simulation/status returns 200 with complete clock and progress metadata."""
         response = self.client.get("/movigo/simulation/status")
@@ -139,6 +146,75 @@ class TestMoviGoAPIClock(unittest.TestCase):
         for t in trips:
             self.assertEqual(t.requested_at.hour, 15)
             self.assertEqual(t.requested_at.date(), date(2024, 1, 1))
+
+    def test_api_serves_requests_while_catching_up(self):
+        """Verify API serves endpoints immediately with HTTP 200 while status is catching_up."""
+        with movigo_clock._lock:
+            movigo_clock.current_status = "catching_up"
+            movigo_clock.latest_datetime = datetime(2024, 1, 1, 12, 0, 0)
+
+        # /movigo/simulation/status responds immediately with catching_up
+        response = self.client.get("/movigo/simulation/status")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["current_status"], "catching_up")
+        self.assertGreater(data["hours_remaining_catch_up"], 0)
+
+        # Static collection endpoints respond without delay
+        with patch("src.api.routers.movigo.execute_paginated_query") as mock_query:
+            mock_query.return_value = {"items": [], "count": 0, "total": 0, "offset": 0, "limit": 10}
+            resp_quads = self.client.get("/movigo/quadrants?limit=10")
+            self.assertEqual(resp_quads.status_code, 200)
+
+        # Root welcome endpoint responds
+        resp_root = self.client.get("/")
+        self.assertEqual(resp_root.status_code, 200)
+
+        # Restore ready status
+        with movigo_clock._lock:
+            movigo_clock.current_status = "ready"
+            movigo_clock.latest_datetime = datetime(2024, 1, 3, 23, 59, 59)
+
+    def test_concurrent_multithreaded_clock_access(self):
+        """Verify thread-safe concurrent reads and validation while clock state is being updated."""
+        import threading
+        import time
+
+        errors = []
+
+        def reader_task():
+            try:
+                for _ in range(50):
+                    status = movigo_clock.get_status()
+                    self.assertIn(status["current_status"], ("ready", "catching_up"))
+                    movigo_clock.validate_time_bounds(
+                        start_time=datetime(2024, 1, 1, 6, 0, 0),
+                        end_time=datetime(2024, 1, 1, 8, 0, 0),
+                    )
+                    time.sleep(0.001)
+            except Exception as e:
+                errors.append(e)
+
+        def writer_task():
+            try:
+                for i in range(50):
+                    with movigo_clock._lock:
+                        movigo_clock.current_status = "catching_up" if i % 2 == 0 else "ready"
+                        movigo_clock.latest_datetime = datetime(2024, 1, 2, i % 24, 0, 0)
+                        movigo_clock.total_hours_simulated += 1
+                    time.sleep(0.001)
+            except Exception as e:
+                errors.append(e)
+
+        threads = [threading.Thread(target=reader_task) for _ in range(10)]
+        threads.append(threading.Thread(target=writer_task))
+
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        self.assertEqual(errors, [], f"Encountered concurrency errors: {errors}")
 
 
 if __name__ == "__main__":
