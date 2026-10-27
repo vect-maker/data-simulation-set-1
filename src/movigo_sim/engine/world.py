@@ -35,6 +35,18 @@ ZONE_GRAVITY_REGIMES: dict[str, dict[str, Any]] = {
             10: (2.2, 1.8),
             11: (1.4, 3.6),
             12: (2.1, 3.2),
+            13: (2.2, 1.5),
+            14: (1.1, 2.2),
+            15: (2.2, 1.6),
+            16: (2.4, 1.4),
+            17: (1.2, 1.1),
+            18: (0.8, 0.7),
+            19: (1.1, 2.2),
+            20: (2.1, 3.2),
+            21: (1.0, 2.4),
+            22: (2.3, 1.6),
+            23: (2.3, 1.5),
+            24: (2.4, 1.4),
         },
     },
     "morning_rush": {
@@ -52,6 +64,18 @@ ZONE_GRAVITY_REGIMES: dict[str, dict[str, Any]] = {
             10: (2.3, 1.6),
             11: (1.1, 3.3),
             12: (2.1, 2.3),
+            13: (3.0, 0.9),
+            14: (1.1, 2.8),
+            15: (3.1, 0.9),
+            16: (3.3, 0.8),
+            17: (2.2, 1.3),
+            18: (2.6, 0.8),
+            19: (1.2, 3.6),
+            20: (1.2, 3.4),
+            21: (1.0, 3.8),
+            22: (3.2, 0.9),
+            23: (3.3, 0.8),
+            24: (3.4, 0.8),
         },
     },
     "midday": {
@@ -69,6 +93,18 @@ ZONE_GRAVITY_REGIMES: dict[str, dict[str, Any]] = {
             10: (2.0, 1.9),
             11: (2.8, 2.7),
             12: (2.3, 2.2),
+            13: (1.9, 1.8),
+            14: (2.5, 2.6),
+            15: (1.9, 1.8),
+            16: (1.8, 1.7),
+            17: (1.6, 1.6),
+            18: (1.3, 1.4),
+            19: (2.8, 2.9),
+            20: (2.6, 2.7),
+            21: (2.7, 2.8),
+            22: (1.9, 1.8),
+            23: (1.8, 1.7),
+            24: (1.7, 1.7),
         },
     },
     "evening_rush": {
@@ -86,6 +122,18 @@ ZONE_GRAVITY_REGIMES: dict[str, dict[str, Any]] = {
             10: (1.7, 2.2),
             11: (3.1, 1.2),
             12: (2.4, 2.1),
+            13: (1.0, 3.1),
+            14: (2.8, 1.4),
+            15: (1.0, 3.2),
+            16: (0.9, 3.4),
+            17: (1.4, 2.2),
+            18: (0.9, 2.8),
+            19: (3.5, 1.4),
+            20: (3.2, 1.3),
+            21: (3.6, 1.1),
+            22: (1.0, 3.3),
+            23: (0.9, 3.4),
+            24: (0.9, 3.5),
         },
     },
     "nightlife_out": {
@@ -103,6 +151,18 @@ ZONE_GRAVITY_REGIMES: dict[str, dict[str, Any]] = {
             10: (1.3, 1.1),
             11: (0.8, 0.6),
             12: (1.4, 1.2),
+            13: (1.6, 1.3),
+            14: (2.2, 3.6),
+            15: (1.6, 1.3),
+            16: (1.5, 1.2),
+            17: (1.8, 1.6),
+            18: (2.0, 2.8),
+            19: (2.4, 3.0),
+            20: (1.2, 0.9),
+            21: (1.4, 1.8),
+            22: (1.6, 1.3),
+            23: (1.5, 1.2),
+            24: (1.4, 1.1),
         },
     },
     "nightlife_return": {
@@ -120,6 +180,18 @@ ZONE_GRAVITY_REGIMES: dict[str, dict[str, Any]] = {
             10: (1.0, 1.8),
             11: (0.6, 0.7),
             12: (1.1, 1.7),
+            13: (1.2, 2.6),
+            14: (3.5, 1.8),
+            15: (1.2, 2.7),
+            16: (1.1, 2.9),
+            17: (1.4, 2.1),
+            18: (2.6, 2.2),
+            19: (2.8, 2.0),
+            20: (0.8, 1.5),
+            21: (1.5, 1.5),
+            22: (1.2, 2.8),
+            23: (1.1, 2.9),
+            24: (1.0, 3.0),
         },
     },
 }
@@ -331,16 +403,16 @@ class WorldEnvironment:
             w_map: dict[int, tuple[float, float]] = cfg["weights"]
             raw_w = np.array(
                 [
-                    w_map[zo.zone_id][0] * w_map[zd.zone_id][1]
+                    w_map.get(zo.zone_id, (1.5, 1.5))[0] * w_map.get(zd.zone_id, (1.5, 1.5))[1]
                     for zo, zd in self.od_pairs
                 ],
                 dtype=float,
             ) / (zone_dists_arr ** beta)
             self.od_regime_probs[regime_name] = raw_w / raw_w.sum()
 
-            mean_push = float(np.mean([v[0] for v in w_map.values()]))
+            mean_push = float(np.mean([w_map.get(z.zone_id, (1.5, 1.5))[0] for z in self.zones]))
             self.regime_origin_push_factor[regime_name] = {
-                zid: round(v[0] / mean_push, 3) for zid, v in w_map.items()
+                z.zone_id: round(w_map.get(z.zone_id, (1.5, 1.5))[0] / mean_push, 3) for z in self.zones
             }
 
         # Operations Research: Official physical maintenance workshops distributed across Managua
@@ -388,7 +460,13 @@ class WorldEnvironment:
         self, zone: UrbanZone, rng: np.random.Generator
     ) -> tuple[float, float, int, bool, int]:
         """Sample a GPS coordinate strictly on a drivable street within an active square quadrant."""
-        quad_list = self.zone_quadrants.get(zone.zone_id) or self.quadrants
+        candidate_quads = self.zone_quadrants.get(zone.zone_id) or self.quadrants
+        quad_list = [q for q in candidate_quads if len(self.quadrant_streets.get(q.quadrant_id, [])) > 0]
+        if not quad_list:
+            quad_list = [q for q in self.quadrants if len(self.quadrant_streets.get(q.quadrant_id, [])) > 0]
+        if not quad_list:
+            quad_list = candidate_quads
+
         q_idx = int(rng.integers(0, len(quad_list)))
         quad = quad_list[q_idx]
 
@@ -413,29 +491,17 @@ class WorldEnvironment:
                 best_local_idx = int(np.argmin(d2))
                 best_node = q_node_idxs[best_local_idx]
             elif self.hub_node_indices:
-                best_node = self.hub_node_indices[
+                hub_idx = self.hub_node_indices[
                     self.qid_to_hub_idx.get(quad.quadrant_id, 0)
                 ]
+                best_node = hub_idx if len(self.node_coords) > hub_idx else 0
             else:
                 best_node = 0
             return lat, lon, quad.quadrant_id, is_flood_street, best_node
 
-        hub_idx = (
-            self.hub_node_indices[self.qid_to_hub_idx.get(quad.quadrant_id, 0)]
-            if self.hub_node_indices
-            else 0
-        )
-        h_lat = (
-            float(self.node_coords[hub_idx, 0])
-            if len(self.node_coords) > hub_idx
-            else float(quad.lat_min + 0.004)
-        )
-        h_lon = (
-            float(self.node_coords[hub_idx, 1])
-            if len(self.node_coords) > hub_idx
-            else float(quad.lon_min + 0.004)
-        )
-        return h_lat, h_lon, quad.quadrant_id, (quad.flood_risk == "critico"), hub_idx
+        clat = round(0.5 * (quad.lat_min + quad.lat_max), 6)
+        clon = round(0.5 * (quad.lon_min + quad.lon_max), 6)
+        return clat, clon, quad.quadrant_id, (quad.flood_risk == "critico"), 0
 
     def snap_to_nearest_street_and_quadrant(
         self,

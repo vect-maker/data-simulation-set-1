@@ -877,6 +877,11 @@ class QuadrantOut(BaseModel):
         description="Clave foránea de la zona urbana padre a la que pertenece el cuadrante (1 a 12).",
         examples=[11],
     )
+    district: str = Field(
+        default="Distrito I",
+        description="Distrito municipal oficial de Managua al que pertenece el cuadrante (Distrito I a VII).",
+        examples=["Distrito IV"],
+    )
     quadrant_code: str = Field(
         ...,
         description="Código corto estandarizado del cuadrante y su zona urbana.",
@@ -948,6 +953,11 @@ class UrbanZoneOut(BaseModel):
         ...,
         description="Nombre comercial o referencia urbana (ej. Metrocentro, Villa Fontana, Mercado Oriental).",
         examples=["Villa Fontana"],
+    )
+    district: str = Field(
+        default="Distrito I",
+        description="Distrito municipal oficial de Managua (Distrito I a VII).",
+        examples=["Distrito I"],
     )
     socioeconomic_stratum: str = Field(
         ...,

@@ -69,6 +69,10 @@ seed-volcan:
 seed-movigo:
     {{ PYTHON }} scripts/generate_movigo_seeds.py
 
+# Download OSM tiles and render 4 thematic cartographic maps for MoviGo
+maps-movigo:
+    {{ PYTHON }} scripts/generate_movigo_maps.py
+
 # Generate dimensional catalog seeds with Gemini API for all 3 cases
 seed-all:
     {{ PYTHON }} scripts/generate_all_seeds.py

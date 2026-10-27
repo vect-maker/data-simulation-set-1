@@ -2,7 +2,7 @@
   {
     "channel_id": 1,
     "channel_name": "Cauce Occidental",
-    "zone_id": 6,
+    "zone_id": 15,
     "latitude": 12.135052,
     "longitude": -86.291744,
     "critical_radius_km": 1.2,
@@ -12,7 +12,7 @@
   {
     "channel_id": 2,
     "channel_name": "Cauce Oriental",
-    "zone_id": 11,
+    "zone_id": 10,
     "latitude": 12.146303,
     "longitude": -86.243478,
     "critical_radius_km": 0.47,
@@ -22,7 +22,7 @@
   {
     "channel_id": 3,
     "channel_name": "Cauce Cuajachillo",
-    "zone_id": 6,
+    "zone_id": 16,
     "latitude": 12.130271,
     "longitude": -86.297539,
     "critical_radius_km": 0.52,
@@ -32,7 +32,7 @@
   {
     "channel_id": 4,
     "channel_name": "Cauce Pochocuape",
-    "zone_id": 6,
+    "zone_id": 15,
     "latitude": 12.131341,
     "longitude": -86.292931,
     "critical_radius_km": 0.4,
@@ -41,6 +41,16 @@
   },
   {
     "channel_id": 5,
+    "channel_name": "Drenaje Los Sábalos",
+    "zone_id": 21,
+    "latitude": 12.164876,
+    "longitude": -86.173247,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "medio",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 6,
     "channel_name": "Interceptora Tiscapa",
     "zone_id": 4,
     "latitude": 12.130115,
@@ -50,9 +60,29 @@
     "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
   },
   {
-    "channel_id": 6,
+    "channel_id": 7,
+    "channel_name": "Cauce 31 de Diciembre",
+    "zone_id": 20,
+    "latitude": 12.144556,
+    "longitude": -86.186977,
+    "critical_radius_km": 0.78,
+    "vulnerability_level": "medio",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 8,
+    "channel_name": "Cauce El Borbollón",
+    "zone_id": 21,
+    "latitude": 12.140315,
+    "longitude": -86.154935,
+    "critical_radius_km": 1.17,
+    "vulnerability_level": "medio",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 9,
     "channel_name": "Cauce Las Cuarezmas",
-    "zone_id": 5,
+    "zone_id": 10,
     "latitude": 12.135889,
     "longitude": -86.251185,
     "critical_radius_km": 0.4,
@@ -60,7 +90,7 @@
     "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
   },
   {
-    "channel_id": 7,
+    "channel_id": 10,
     "channel_name": "Cauce Santo Domingo",
     "zone_id": 10,
     "latitude": 12.13548,
@@ -70,9 +100,29 @@
     "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
   },
   {
-    "channel_id": 8,
+    "channel_id": 11,
+    "channel_name": "Las Mercedes",
+    "zone_id": 21,
+    "latitude": 12.157893,
+    "longitude": -86.17202,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "medio",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 12,
+    "channel_name": "Quebrada Las Pilas",
+    "zone_id": 17,
+    "latitude": 12.031696,
+    "longitude": -86.342674,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "medio",
+    "flow_direction": "Suroeste a Noreste (cuenca media-alta)"
+  },
+  {
+    "channel_id": 13,
     "channel_name": "Quebrada de Pochocuape",
-    "zone_id": 9,
+    "zone_id": 17,
     "latitude": 12.090822,
     "longitude": -86.301578,
     "critical_radius_km": 0.4,
@@ -80,9 +130,9 @@
     "flow_direction": "Suroeste a Noreste (cuenca media-alta)"
   },
   {
-    "channel_id": 9,
+    "channel_id": 14,
     "channel_name": "Cauce Camino de Bolas",
-    "zone_id": 9,
+    "zone_id": 16,
     "latitude": 12.122015,
     "longitude": -86.289108,
     "critical_radius_km": 0.4,
@@ -90,37 +140,7 @@
     "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
   },
   {
-    "channel_id": 10,
-    "channel_name": "Cauce Los Cuarezmas",
-    "zone_id": 5,
-    "latitude": 12.132676,
-    "longitude": -86.249097,
-    "critical_radius_km": 0.4,
-    "vulnerability_level": "medio",
-    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
-  },
-  {
-    "channel_id": 11,
-    "channel_name": "Cauce Altamira",
-    "zone_id": 1,
-    "latitude": 12.12421,
-    "longitude": -86.255244,
-    "critical_radius_km": 0.4,
-    "vulnerability_level": "medio",
-    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
-  },
-  {
-    "channel_id": 12,
-    "channel_name": "Túnel Interceptor Santo Domingo",
-    "zone_id": 5,
-    "latitude": 12.12979,
-    "longitude": -86.256579,
-    "critical_radius_km": 0.4,
-    "vulnerability_level": "medio",
-    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
-  },
-  {
-    "channel_id": 13,
+    "channel_id": 15,
     "channel_name": "Cauce Cuarezmas Oeste",
     "zone_id": 12,
     "latitude": 12.115472,
@@ -130,13 +150,63 @@
     "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
   },
   {
-    "channel_id": 14,
+    "channel_id": 16,
+    "channel_name": "Cauce Altamira",
+    "zone_id": 5,
+    "latitude": 12.12421,
+    "longitude": -86.255244,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "medio",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 17,
+    "channel_name": "Cauce Los Cuarezmas",
+    "zone_id": 5,
+    "latitude": 12.132676,
+    "longitude": -86.249097,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "medio",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 18,
+    "channel_name": "Túnel Interceptor Santo Domingo",
+    "zone_id": 5,
+    "latitude": 12.12979,
+    "longitude": -86.256579,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "medio",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 19,
+    "channel_name": "Cause Nuevo Amanecer",
+    "zone_id": 8,
+    "latitude": 12.168893,
+    "longitude": -86.345433,
+    "critical_radius_km": 0.58,
+    "vulnerability_level": "medio",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 20,
     "channel_name": "Canal Desague Agua Pluviales Sta María de la Victoria",
-    "zone_id": 7,
+    "zone_id": 19,
     "latitude": 12.15901,
     "longitude": -86.204426,
     "critical_radius_km": 0.4,
     "vulnerability_level": "bajo",
+    "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
+  },
+  {
+    "channel_id": 21,
+    "channel_name": "Presa Los Sábalos",
+    "zone_id": 21,
+    "latitude": 12.162317,
+    "longitude": -86.172857,
+    "critical_radius_km": 0.4,
+    "vulnerability_level": "medio",
     "flow_direction": "Sur a Norte (hacia Lago Xolotlán)"
   }
 ]

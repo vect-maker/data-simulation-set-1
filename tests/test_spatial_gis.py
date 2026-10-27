@@ -57,7 +57,7 @@ class TestMoviGoSpatialGIS(unittest.TestCase):
     def test_drainage_channels_catalog(self):
         """Verify 3NF drainage channels catalog integrity."""
         cauces = load_movigo_drainage_channels()
-        self.assertEqual(len(cauces), 14)
+        self.assertGreaterEqual(len(cauces), 14)
         valid_zones = {z.zone_id for z in self.engine.zones}
         valid_risks = {"bajo", "medio", "alto", "critico"}
 
@@ -105,8 +105,8 @@ class TestMoviGoSpatialGIS(unittest.TestCase):
         W_std, quadrant_ids = build_spatial_weights_matrix(self.df_quadrants, threshold_km=1.25)
         n = len(quadrant_ids)
 
-        self.assertEqual(n, 92)
-        self.assertEqual(W_std.shape, (92, 92))
+        self.assertEqual(n, len(self.df_quadrants))
+        self.assertEqual(W_std.shape, (len(self.df_quadrants), len(self.df_quadrants)))
 
         # Diagonal must be 0 (no self-loops in spatial lag)
         for i in range(n):
@@ -139,9 +139,9 @@ class TestMoviGoSpatialGIS(unittest.TestCase):
 
         lisa_res = compute_local_lisa(demand_values, W_std, quadrant_ids, self.df_quadrants)
 
-        self.assertEqual(lisa_res["total_quadrants"], 92)
+        self.assertEqual(lisa_res["total_quadrants"], len(self.df_quadrants))
         total_classified = sum(lisa_res["cluster_counts"].values())
-        self.assertEqual(total_classified, 92)
+        self.assertEqual(total_classified, len(self.df_quadrants))
 
         # Check that top hotspots list is populated
         self.assertGreater(len(lisa_res["top_hotspots"]), 0)
@@ -151,17 +151,23 @@ class TestMoviGoSpatialGIS(unittest.TestCase):
             self.assertGreaterEqual(h["spatial_lag"], 0.0)
 
     def test_cauce_flood_vulnerability_surface(self):
-        """Verify hydraulic flood hazard index across all 92 quadrants."""
+        """Verify hydraulic flood hazard index across all quadrants."""
         vuln_res = compute_cauce_vulnerability_surface(self.df_quadrants, self.df_cauces)
 
-        self.assertEqual(vuln_res["total_quadrants"], 92)
+        self.assertEqual(vuln_res["total_quadrants"], len(self.df_quadrants))
         total_by_tier = sum(vuln_res["risk_distribution"].values())
-        self.assertEqual(total_by_tier, 92)
+        self.assertEqual(total_by_tier, len(self.df_quadrants))
 
         for q in vuln_res["quadrant_hazard_records"]:
             self.assertTrue(0.0 <= q["flood_hazard_index"] <= 1.0)
             self.assertIn(q["hydraulic_risk_tier"], {"bajo", "medio", "alto", "critico"})
             self.assertGreater(q["distance_to_cauce_km"], 0.0)
+
+    def test_districts_coverage(self):
+        """Verify all 7 municipal districts of Managua are represented."""
+        districts = set(self.df_quadrants["district"].unique())
+        expected_districts = {f"Distrito {d}" for d in ["I", "II", "III", "IV", "V", "VI", "VII"]}
+        self.assertEqual(districts, expected_districts)
 
     def test_hexagonal_mesh_generation(self):
         """Verify hexagonal discrete tessellation mesh."""

@@ -134,7 +134,7 @@ class TestMoviGoAPIClock(unittest.TestCase):
         self.assertGreaterEqual(len(trips), 1)
         self.assertEqual(len(payments), len(trips))
         self.assertGreaterEqual(len(ratings), 1)
-        self.assertEqual(len(weather_records), 92)  # All 92 quadrants recorded for the hour
+        self.assertEqual(len(weather_records), len(engine.quadrants))  # All quadrants recorded for the hour
         self.assertGreaterEqual(len(telemetry), 1)
         for t in trips:
             self.assertEqual(t.requested_at.hour, 15)

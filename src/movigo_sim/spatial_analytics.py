@@ -486,10 +486,10 @@ def compute_cauce_vulnerability_surface(
 
 
 def generate_hexagonal_grid(
-    min_lat: float = 12.08,
-    max_lat: float = 12.18,
-    min_lon: float = -86.33,
-    max_lon: float = -86.18,
+    min_lat: float = 12.030,
+    max_lat: float = 12.185,
+    min_lon: float = -86.350,
+    max_lon: float = -86.130,
     radius_km: float = 0.55,
 ) -> list[dict[str, Any]]:
     """Generate a deterministic regular hexagonal discrete mesh covering Managua's bounding box.

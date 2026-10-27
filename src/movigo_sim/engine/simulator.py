@@ -249,26 +249,24 @@ class MoviGoSimulationEngine:
 
             hz = home_z_opts[u.user_id % len(home_z_opts)]
             az = anchor_z_opts[(u.user_id * 3) % len(anchor_z_opts)]
-            h_quads = self.world.zone_quadrants.get(hz, self.quadrants)
-            a_quads = self.world.zone_quadrants.get(az, self.quadrants)
-            hq = h_quads[(u.user_id * 7) % len(h_quads)]
-            aq = a_quads[(u.user_id * 11) % len(a_quads)]
-            h_hub = self.world.hub_node_indices[self.world.qid_to_hub_idx.get(hq.quadrant_id, 0)]
-            a_hub = self.world.hub_node_indices[self.world.qid_to_hub_idx.get(aq.quadrant_id, 0)]
-            h_lat = float(self.world.node_coords[h_hub, 0])
-            h_lon = float(self.world.node_coords[h_hub, 1])
-            a_lat = float(self.world.node_coords[a_hub, 0])
-            a_lon = float(self.world.node_coords[a_hub, 1])
+            if hz == az:
+                az = (az % len(self.world.zones)) + 1
+
+            home_zone_obj = self.world.zones_map.get(hz, self.world.zones[0])
+            anchor_zone_obj = self.world.zones_map.get(az, self.world.zones[-1])
+
+            h_lat, h_lon, hq_id, _, h_hub = self.world.sample_street_coordinate(home_zone_obj, self.rng)
+            a_lat, a_lon, aq_id, _, a_hub = self.world.sample_street_coordinate(anchor_zone_obj, self.rng)
 
             persona = RiderPersona(
                 archetype=archetype,
-                home_zone_id=hz,
-                home_quadrant_id=hq.quadrant_id,
+                home_zone_id=home_zone_obj.zone_id,
+                home_quadrant_id=hq_id,
                 home_node=h_hub,
                 home_lat=h_lat,
                 home_lon=h_lon,
-                anchor_zone_id=az,
-                anchor_quadrant_id=aq.quadrant_id,
+                anchor_zone_id=anchor_zone_obj.zone_id,
+                anchor_quadrant_id=aq_id,
                 anchor_node=a_hub,
                 anchor_lat=a_lat,
                 anchor_lon=a_lon,
@@ -482,6 +480,13 @@ class MoviGoSimulationEngine:
             agent.odometer_km = round(18000.0 + (2024 - agent.vehicle_model.vehicle_year) * 8500.0 + ((agent.driver_id * 137) % 3000), 2)
             agent.cumulative_fuel_liters = 0.0
             agent.flood_exposure_count = 0
+
+        # Reset workshop queues for deterministic replay
+        for ws in self.world.workshops:
+            ws.active_bays_busy_until.clear()
+            ws.total_vehicles_serviced = 0
+            ws.total_queue_wait_minutes = 0.0
+            ws.total_service_hours = 0.0
 
         for day_idx, (_, row) in enumerate(weather_df.iterrows()):
             curr_date: date = row["date"]
@@ -742,10 +747,15 @@ class MoviGoSimulationEngine:
                 if self.rng.random() < 0.35:
                     c_lat = float(self.world.node_coords[target_node, 0])
                     c_lon = float(self.world.node_coords[target_node, 1])
+                    c_qid = (
+                        int(self.world.node_quadrants[target_node])
+                        if len(self.world.node_quadrants) > target_node
+                        else target_q
+                    )
                     recorder.record_telemetry(
                         driver_id=agent.driver_id,
                         trip_id=None,
-                        quadrant_id=target_q,
+                        quadrant_id=c_qid,
                         recorded_at=req_time,
                         latitude=c_lat,
                         longitude=c_lon,

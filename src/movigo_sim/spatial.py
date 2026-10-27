@@ -23,20 +23,147 @@ from movigo_sim.models import DrainageChannel, Driver, Quadrant, UrbanZone, User
 
 logger = logging.getLogger(__name__)
 
-# Canonical deterministic specification of Managua's 12 urban pricing zones
+# Canonical deterministic specification of Managua's urban pricing zones across all 7 municipal districts
 CANONICAL_URBAN_ZONES: list[dict[str, Any]] = [
+    # Distrito I (Centro Financiero, Administrativo y Residencial)
     {
         "zone_id": 1,
         "zone_name": "Villa Fontana",
+        "district": "Distrito I",
         "socioeconomic_stratum": "alto",
         "latitude": 12.115,
-        "longitude": -86.255,
+        "longitude": -86.260,
         "coverage_radius_km": 2.5,
         "base_flag_drop_fare": 70.0,
     },
     {
+        "zone_id": 4,
+        "zone_name": "Los Robles",
+        "district": "Distrito I",
+        "socioeconomic_stratum": "medio",
+        "latitude": 12.128,
+        "longitude": -86.268,
+        "coverage_radius_km": 2.0,
+        "base_flag_drop_fare": 55.0,
+    },
+    {
+        "zone_id": 6,
+        "zone_name": "Bolonia",
+        "district": "Distrito I",
+        "socioeconomic_stratum": "medio",
+        "latitude": 12.142,
+        "longitude": -86.280,
+        "coverage_radius_km": 2.2,
+        "base_flag_drop_fare": 55.0,
+    },
+    {
+        "zone_id": 9,
+        "zone_name": "Metrocentro / Eje Corporativo UCA",
+        "district": "Distrito I",
+        "socioeconomic_stratum": "comercial",
+        "latitude": 12.1265,
+        "longitude": -86.2665,
+        "coverage_radius_km": 1.8,
+        "base_flag_drop_fare": 60.0,
+    },
+    # Distrito II (Noroeste, Tradicional, Comercial y Malecón)
+    {
+        "zone_id": 8,
+        "zone_name": "Linda Vista",
+        "district": "Distrito II",
+        "socioeconomic_stratum": "medio",
+        "latitude": 12.155,
+        "longitude": -86.305,
+        "coverage_radius_km": 2.8,
+        "base_flag_drop_fare": 50.0,
+    },
+    {
+        "zone_id": 13,
+        "zone_name": "Monseñor Lezcano / Batahola",
+        "district": "Distrito II",
+        "socioeconomic_stratum": "popular",
+        "latitude": 12.145,
+        "longitude": -86.295,
+        "coverage_radius_km": 2.2,
+        "base_flag_drop_fare": 42.0,
+    },
+    {
+        "zone_id": 14,
+        "zone_name": "Puerto Salvador Allende / Malecón",
+        "district": "Distrito II",
+        "socioeconomic_stratum": "comercial",
+        "latitude": 12.160,
+        "longitude": -86.278,
+        "coverage_radius_km": 2.0,
+        "base_flag_drop_fare": 55.0,
+    },
+    # Distrito III (Suroeste, Altagracia, San Judas y Carretera Sur)
+    {
+        "zone_id": 15,
+        "zone_name": "Altagracia",
+        "district": "Distrito III",
+        "socioeconomic_stratum": "popular",
+        "latitude": 12.135,
+        "longitude": -86.285,
+        "coverage_radius_km": 2.2,
+        "base_flag_drop_fare": 45.0,
+    },
+    {
+        "zone_id": 16,
+        "zone_name": "San Judas / Sierra Maestra",
+        "district": "Distrito III",
+        "socioeconomic_stratum": "popular",
+        "latitude": 12.118,
+        "longitude": -86.295,
+        "coverage_radius_km": 2.5,
+        "base_flag_drop_fare": 40.0,
+    },
+    {
+        "zone_id": 17,
+        "zone_name": "Carretera Sur / Nejapa",
+        "district": "Distrito III",
+        "socioeconomic_stratum": "medio",
+        "latitude": 12.095,
+        "longitude": -86.315,
+        "coverage_radius_km": 3.0,
+        "base_flag_drop_fare": 52.0,
+    },
+    # Distrito IV (Norte-Centro, Comercio Tradicional y Mayorista)
+    {
+        "zone_id": 7,
+        "zone_name": "Bello Horizonte",
+        "district": "Distrito IV",
+        "socioeconomic_stratum": "medio",
+        "latitude": 12.142,
+        "longitude": -86.230,
+        "coverage_radius_km": 2.5,
+        "base_flag_drop_fare": 48.0,
+    },
+    {
+        "zone_id": 10,
+        "zone_name": "Ciudad Jardín",
+        "district": "Distrito IV",
+        "socioeconomic_stratum": "popular",
+        "latitude": 12.140,
+        "longitude": -86.255,
+        "coverage_radius_km": 2.0,
+        "base_flag_drop_fare": 40.0,
+    },
+    {
+        "zone_id": 11,
+        "zone_name": "Mercado Oriental",
+        "district": "Distrito IV",
+        "socioeconomic_stratum": "popular",
+        "latitude": 12.148,
+        "longitude": -86.265,
+        "coverage_radius_km": 2.5,
+        "base_flag_drop_fare": 35.0,
+    },
+    # Distrito V (Sur-Centro y Corredor Carretera a Masaya)
+    {
         "zone_id": 2,
         "zone_name": "Las Colinas",
+        "district": "Distrito V",
         "socioeconomic_stratum": "alto",
         "latitude": 12.105,
         "longitude": -86.242,
@@ -46,92 +173,104 @@ CANONICAL_URBAN_ZONES: list[dict[str, Any]] = [
     {
         "zone_id": 3,
         "zone_name": "Santo Domingo",
+        "district": "Distrito V",
         "socioeconomic_stratum": "alto",
-        "latitude": 12.1,
-        "longitude": -86.23,
+        "latitude": 12.100,
+        "longitude": -86.230,
         "coverage_radius_km": 2.8,
         "base_flag_drop_fare": 80.0,
     },
     {
-        "zone_id": 4,
-        "zone_name": "Los Robles",
-        "socioeconomic_stratum": "medio",
-        "latitude": 12.128,
-        "longitude": -86.265,
-        "coverage_radius_km": 2.0,
-        "base_flag_drop_fare": 55.0,
-    },
-    {
         "zone_id": 5,
         "zone_name": "Altamira",
+        "district": "Distrito V",
         "socioeconomic_stratum": "medio",
-        "latitude": 12.133,
-        "longitude": -86.25,
+        "latitude": 12.130,
+        "longitude": -86.250,
         "coverage_radius_km": 2.0,
         "base_flag_drop_fare": 50.0,
-    },
-    {
-        "zone_id": 6,
-        "zone_name": "Bolonia",
-        "socioeconomic_stratum": "medio",
-        "latitude": 12.145,
-        "longitude": -86.28,
-        "coverage_radius_km": 2.2,
-        "base_flag_drop_fare": 55.0,
-    },
-    {
-        "zone_id": 7,
-        "zone_name": "Bello Horizonte",
-        "socioeconomic_stratum": "medio",
-        "latitude": 12.138,
-        "longitude": -86.22,
-        "coverage_radius_km": 3.5,
-        "base_flag_drop_fare": 48.0,
-    },
-    {
-        "zone_id": 8,
-        "zone_name": "Linda Vista",
-        "socioeconomic_stratum": "medio",
-        "latitude": 12.155,
-        "longitude": -86.3,
-        "coverage_radius_km": 3.0,
-        "base_flag_drop_fare": 50.0,
-    },
-    {
-        "zone_id": 9,
-        "zone_name": "Metrocentro / Eje Corporativo UCA",
-        "socioeconomic_stratum": "comercial",
-        "latitude": 12.12,
-        "longitude": -86.27,
-        "coverage_radius_km": 1.5,
-        "base_flag_drop_fare": 60.0,
-    },
-    {
-        "zone_id": 10,
-        "zone_name": "Ciudad Jardín",
-        "socioeconomic_stratum": "popular",
-        "latitude": 12.14,
-        "longitude": -86.258,
-        "coverage_radius_km": 2.0,
-        "base_flag_drop_fare": 40.0,
-    },
-    {
-        "zone_id": 11,
-        "zone_name": "Mercado Oriental",
-        "socioeconomic_stratum": "popular",
-        "latitude": 12.135,
-        "longitude": -86.245,
-        "coverage_radius_km": 2.5,
-        "base_flag_drop_fare": 35.0,
     },
     {
         "zone_id": 12,
         "zone_name": "Mercado Roberto Huembes",
+        "district": "Distrito V",
         "socioeconomic_stratum": "popular",
-        "latitude": 12.125,
-        "longitude": -86.238,
+        "latitude": 12.122,
+        "longitude": -86.242,
         "coverage_radius_km": 2.5,
         "base_flag_drop_fare": 38.0,
+    },
+    {
+        "zone_id": 18,
+        "zone_name": "Esquipulas / Carretera a Masaya km 11-14",
+        "district": "Distrito V",
+        "socioeconomic_stratum": "alto",
+        "latitude": 12.065,
+        "longitude": -86.220,
+        "coverage_radius_km": 3.5,
+        "base_flag_drop_fare": 78.0,
+    },
+    # Distrito VI (Noreste, Mayoreo, Carretera Norte y Aeropuerto)
+    {
+        "zone_id": 19,
+        "zone_name": "Multicentro Las Américas / Villa Miguel Gutiérrez",
+        "district": "Distrito VI",
+        "socioeconomic_stratum": "comercial",
+        "latitude": 12.142,
+        "longitude": -86.215,
+        "coverage_radius_km": 2.5,
+        "base_flag_drop_fare": 58.0,
+    },
+    {
+        "zone_id": 20,
+        "zone_name": "Mercado El Mayoreo",
+        "district": "Distrito VI",
+        "socioeconomic_stratum": "popular",
+        "latitude": 12.138,
+        "longitude": -86.202,
+        "coverage_radius_km": 2.5,
+        "base_flag_drop_fare": 38.0,
+    },
+    {
+        "zone_id": 21,
+        "zone_name": "Aeropuerto Augusto C. Sandino / Zona Franca",
+        "district": "Distrito VI",
+        "socioeconomic_stratum": "comercial",
+        "latitude": 12.142,
+        "longitude": -86.168,
+        "coverage_radius_km": 3.2,
+        "base_flag_drop_fare": 65.0,
+    },
+    # Distrito VII (Sureste, Alta Densidad y Nuevas Urbanizaciones)
+    {
+        "zone_id": 22,
+        "zone_name": "Colonia Primero de Mayo / Villa Venezuela",
+        "district": "Distrito VII",
+        "socioeconomic_stratum": "popular",
+        "latitude": 12.133,
+        "longitude": -86.210,
+        "coverage_radius_km": 2.5,
+        "base_flag_drop_fare": 42.0,
+    },
+    {
+        "zone_id": 23,
+        "zone_name": "Villa Libertad / Laureles",
+        "district": "Distrito VII",
+        "socioeconomic_stratum": "popular",
+        "latitude": 12.126,
+        "longitude": -86.195,
+        "coverage_radius_km": 2.5,
+        "base_flag_drop_fare": 40.0,
+    },
+    {
+        "zone_id": 24,
+        "zone_name": "Sabana Grande / Ciudad Belén",
+        "district": "Distrito VII",
+        "socioeconomic_stratum": "popular",
+        "latitude": 12.115,
+        "longitude": -86.175,
+        "coverage_radius_km": 3.0,
+        "base_flag_drop_fare": 45.0,
     },
 ]
 
@@ -238,6 +377,13 @@ def build_deterministic_drainage_channels(
         "Cauce Las Cuarezmas": "medio",
         "Cauce Los Cuarezmas": "medio",
         "Cauce Cuarezmas Oeste": "medio",
+        "Cauce Sabana Grande": "alto",
+        "Cauce Américas": "alto",
+        "Cauce Waspán": "medio",
+        "Cauce Batahola": "alto",
+        "Cauce Las Piedrecitas": "medio",
+        "Cauce San Isidro": "medio",
+        "Cauce Valle Dorado": "medio",
         "Quebrada de Pochocuape": "bajo",
         "Canal Desague Agua Pluviales Sta María de la Victoria": "bajo",
     }
@@ -541,9 +687,9 @@ def fetch_or_load_osm_raw_elements(
     elements: list[dict[str, Any]] = []
     seen_ids: set[tuple[str, int]] = set()
 
-    lat_min, lat_max = 12.086, 12.166
-    lon_min, lon_max = -86.316, -86.204
-    ny, nx = 3, 3
+    lat_min, lat_max = 12.030, 12.185
+    lon_min, lon_max = -86.350, -86.130
+    ny, nx = 5, 5
     dlat = (lat_max - lat_min) / ny
     dlon = (lon_max - lon_min) / nx
 
@@ -559,7 +705,7 @@ def fetch_or_load_osm_raw_elements(
             url = f"https://api.openstreetmap.org/api/0.6/map.json?bbox={bbox}"
             try:
                 resp = requests.get(
-                    url, headers={"User-Agent": "cs-datos-simulations/1.0"}, timeout=30
+                    url, headers={"User-Agent": "cs-datos-simulations/1.0"}, timeout=35
                 )
                 if resp.status_code == 200:
                     for el in resp.json().get("elements", []):
@@ -569,7 +715,7 @@ def fetch_or_load_osm_raw_elements(
                             elements.append(el)
             except Exception as exc:
                 logger.warning(f"Warning fetching OSM tile {bbox}: {exc}")
-            time.sleep(1.0)
+            time.sleep(0.5)
 
     output_dir.mkdir(parents=True, exist_ok=True)
     with open(cache_path, "w", encoding="utf-8") as f:
@@ -583,7 +729,7 @@ def build_deterministic_quadrants_and_dense_osm_graph(
     raw_osm_elements: list[dict[str, Any]],
     canonical_quadrants: list[dict[str, Any]] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    """Deterministically build or load the 92 contiguous square Quadrants and index the dense routable OSM street graph."""
+    """Deterministically build or load the contiguous square Quadrants across Managua's 7 districts and index the dense routable OSM street graph."""
     from collections import defaultdict, deque
 
     # 1. Parse raw nodes and filter drivable ways
@@ -612,12 +758,15 @@ def build_deterministic_quadrants_and_dense_osm_graph(
         len_sq_w = dx_w * dx_w + dy_w * dy_w
         len_sq_w[len_sq_w == 0] = 1e-9
 
-    # 2. Define or load the 92 Quadrants (~0.88 km x 0.88 km square cells)
+    # 2. Define or load the square Quadrants (~0.88 km x 0.88 km square cells)
     quad_bounds: dict[int, tuple[float, float, float, float]] = {}
 
     if canonical_quadrants is not None and len(canonical_quadrants) > 0:
         quadrants = [dict(q) for q in canonical_quadrants]
         for q in quadrants:
+            if "district" not in q:
+                z_match = next((z for z in zones if z["zone_id"] == q["zone_id"]), None)
+                q["district"] = z_match.get("district", "Distrito I") if z_match else "Distrito I"
             quad_bounds[q["quadrant_id"]] = (
                 float(q["lat_min"]),
                 float(q["lat_max"]),
@@ -647,8 +796,8 @@ def build_deterministic_quadrants_and_dense_osm_graph(
                 q["main_drainage_channels"] = near_meta["name"]
     else:
         cell_size = 0.008
-        lon_grid = np.round(np.arange(-86.316, -86.204, cell_size), 6)
-        lat_grid = np.round(np.arange(12.086, 12.166, cell_size), 6)
+        lon_grid = np.round(np.arange(-86.350, -86.130, cell_size), 6)
+        lat_grid = np.round(np.arange(12.030, 12.185, cell_size), 6)
         ny = len(lat_grid)
         nx = len(lon_grid)
 
@@ -668,7 +817,7 @@ def build_deterministic_quadrants_and_dense_osm_graph(
                     & (dense_pts[:, 0] <= lat1)
                 )
                 min_d = min(haversine_km(clat, clon, z["latitude"], z["longitude"]) for z in zones)
-                if np.sum(in_cell) >= 3 and min_d <= 2.15:
+                if np.sum(in_cell) >= 3 and min_d <= 3.2:
                     active[j, i] = True
 
         for _ in range(2):
@@ -704,9 +853,10 @@ def build_deterministic_quadrants_and_dense_osm_graph(
                 )
                 zid = int(best_z["zone_id"])
                 zname = str(best_z["zone_name"])
+                zdistrict = str(best_z.get("district", "Distrito I"))
 
-                norm_south = max(0.0, min(1.0, (12.164 - clat) / (12.164 - 12.086)))
-                alt_masl = int(round(46.0 + 195.0 * (norm_south ** 1.38)))
+                norm_south = max(0.0, min(1.0, (12.180 - clat) / (12.180 - 12.030)))
+                alt_masl = int(round(46.0 + 480.0 * (norm_south ** 1.35)))
 
                 if has_waterways:
                     py_q = clat * 111.0
@@ -736,6 +886,7 @@ def build_deterministic_quadrants_and_dense_osm_graph(
                     {
                         "quadrant_id": cell_id,
                         "zone_id": zid,
+                        "district": zdistrict,
                         "quadrant_code": code,
                         "quadrant_name": name,
                         "grid_row": int(j),
@@ -752,18 +903,19 @@ def build_deterministic_quadrants_and_dense_osm_graph(
                 quad_bounds[cell_id] = (lat0_f, lat1_f, lon0_f, lon1_f)
                 cell_id += 1
 
-    # 3. Filter nodes strictly inside the 92 quadrants
+    # 3. Filter nodes strictly inside the active quadrants
+    q_tuples = [
+        (float(q["lat_min"]), float(q["lat_max"]), float(q["lon_min"]), float(q["lon_max"]), q["quadrant_id"], q["zone_id"])
+        for q in quadrants
+    ]
     node_to_quad: dict[int, tuple[int, int]] = {}
     for nid, (lat, lon) in raw_nodes.items():
-        for q in quadrants:
-            if (
-                q["lat_min"] <= lat <= q["lat_max"]
-                and q["lon_min"] <= lon <= q["lon_max"]
-            ):
-                node_to_quad[nid] = (q["quadrant_id"], q["zone_id"])
+        for lat0, lat1, lon0, lon1, qid, zid in q_tuples:
+            if lat0 <= lat <= lat1 and lon0 <= lon <= lon1:
+                node_to_quad[nid] = (qid, zid)
                 break
 
-    # 4. Extract Largest Strongly Connected Component (LSCC) strictly within the 92 quadrants
+    # 4. Extract Largest Strongly Connected Component (LSCC) strictly within the quadrants
     adj = defaultdict(set)
     for w in drivable_ways:
         nids = w.get("nodes", [])
@@ -927,7 +1079,7 @@ def generate_deterministic_spatial_seeds(
 
     quad_file = output_dir / "quadrants.json"
     canonical_quads = None
-    if quad_file.exists():
+    if not fetch_osm and quad_file.exists():
         try:
             with open(quad_file, encoding="utf-8") as f:
                 canonical_quads = json.load(f)

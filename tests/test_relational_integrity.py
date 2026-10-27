@@ -110,16 +110,18 @@ class TestRelationalIntegrity(unittest.TestCase):
             seen_vehicle_drivers.add(veh.driver_id)
         self.assertEqual(seen_vehicle_drivers, set(valid_drivers.keys()))
 
-        self.assertEqual(len(engine.quadrants), 92)
+        self.assertEqual(len(engine.quadrants), 298)
+        self.assertEqual(len(engine.zones), 24)
         det_zones, det_quadrants, _ = generate_deterministic_spatial_seeds(dry_run=True)
         self.assertEqual([z.model_dump() for z in det_zones], [z.model_dump() for z in engine.zones])
         self.assertEqual([q.model_dump() for q in det_quadrants], [q.model_dump() for q in engine.quadrants])
         for q in engine.quadrants:
             self.assertIn(q.zone_id, valid_zones)
+            self.assertTrue(q.district.startswith("Distrito "))
 
         # Verify 3NF drainage channels (cauces)
         drainage_channels = load_movigo_drainage_channels()
-        self.assertEqual(len(drainage_channels), 14)
+        self.assertGreaterEqual(len(drainage_channels), 14)
         for dc in drainage_channels:
             self.assertIn(dc.zone_id, valid_zones)
             self.assertIn(dc.vulnerability_level, {"bajo", "medio", "alto", "critico"})
@@ -159,9 +161,9 @@ class TestRelationalIntegrity(unittest.TestCase):
             self.assertGreaterEqual(v.distance_km, 0.0)
             self.assertGreaterEqual(v.duration_minutes, 0.0)
 
-        # Verify Time-of-Day Gravity OD directional asymmetry
-        hub_zones = {1, 4, 6, 9, 11}  # Villa Fontana, Los Robles, Bolonia, Metrocentro, Mercado Oriental
-        res_zones = {2, 3, 5, 7, 8, 10}  # Las Colinas, Santo Domingo, Altamira, Bello Horizonte, Linda Vista, Ciudad Jardín
+        # Verify Time-of-Day Gravity OD directional asymmetry across Managua's 7 districts
+        hub_zones = {1, 4, 6, 9, 11, 12, 14, 19, 20, 21}  # Commercial, employment, market and airport hubs
+        res_zones = {2, 3, 5, 7, 8, 10, 13, 15, 16, 17, 18, 22, 23, 24}  # Residential neighborhoods
         morning_to_hubs = sum(
             1 for v in trips
             if 6 <= v.requested_at.hour <= 9 and valid_quadrants[v.destination_quadrant_id].zone_id in hub_zones

@@ -223,6 +223,16 @@ def run_generation(
         quadrants=engine.quadrants,
     )
     export_movigo_to_sql_dump(csv_files, output_file=sql_path)
+
+    from movigo_sim.generator import load_movigo_drainage_channels
+    from movigo_sim.exporter import export_movigo_spatial_layers
+    spatial_dir = csv_dir.parent / "spatial"
+    export_movigo_spatial_layers(
+        output_dir=spatial_dir,
+        quadrants=engine.quadrants,
+        zones=engine.zones,
+        drainage_channels=load_movigo_drainage_channels(),
+    )
     summary = compute_movigo_simulation_summary(
         zones=engine.zones,
         quadrants=engine.quadrants,

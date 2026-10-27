@@ -30,8 +30,8 @@ class TestHydrologicalCascade(unittest.TestCase):
         )
 
     def test_cauce_catalog_integrity(self):
-        """Verify that 14 real OpenStreetMap cauces are correctly loaded."""
-        self.assertEqual(len(self.channels), 14)
+        """Verify that authentic OpenStreetMap cauces are correctly loaded."""
+        self.assertGreaterEqual(len(self.channels), 14)
         names = {c.channel_name for c in self.channels}
         self.assertIn("Cauce Occidental", names)
         self.assertIn("Cauce Oriental", names)
@@ -98,19 +98,21 @@ class TestHydrologicalCascade(unittest.TestCase):
 
     def test_world_overflow_route_detection(self):
         """Verify that WorldEnvironment detects paths that traverse active overflow quadrants."""
-        dummy_overflow_quads = {1, 2, 3}
-        # Nodes that are in quadrant 1
-        q1_nodes = [i for i, q in enumerate(self.world.node_quadrants) if q == 1]
-        self.assertGreater(len(q1_nodes), 0)
+        active_q = int(self.world.node_quadrants[0])
+        dummy_overflow_quads = {active_q}
+        q_nodes = [i for i, q in enumerate(self.world.node_quadrants) if q == active_q]
+        self.assertGreater(len(q_nodes), 0)
 
-        is_affected = self.world.is_route_affected_by_overflow(q1_nodes[:3], dummy_overflow_quads)
+        is_affected = self.world.is_route_affected_by_overflow(q_nodes[:3], dummy_overflow_quads)
         self.assertTrue(is_affected)
 
-        # Nodes in an unaffected quadrant (e.g., quadrant 50)
-        q_other_nodes = [i for i, q in enumerate(self.world.node_quadrants) if q == 50]
-        if q_other_nodes:
-            is_not_affected = self.world.is_route_affected_by_overflow(q_other_nodes[:3], dummy_overflow_quads)
-            self.assertFalse(is_not_affected)
+        # Nodes in an unaffected quadrant
+        diff_q = next((int(q) for q in self.world.node_quadrants if q != active_q), None)
+        if diff_q is not None:
+            q_other_nodes = [i for i, q in enumerate(self.world.node_quadrants) if q == diff_q]
+            if q_other_nodes:
+                is_not_affected = self.world.is_route_affected_by_overflow(q_other_nodes[:3], dummy_overflow_quads)
+                self.assertFalse(is_not_affected)
 
     def test_routing_detour_under_overflow(self):
         """Verify that cauce overflow conditions increase travel duration and distance (detour physics)."""

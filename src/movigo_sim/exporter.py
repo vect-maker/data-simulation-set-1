@@ -126,6 +126,7 @@ DROP TABLE IF EXISTS urban_zones CASCADE;
 CREATE TABLE urban_zones (
     zone_id INT PRIMARY KEY,
     zone_name VARCHAR(100) NOT NULL,
+    district VARCHAR(50) NOT NULL,
     socioeconomic_stratum VARCHAR(20) NOT NULL CHECK (socioeconomic_stratum IN ('alto', 'medio', 'popular', 'comercial')),
     latitude DECIMAL(9,6) NOT NULL,
     longitude DECIMAL(9,6) NOT NULL,
@@ -136,6 +137,7 @@ CREATE TABLE urban_zones (
 CREATE TABLE quadrants (
     quadrant_id INT PRIMARY KEY,
     zone_id INT NOT NULL REFERENCES urban_zones(zone_id),
+    district VARCHAR(50) NOT NULL,
     quadrant_code VARCHAR(30) NOT NULL UNIQUE,
     quadrant_name VARCHAR(120) NOT NULL,
     grid_row INT NOT NULL,
@@ -516,6 +518,7 @@ def export_movigo_spatial_layers(
                 "quadrant_code": q.quadrant_code,
                 "quadrant_name": q.quadrant_name,
                 "zone_id": q.zone_id,
+                "district": getattr(q, "district", "Distrito I"),
                 "grid_row": q.grid_row,
                 "grid_col": q.grid_col,
                 "mean_altitude_masl": q.mean_altitude_masl,
@@ -541,6 +544,7 @@ def export_movigo_spatial_layers(
             "properties": {
                 "zone_id": z.zone_id,
                 "zone_name": z.zone_name,
+                "district": getattr(z, "district", "Distrito I"),
                 "socioeconomic_stratum": z.socioeconomic_stratum,
                 "coverage_radius_km": z.coverage_radius_km,
                 "base_flag_drop_fare": z.base_flag_drop_fare,
@@ -553,11 +557,16 @@ def export_movigo_spatial_layers(
 
     # 3. Authentic OpenStreetMap Hydrographic Vector Network (LineStrings)
     cache_osm = Path(__file__).resolve().parent / "seeds" / "deterministic" / "managua_osm_raw.json"
+    cache_net = Path(__file__).resolve().parent / "seeds" / "deterministic" / "managua_street_network.json"
     if cache_osm.exists():
         with open(cache_osm, encoding="utf-8") as f:
             raw_osm = json.load(f)
         from movigo_sim.spatial import extract_osm_waterways
         cauce_features, _, _ = extract_osm_waterways(raw_osm)
+    elif cache_net.exists():
+        with open(cache_net, encoding="utf-8") as f:
+            net_data = json.load(f)
+        cauce_features = net_data.get("waterways", [])
     else:
         cauce_features = []
         for c in drainage_channels:

@@ -10,6 +10,7 @@ class Quadrant(BaseModel):
 
     quadrant_id: int = Field(ge=1)
     zone_id: int = Field(ge=1)
+    district: str = Field(default="Distrito I", pattern=r"^Distrito (I|II|III|IV|V|VI|VII)$")
     quadrant_code: str
     quadrant_name: str
     grid_row: int = Field(ge=0)
@@ -43,6 +44,7 @@ class UrbanZone(BaseModel):
 
     zone_id: int = Field(ge=1)
     zone_name: str
+    district: str = Field(default="Distrito I", pattern=r"^Distrito (I|II|III|IV|V|VI|VII)$")
     socioeconomic_stratum: str = Field(pattern=r"^(alto|medio|popular|comercial)$")
     latitude: float = Field(ge=12.00, le=12.30)
     longitude: float = Field(ge=-86.45, le=-86.10)
